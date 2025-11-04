@@ -1,0 +1,172 @@
+@import "tailwindcss";
+
+:root {
+  --radius: 0.3rem;
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.141 0.005 285.823);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.141 0.005 285.823);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.141 0.005 285.823);
+  --primary: oklch(83.16% 0.106 345.45);
+  --primary-foreground: oklch(83.16% 0.106 345.45);
+  --secondary: oklch(0.967 0.001 286.375);
+  --secondary-foreground: oklch(0.21 0.006 285.885);
+  --muted: oklch(0.967 0.001 286.375);
+  --muted-foreground: oklch(0.552 0.016 285.938);
+  --accent: oklch(0.967 0.001 286.375);
+  --accent-foreground: oklch(0.21 0.006 285.885);
+  --destructive: oklch(0.577 0.245 27.325);
+  --border: oklch(0.92 0.004 286.32);
+  --input: oklch(0.92 0.004 286.32);
+  --ring: oklch(83.16% 0.106 345.45);
+  --chart-1: oklch(0.646 0.222 41.116);
+  --chart-2: oklch(0.6 0.118 184.704);
+  --chart-3: oklch(0.398 0.07 227.392);
+  --chart-4: oklch(0.828 0.189 84.429);
+  --chart-5: oklch(0.769 0.188 70.08);
+  --sidebar: oklch(0.985 0 0);
+  --sidebar-foreground: oklch(0.141 0.005 285.823);
+  --sidebar-primary: oklch(0.623 0.214 259.815);
+  --sidebar-primary-foreground: oklch(0.97 0.014 254.604);
+  --sidebar-accent: oklch(0.967 0.001 286.375);
+  --sidebar-accent-foreground: oklch(0.21 0.006 285.885);
+  --sidebar-border: oklch(0.92 0.004 286.32);
+  --sidebar-ring: oklch(0.623 0.214 259.815);
+}
+
+.dark {
+  --background: oklch(0.141 0.005 285.823);
+  --foreground: oklch(0.985 0 0);
+  --card: oklch(0.21 0.006 285.885);
+  --card-foreground: oklch(0.985 0 0);
+  --popover: oklch(0.21 0.006 285.885);
+  --popover-foreground: oklch(0.985 0 0);
+  --primary: rgb(250, 172, 215);
+  --primary-foreground: rgb(250, 172, 215);
+  --secondary: oklch(0.274 0.006 286.033);
+  --secondary-foreground: oklch(0.985 0 0);
+  --muted: oklch(0.274 0.006 286.033);
+  --muted-foreground: oklch(0.705 0.015 286.067);
+  --accent: oklch(0.274 0.006 286.033);
+  --accent-foreground: oklch(0.985 0 0);
+  --destructive: oklch(0.704 0.191 22.216);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.488 0.243 264.376);
+  --chart-1: oklch(0.488 0.243 264.376);
+  --chart-2: oklch(0.696 0.17 162.48);
+  --chart-3: oklch(0.769 0.188 70.08);
+  --chart-4: oklch(0.627 0.265 303.9);
+  --chart-5: oklch(0.645 0.246 16.439);
+  --sidebar: oklch(0.21 0.006 285.885);
+  --sidebar-foreground: oklch(0.985 0 0);
+  --sidebar-primary: oklch(0.546 0.245 262.881);
+  --sidebar-primary-foreground: oklch(0.379 0.146 265.522);
+  --sidebar-accent: oklch(0.274 0.006 286.033);
+  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-ring: oklch(0.488 0.243 264.376);
+}
+
+@font-face {
+  font-family: "LeagueSpartan";
+  display: swap;
+  src: url("./fonts/LeagueSpartan-VariableFont_wght.ttf");
+}
+
+@font-face {
+  font-family: "NunitoSans";
+  display: swap;
+  src: url("./fonts/NunitoSans-VariableFont_YTLC.ttf");
+}
+
+@font-face {
+  font-family: "PetitFormalScript";
+  display: swap;
+  src: url("./fonts/Allura-Regular.ttf");
+}
+
+@keyframes fade-in-scale {
+  0% {
+    max-height: 0;
+    opacity: 0;
+    overflow: hidden;
+  }
+  100% {
+    opacity: 1;
+    max-height: 500px; /* Set a large enough value */
+    overflow: hidden;
+  }
+}
+
+.fade-in-scale {
+  animation: fade-in-scale 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden; /* Ensure content doesn't overflow during animation */
+}
+
+@keyframes product-fade-in {
+  0% {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.fade-in-product {
+  animation: product-fade-in 0.5s ease-in-out;
+}
+
+.font-petitFormalScript {
+  font-family: "PetitFormalScript", sans-serif !important;
+}
+
+p {
+  font-family: "LeagueSpartan", sans-serif;
+  font-size: 14px !important;
+  font-weight: 400;
+  line-height: 1.5;
+  letter-spacing: 0.08em;
+}
+
+div,
+span,
+a,
+button,
+input,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: "LeagueSpartan", sans-serif;
+}
+
+h1 {
+  font-size: 2rem !important;
+  font-weight: 700;
+  margin: 0;
+}
+
+h2 {
+  font-size: 1.5rem !important;
+  font-weight: 700;
+  margin: 0;
+}
+
+h3 {
+  font-size: 1.2rem !important;
+  font-weight: 700;
+  margin: 0;
+}
+
+h4 {
+  font-size: 1.1rem !important;
+  font-weight: 700;
+  margin: 0;
+}
