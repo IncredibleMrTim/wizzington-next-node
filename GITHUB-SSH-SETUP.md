@@ -21,10 +21,12 @@ ssh-keygen -t ed25519 -C "github-actions-deploy" -f ~/.ssh/github-actions -N ""
 ```
 
 This creates:
+
 - Private key: `~/.ssh/github-actions`
 - Public key: `~/.ssh/github-actions.pub`
 
 **Explanation:**
+
 - `-t ed25519` - Uses modern Ed25519 algorithm (more secure)
 - `-C "github-actions-deploy"` - Adds a comment to identify the key
 - `-f ~/.ssh/github-actions` - Specifies the filename
@@ -53,11 +55,13 @@ cat ~/.ssh/github-actions
 ```
 
 **IMPORTANT:** Copy the **entire output**, including the lines:
-```
+
+```text
 -----BEGIN OPENSSH PRIVATE KEY-----
 ...
 -----END OPENSSH PRIVATE KEY-----
 ```
+
 
 ## Step 5: Set Correct Permissions
 
@@ -116,18 +120,21 @@ While you're in the Secrets page, add these additional secrets:
 ### How to Add Each Secret
 
 For each secret above:
+
 1. Click **"New repository secret"**
 2. Enter the **Name** exactly as shown
 3. Enter the **Secret** value
 4. Click **"Add secret"**
 
+
 ## Step 9: Verify Setup
 
 Check that all secrets are added:
 
-```
+```text
 https://github.com/IncredibleMrTim/wizzington-next-node/settings/secrets/actions
 ```
+
 
 You should see all 10 secrets listed.
 
@@ -165,18 +172,22 @@ git push origin main
 **Problem:** GitHub Actions can't connect to VPS
 
 **Solutions:**
+
 1. Verify the private key is exactly as copied (including BEGIN/END lines)
 2. Check public key is in `~/.ssh/authorized_keys` on VPS
 3. Verify permissions (Step 5)
 4. Ensure SSH is running on VPS: `systemctl status sshd`
 
+
 ### SSH Key Format Issues
 
 If you get "invalid format" errors, make sure:
+
 - You copied the **private key** (not the public key)
 - You included the `-----BEGIN OPENSSH PRIVATE KEY-----` line
 - You included the `-----END OPENSSH PRIVATE KEY-----` line
 - No extra spaces or line breaks were added
+
 
 ### Testing SSH Connection from GitHub Actions
 
@@ -203,21 +214,25 @@ rm /tmp/test_key
 **Problem:** Push to main but no deployment runs
 
 **Solutions:**
+
 1. Check repository settings: Settings → Actions → General
 2. Ensure "Allow all actions and reusable workflows" is selected
 3. Verify you pushed to `main` branch (not `master` or other)
 4. Check the workflow file exists: `.github/workflows/deploy.yml`
+
 
 ### Deployment Succeeds but Site Doesn't Update
 
 **Problem:** Green checkmark but no changes visible
 
 **Solutions:**
+
 1. SSH to VPS: `ssh root@YOUR_VPS_IP`
 2. Check PM2 status: `pm2 status`
 3. Check logs: `pm2 logs`
 4. Verify files updated: `cd /var/www/wizz-app && git log -1`
 5. Restart manually: `pm2 restart all`
+
 
 ## Security Best Practices
 
@@ -244,8 +259,10 @@ rm ~/.ssh/github-actions.pub
 ```
 
 On GitHub:
+
 1. Go to repository secrets
 2. Click the trash icon next to `SSH_PRIVATE_KEY`
+
 
 ## Next Steps
 
@@ -280,4 +297,4 @@ chmod 700 ~/.ssh
 
 - Full deployment guide: [DEPLOYMENT.md](./DEPLOYMENT.md)
 - Quick start: [CI-CD-QUICKSTART.md](./CI-CD-QUICKSTART.md)
-- GitHub Actions docs: https://docs.github.com/en/actions
+- GitHub Actions docs: <https://docs.github.com/en/actions>
