@@ -103,3 +103,4 @@ sudo bash /var/www/wizz-app/scripts/deploy.sh
 ```bash
 yarn build  # Make sure build works
 ```
+# Test CI/CD
