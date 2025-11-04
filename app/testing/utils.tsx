@@ -1,41 +1,20 @@
-import { configureStore } from "@reduxjs/toolkit";
-
-import { ReducersMapObject } from "@reduxjs/toolkit";
-import { Provider } from "react-redux";
 import { QueryClientProvider, QueryClient } from "@tanstack/react-query";
-
-export interface StoreProps {
-  preloadedState?: object;
-  reducer?: ReducersMapObject;
-}
-
-const createMockStore = ({ preloadedState, reducer }: StoreProps) => {
-  return 
-};
-
-export const setupStore = ({ preloadedState, reducer }: StoreProps) =>
-  configureStore({
-    reducer,
-    preloadedState,
-  });
+import { ReactNode } from "react";
 
 export const renderWithProviders = ({
-  preloadedState,
-  reducer,
   children,
 }: {
-  preloadedState?: object;
-  reducer?: ReducersMapObject;
-
-  children?: any;
+  children?: ReactNode;
 }) => {
-  const queryClient = new QueryClient();
-
-  const store = setupStore({ reducer, preloadedState });
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: {
+        retry: false,
+      },
+    },
+  });
 
   return (
-    <Provider store={store}>
-      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
-    </Provider>
+    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
   );
 };

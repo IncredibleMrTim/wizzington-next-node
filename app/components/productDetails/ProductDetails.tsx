@@ -1,9 +1,8 @@
 "use client";
 
-import { Schema } from "amplify/data/resource";
 import omit from "lodash/omit";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useMemo, useState } from "react";
 import { PiBasket } from "react-icons/pi";
 import { ZodError } from "zod";
 
@@ -17,7 +16,7 @@ import {
 } from "@/components/productFields/ProductField";
 import { Button } from "@/components/ui/button";
 import { useAddOrderMutation } from "@/services/order/useAddOrderMutation";
-import { STORE_KEYS, useAppDispatch, useAppSelector } from "@/stores/store";
+import { useProductStore, useOrderStore } from "@/stores";
 import { sendEmail } from "@/utils/email";
 
 import { fields } from "./fields";
@@ -35,7 +34,7 @@ import {
 } from "@/components/ui/form";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import e from "express";
+import { Order, OrderProduct } from "@/lib/types";
 
 export const enquiryFieldSchema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -48,22 +47,21 @@ const requiredFieldNames = fields
   .map((f) => Object.keys(f)[0]);
 
 export const ProductDetails = () => {
-  const dispatch = useAppDispatch();
   const addOrderMutation = useAddOrderMutation();
   const router = useRouter();
   // States
-  const [isValidOrderProduct, setIsValidOrderProduct] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<
     Record<string, ZodError | null>
   >({});
   const [productDetails, setProductDetails] = useState<Record<string, unknown>>(
     {}
   );
-  const [actionType, setActionType] = useState<"purchase" | "basket">(null);
+  const [actionType, setActionType] = useState<"purchase" | "basket" | null>(
+    null
+  );
   const [enquiryDetails, setEnquiryDetails] = useState<Record<string, unknown>>(
     {}
   );
-  const [enquiryValid, setEnquiryValid] = useState(false);
   const [enquiryEmailSent, setEnquiryEmailSent] = useState(false);
 
   const form = useForm({
@@ -78,56 +76,50 @@ export const ProductDetails = () => {
 
   // Selectors
 
-  const clearCurrentOrder = useAppSelector(
-    (state) => state.order.clearCurrentOrder
-  );
-  const currentProduct = useAppSelector(
-    (state) => state.products.currentProduct
-  );
-  const currentOrder = useAppSelector((state) => state.order.currentOrder);
+  const clearCurrentOrder = useOrderStore((state) => state.clearCurrentOrder);
+  const currentProduct = useProductStore((state) => state.currentProduct);
+  const currentOrder = useOrderStore((state) => state.currentOrder);
   const currentOrderProduct = currentOrder?.products.find(
     (product) => product.productId === currentProduct?.id
   );
+  const setCurrentOrder = useOrderStore((state) => state.setCurrentOrder);
+  const updateOrderProduct = useOrderStore((state) => state.updateOrderProduct);
 
   // check if the order is valid before we show the PayPal button
-  useEffect(() => {
-    setIsValidOrderProduct(
+  const isValidOrderProduct = useMemo(
+    () =>
       Object.keys(omit(productDetails, "productId")).length >=
         requiredFieldNames.length &&
-        Object.values(fieldErrors).every((error) => error === null)
-    );
-  }, [productDetails, fieldErrors]);
+      Object.values(fieldErrors).every((error) => error === null),
+    [productDetails, fieldErrors]
+  );
 
-  useEffect(() => {
-    if (form.formState.errors) {
-      setEnquiryValid(false);
-    } else {
-      setEnquiryValid(true);
-    }
-  }, [enquiryDetails, enquiryValid]);
+  const enquiryValid = useMemo(
+    () => Object.keys(form.formState.errors).length === 0,
+    [form.formState.errors]
+  );
 
   const addProductToOrder = () => {
     // If there is no order, create a new one
 
     if (!currentOrder) {
-      dispatch({
-        type: STORE_KEYS.SET_CURRENT_ORDER,
-        payload: {
-          products: [],
-        } as Schema["Order"]["type"],
-      });
+      setCurrentOrder({
+        id: crypto.randomUUID(),
+        products: [],
+      } as Order);
     }
 
     // Add or update the product in the order
-    dispatch({
-      type: STORE_KEYS.UPDATE_ORDER_PRODUCT,
-      payload: {
-        productId: currentProduct?.id || "",
-        name: currentProduct?.name || "",
-        uid: crypto.randomUUID(),
-        price: currentProduct?.price || 0,
-        updates: productDetails,
-      } as Schema["OrderProduct"]["type"],
+    updateOrderProduct({
+      productId: currentProduct?.id || "",
+      name: currentProduct?.name || "",
+      uid: crypto.randomUUID(),
+      price: currentProduct?.price || 0,
+      updates: {
+        id: crypto.randomUUID(),
+        quantity: 1,
+        ...productDetails,
+      },
     });
   };
   /*
@@ -135,32 +127,46 @@ export const ProductDetails = () => {
    * @param orderDetails - The details of the order response from PayPal
    */
   const handleSuccess = async (orderDetails: OrderResponseBody) => {
-    const newOrder = {
-      id: orderDetails.id,
+    const newOrder: Order = {
+      id: orderDetails.id || crypto.randomUUID(),
       products: [
         {
+          id: crypto.randomUUID(),
           productId: currentProduct?.id || "",
           name: currentProduct?.name || "",
           quantity: currentOrderProduct?.quantity || 1,
+          price: currentProduct?.price || 0,
+          uid: crypto.randomUUID(),
           ...productDetails,
-        },
+        } as OrderProduct,
       ],
-      totalAmount: currentProduct?.price || 0,
-      status: "Pending", // This can be updated based on your business logic
-    } as Schema["Order"]["type"];
+      total_amount: currentProduct?.price || 0,
+      status: "Pending",
+    };
 
-    if (isValidOrderProduct) {
+    if (isValidOrderProduct && currentOrder) {
       addOrderMutation.mutateAsync({
-        ...currentOrder,
+        customer_name: currentOrder.customer_name ?? undefined,
+        customer_email: currentOrder.customer_email ?? undefined,
+        customer_phone: currentOrder.customer_phone ?? undefined,
+        notes: currentOrder.notes ?? undefined,
+        products: currentOrder.products.map((p) => ({
+          productId: p.productId,
+          name: p.name,
+          quantity: p.quantity,
+          price: p.price,
+        })),
       });
 
       setActionType("purchase");
 
-      await sendEmail({
-        to: process.env.SMTP_EMAIL,
-        subject: "New Order Received",
-        html: OrderEmailTemplate(orderDetails, newOrder),
-      });
+      if (process.env.SMTP_EMAIL) {
+        await sendEmail({
+          to: process.env.SMTP_EMAIL,
+          subject: "New Order Received",
+          html: OrderEmailTemplate(orderDetails, newOrder),
+        });
+      }
     }
   };
 
@@ -197,16 +203,24 @@ export const ProductDetails = () => {
   };
 
   const handleEnquiry = () => {
-    if (Object.keys(form.formState.errors).length < 1) {
+    if (
+      Object.keys(form.formState.errors).length < 1 &&
+      process.env.SMTP_EMAIL &&
+      currentProduct
+    ) {
       sendEmail({
         to: process.env.SMTP_EMAIL,
         subject: "Product Enquiry",
         html: EnquiryEmailTemplate({
-          name: form.getValues().name,
-          email: form.getValues().email,
-          phone: form.getValues().phone,
+          name: form.getValues().name || "",
+          email: form.getValues().email || "",
+          phone: form.getValues().phone || "",
           product: currentProduct,
-          order: productDetails as Schema["Order"]["type"],
+          order: {
+            id: crypto.randomUUID(),
+            products: [],
+            ...productDetails,
+          } as Order,
         }),
       });
       setEnquiryEmailSent(true);
@@ -238,13 +252,13 @@ export const ProductDetails = () => {
           );
         })}
       </div>
-      {!currentProduct.isEnquiryOnly ? (
+      {!currentProduct?.isEnquiryOnly ? (
         <div className="flex flex-row w-full items-center gap-4">
           {actionType !== "purchase" && actionType !== "basket" ? (
             <div className="flex gap-4 w-full h-full">
               <Button
                 disabled={!isValidOrderProduct || !productDetails}
-                onClick={(e) => {
+                onClick={() => {
                   if (!currentProduct) {
                     alert("Product is not available");
                   } else {
@@ -261,7 +275,11 @@ export const ProductDetails = () => {
                 <div className="bg-gray-200 w-[1px] h-[40%]" />
 
                 <span
-                  className={`${!isValidOrderProduct || !productDetails ? "text-gray-400" : "text-black"}`}
+                  className={`${
+                    !isValidOrderProduct || !productDetails
+                      ? "text-gray-400"
+                      : "text-black"
+                  }`}
                 >
                   or
                 </span>
@@ -289,7 +307,9 @@ export const ProductDetails = () => {
               <Button
                 onClick={() => {
                   router.push("/");
-                  clearCurrentOrder();
+                  if (clearCurrentOrder) {
+                    clearCurrentOrder();
+                  }
                 }}
               >
                 Continue Shopping
@@ -317,7 +337,11 @@ export const ProductDetails = () => {
                             <Input
                               {...field}
                               placeholder="Contact Name"
-                              className={`${form.formState.errors.name ? "border-pink-300" : ""}`}
+                              className={`${
+                                form.formState.errors.name
+                                  ? "border-pink-300"
+                                  : ""
+                              }`}
                             />
                           </FormControl>
                         </FormItem>
@@ -335,7 +359,11 @@ export const ProductDetails = () => {
                               type="email"
                               {...field}
                               placeholder="Email Address"
-                              className={`${form.formState.errors.email ? "border-pink-300" : ""}`}
+                              className={`${
+                                form.formState.errors.email
+                                  ? "border-pink-300"
+                                  : ""
+                              }`}
                             />
                           </FormControl>
                           <FormMessage />

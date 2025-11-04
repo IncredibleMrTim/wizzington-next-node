@@ -4,24 +4,30 @@ import PayPalButton, {
 } from "@/components/payPal/payPalButton/PayPalButton";
 import PayPalProvider from "@/components/payPal/payPalProvider/PayPalProvider";
 import { OrderEmailTemplate } from "@/components/emailTemplates/orderEmailTemplate";
-import { useAppSelector } from "@/stores/store";
 import { sendEmail } from "@/utils/email";
+import { useOrderStore, useProductStore } from "@/stores";
+import { Order } from "@/lib/types";
 
 const BasketPage = () => {
-  const currentOrder = useAppSelector((state) => state.order.currentOrder);
-  const totalCost = useAppSelector((state) => state.order.totalCost);
-  const allProducts = useAppSelector((state) => state.products.allProducts);
+  const currentOrder = useOrderStore((state) => state.currentOrder);
+  const totalCost = useOrderStore((state) => state.totalCost);
+  const allProducts = useProductStore((state) => state.allProducts);
 
   /*
    * Handle successful PayPal payment
    * @param orderDetails - The details of the order response from PayPal
    */
   const handleSuccess = async (orderDetails: OrderResponseBody) => {
-    await sendEmail({
-      to: process.env.SMTP_EMAIL,
-      subject: "New Order Received",
-      html: OrderEmailTemplate(orderDetails, currentOrder),
-    });
+    if (process.env.SMTP_EMAIL) {
+      await sendEmail({
+        to: process.env.SMTP_EMAIL,
+        subject: "New Order Received",
+        html: OrderEmailTemplate(
+          orderDetails,
+          currentOrder as unknown as Order
+        ),
+      });
+    }
   };
 
   return (
@@ -30,8 +36,8 @@ const BasketPage = () => {
       <main className="flex flex-col flex-grow p-4 gap-4">
         <h1 className="text-2xl font-bold mb-4">Basket</h1>
         <p>
-          Review your order below. If you are happy with your order, click the
-          "Checkout" button to proceed.
+          {`Review your order below. If you are happy with your order, click the
+          "Checkout" button to proceed.`}
         </p>
         <p>
           Vivamus eu turpis luctus, rutrum ex non, ultrices dolor. Nullam sem
@@ -67,7 +73,7 @@ const BasketPage = () => {
 
             <PayPalProvider>
               <PayPalButton
-                amount={totalCost?.toString()}
+                amount={totalCost?.toString() || ""}
                 onSuccess={handleSuccess}
               />
             </PayPalProvider>

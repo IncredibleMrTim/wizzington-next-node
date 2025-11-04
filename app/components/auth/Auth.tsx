@@ -1,7 +1,7 @@
 "use client";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
-import { useAuthStore } from "@/app/stores/auth/useAuthStore";
+import { useAuthStore, User } from "@/app/stores/auth/useAuthStore";
 import { useSession } from "next-auth/react";
 
 const CheckAuth = () => {
@@ -16,7 +16,7 @@ const CheckAuth = () => {
         router.push("/");
       }
 
-      setCurrentUser(userData);
+      setCurrentUser(userData as unknown as User);
     }
 
     checkAuth();

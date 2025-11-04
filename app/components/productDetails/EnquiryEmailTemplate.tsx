@@ -1,14 +1,14 @@
 "use client";
 
-import { Schema } from "amplify/data/resource";
+import { Order, Product } from "@/lib/types";
 import ReactDOMServer from "react-dom/server";
 
 export interface EnquiryEmailTemplateProps {
   name: string;
   email: string;
   phone: string;
-  product: Schema["Product"]["type"];
-  order: Schema["Order"]["type"];
+  product: Product;
+  order: Order;
 }
 
 export const EnquiryEmailTemplate = ({
@@ -22,7 +22,7 @@ export const EnquiryEmailTemplate = ({
 
   const emailHtml = (
     <div style={{ padding: "4px" }}>
-      <p>Hey Wizzington Moo's UK Admin</p>
+      <p>Hey Wizzington Moos UK Admin</p>
       <p>
         <p>
           <i>You have a new enquiry:</i>

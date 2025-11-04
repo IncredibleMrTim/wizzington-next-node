@@ -1,5 +1,6 @@
+import { Product } from "@/lib/types";
 import { CellContext, ColumnDef } from "@tanstack/react-table";
-import { Schema } from "amplify/data/resource";
+
 import Link from "next/link";
 import {
   FiEdit,
@@ -21,7 +22,7 @@ export type CustomCellContext<TData, TValue> = CellContext<TData, TValue> & {
   }: ProductListCustomCellContextProps) => void; // Add the onClick handler type
 };
 
-export const columns: ColumnDef<Schema["Product"]["type"]>[] = [
+export const columns: ColumnDef<Product>[] = [
   {
     accessorKey: "id",
     header: "id",
@@ -118,10 +119,7 @@ export const columns: ColumnDef<Schema["Product"]["type"]>[] = [
     accessorKey: "edit/view",
     header: "Edit/View",
     size: 20, // Explicit size
-    cell: ({
-      row,
-      onClick,
-    }: CustomCellContext<Schema["Product"]["type"], unknown>) => {
+    cell: ({ row, onClick }: CustomCellContext<Product, unknown>) => {
       return (
         <div className="flex gap-4 items-center">
           <Link

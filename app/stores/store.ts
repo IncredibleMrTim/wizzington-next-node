@@ -3,8 +3,6 @@ import { configureStore, EnhancedStore } from "@reduxjs/toolkit";
 import { useDispatch, TypedUseSelectorHook, useSelector } from "react-redux";
 import { navReducer } from "./navigation/navSlice";
 
-import { orderReducer } from "./order/orderSlice";
-
 export const STORE_KEYS = {
   SET_PRODUCTS: "PRODUCTS/setProducts",
   SET_CURRENT_PRODUCT: "PRODUCTS/setCurrentProduct",
@@ -22,8 +20,6 @@ export const STORE_KEYS = {
 export const store = configureStore({
   reducer: {
     nav: navReducer,
-
-    order: orderReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({ serializableCheck: false }),

@@ -1,5 +1,5 @@
 import { OrderResponseBody } from "@/components/payPal/payPalButton/PayPalButton";
-import { Schema } from "amplify/data/resource";
+
 import ReactDOMServer from "react-dom/server";
 import {
   Table,
@@ -10,19 +10,16 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Order } from "@/lib/types";
 
-export const OrderEmailTemplate = (
-  props: OrderResponseBody,
-  order: Schema["Order"]["type"]
-) => {
-  const {
-    payer: { name, email_address: from },
-  } = props;
+export const OrderEmailTemplate = (props: OrderResponseBody, order: Order) => {
+  const name = props.payer?.name;
+  const from = props.payer?.email_address;
   const temp = document.createElement("div");
 
   const emailHtml = (
     <div>
-      <p>Hey Wizzington Moo's Boutique Admin</p>
+      <p>Hey Wizzington Moos Boutique Admin</p>
       <p>
         You have a new order from:
         <strong>

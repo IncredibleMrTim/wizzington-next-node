@@ -20,7 +20,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { useGetProductQuery } from "@/app/services/product/useGetProductQuery";
+import { useGetProductsQuery } from "@/app/services/product/useGetProductsQuery";
 import { useProductStore } from "@/stores/product/useProductStore";
 
 import {
@@ -34,7 +34,7 @@ import { useRouter } from "next/navigation";
 import { Product } from "@/lib/types";
 
 const ProductList = () => {
-  const { data: allProducts } = useGetProductQuery();
+  const { data: allProducts } = useGetProductsQuery();
   const { setCurrentProduct, setProducts } = useProductStore();
 
   const router = useRouter();

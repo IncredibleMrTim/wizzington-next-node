@@ -1,12 +1,13 @@
-import { Schema } from "amplify/data/resource";
-import { useParams, useRouter, useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useMemo } from "react";
 
+import { Product, ProductImage } from "@/lib/types";
 import { ProductQueryKeys } from "@/services/product/keys";
 import { useAddProductMutation } from "@/services/product/useAddProductMutation";
 import { useGetProductQuery } from "@/services/product/useGetProductQuery";
 import { useUpdateProductMutation } from "@/services/product/useUpdateProductMutation";
-import { STORE_KEYS, useAppDispatch, useAppSelector } from "@/stores/store";
+import { useProductStore } from "@/stores";
+import { STORE_KEYS, useAppDispatch } from "@/stores/store";
 import { useQueryClient } from "@tanstack/react-query";
 
 export const useProductEditor = () => {
@@ -20,7 +21,7 @@ export const useProductEditor = () => {
   const queryClient = useQueryClient();
 
   // Get the current product from the store if available
-  const currentProduct = useAppSelector((s) => s.products.currentProduct);
+  const currentProduct = useProductStore((state) => state.currentProduct);
 
   // get the product from the backend if productId is available
   // this allow the user to refresh the page and still get the product
@@ -39,10 +40,10 @@ export const useProductEditor = () => {
    * @param images - The new images to set for the product
    */
   const updateImages = useCallback(
-    (images: Schema["Product"]["type"]["images"]) => {
+    (images: ProductImage[]) => {
       dispatch({ type: STORE_KEYS.UPDATE_PRODUCT_IMAGES, payload: images });
     },
-    [product, dispatch]
+    [dispatch]
   );
 
   /* Saves the product, either creating a new one or updating an existing one
@@ -50,23 +51,38 @@ export const useProductEditor = () => {
    * @returns A promise that resolves when the product is saved
    */
   const save = useCallback(
-    async (values: Schema["Product"]["type"]): Promise<void> => {
-      let newProduct: Schema["Product"]["type"];
+    async (values: Product): Promise<void> => {
+      let newProduct: Product | null;
 
-      if (productIdSearchParam) {
+      if (productIdSearchParam && product) {
         // If product exists, update it
         newProduct = await updateMutation.mutateAsync({
-          ...product,
-          ...values,
+          id: product.id,
+          name: values.name,
+          description: values.description ?? undefined,
+          price: values.price,
+          stock: values.stock,
+          isFeatured: values.isFeatured,
+          isEnquiryOnly: values.isEnquiryOnly,
+          category: values.category ?? undefined,
+          images: values.images?.map((img) => ({ url: img.url, order: img.order })),
         });
       } else {
         // If product does not exist, create a new one
         newProduct = await addMutation.mutateAsync({
-          ...values,
-          updatedAt: new Date().toISOString(),
-          createdAt: new Date().toISOString(),
-          id: values.id || crypto.randomUUID(),
-        } as Schema["Product"]["type"]);
+          name: values.name,
+          description: values.description ?? undefined,
+          price: values.price,
+          stock: values.stock,
+          isFeatured: values.isFeatured,
+          isEnquiryOnly: values.isEnquiryOnly,
+          category: values.category ?? undefined,
+          images: values.images?.map((img) => ({ url: img.url, order: img.order })),
+        });
+      }
+
+      if (!newProduct) {
+        throw new Error("Failed to save product");
       }
 
       // update allProducts with the new or updated product
@@ -88,7 +104,7 @@ export const useProductEditor = () => {
 
       router.push("/admin");
     },
-    [product, addMutation, updateMutation, dispatch, queryClient, router]
+    [productIdSearchParam, product, addMutation, updateMutation, dispatch, queryClient, router]
   );
 
   return {

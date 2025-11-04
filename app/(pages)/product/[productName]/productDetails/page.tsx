@@ -1,7 +1,7 @@
 "use client";
 
 import omit from "lodash/omit";
-import { useEffect, useState } from "react";
+import { useMemo, useState } from "react";
 import { ZodError } from "zod";
 
 import PayPalButton, {
@@ -9,7 +9,12 @@ import PayPalButton, {
 } from "@/components/payPal/payPalButton/PayPalButton";
 import PayPalProvider from "@/components/payPal/payPalProvider/PayPalProvider";
 import { useAddOrderMutation } from "@/services/order/useAddOrderMutation";
-import { STORE_KEYS, useAppDispatch, useAppSelector, RootState } from "@/stores/store";
+import {
+  STORE_KEYS,
+  useAppDispatch,
+  useAppSelector,
+  RootState,
+} from "@/stores/store";
 import { sendEmail } from "@/utils/email";
 
 import { fields } from "./fields";
@@ -19,39 +24,39 @@ import {
   ProductField,
 } from "@/components/productFields/ProductField";
 import { Order, OrderProduct } from "@/lib/types";
+import { useProductStore, useOrderStore } from "@/stores";
 
 const requiredFieldNames = fields
   .filter((f) => Object.values(f)[0].required)
   .map((f) => Object.keys(f)[0]);
 
 const SpecificationPage = () => {
-  const dispatch = useAppDispatch();
   const addOrderMutation = useAddOrderMutation();
 
   // States
-  const [isValidOrderProduct, setIsValidOrderProduct] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<{
     [key: string]: ZodError | null;
   }>({});
 
   // Selectors
 
-  const currentProduct = useAppSelector(
-    (state: RootState) => state.products.currentProduct
-  );
-  const currentOrder = useAppSelector((state: RootState) => state.order.currentOrder);
+  const currentProduct = useProductStore((state) => state.currentProduct);
+  const currentOrder = useOrderStore((state) => state.currentOrder);
+  const setCurrentOrder = useOrderStore((state) => state.setCurrentOrder);
+  const updateOrderProduct = useOrderStore((state) => state.updateOrderProduct);
+
   const currentOrderProduct = currentOrder?.products.find(
     (product: OrderProduct) => product.productId === currentProduct?.id
   );
 
   // check if the order is valid before we show the PayPal button
-  useEffect(() => {
-    setIsValidOrderProduct(
+  const isValidOrderProduct = useMemo(
+    () =>
       Object.keys(omit(currentOrderProduct, "productId")).length >=
         requiredFieldNames.length &&
-        Object.values(fieldErrors).every((error) => error === null)
-    );
-  }, [currentOrder, fieldErrors]);
+      Object.values(fieldErrors).every((error) => error === null),
+    [currentOrderProduct, fieldErrors]
+  );
 
   /*
    * Handle successful PayPal payment
@@ -101,26 +106,17 @@ const SpecificationPage = () => {
 
     // If there is no order, create a new one
     if (!currentOrder) {
-      dispatch({
-        type: STORE_KEYS.SET_CURRENT_ORDER,
-        payload: {
-          id: crypto.randomUUID(),
-          products: [],
-        } as Order,
-      });
+      setCurrentOrder({ id: crypto.randomUUID(), products: [] });
     }
 
     // Add or update the product in the order
     const parsedValue = parseInt(value.toString(), 10);
-    dispatch({
-      type: STORE_KEYS.UPDATE_ORDER_PRODUCT,
-      payload: {
-        productId: currentProduct?.id || "",
-        name: currentProduct?.name || "",
-        uid: currentOrderProduct?.uid || crypto.randomUUID(),
-        price: currentProduct?.price || 0,
-        updates: { [fieldName]: isNaN(parsedValue) ? value : parsedValue },
-      },
+    updateOrderProduct({
+      productId: currentProduct?.id || "",
+      name: currentProduct?.name || "",
+      uid: currentOrderProduct?.uid || crypto.randomUUID(),
+      price: currentProduct?.price || 0,
+      updates: { [fieldName]: isNaN(parsedValue) ? value : parsedValue },
     });
 
     return false;

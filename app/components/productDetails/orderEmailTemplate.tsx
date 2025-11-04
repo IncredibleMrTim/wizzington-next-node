@@ -1,15 +1,12 @@
 "use client";
 import { OrderResponseBody } from "@/components/payPal/payPalButton/PayPalButton";
-import { Schema } from "amplify/data/resource";
+import { Order } from "@/lib/types";
+
 import ReactDOMServer from "react-dom/server";
 
-export const OrderEmailTemplate = (
-  props: OrderResponseBody,
-  order: Schema["Order"]["type"]
-) => {
-  const {
-    payer: { name, email_address: from },
-  } = props;
+export const OrderEmailTemplate = (props: OrderResponseBody, order: Order) => {
+  const name = props.payer?.name;
+  const from = props.payer?.email_address;
   const temp = document.createElement("div");
 
   const totalCost = order.products.reduce(

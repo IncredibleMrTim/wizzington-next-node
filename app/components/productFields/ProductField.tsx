@@ -80,9 +80,9 @@ export const ProductField = ({
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0 !bg-white">
               <Calendar
-                defaultMonth={null}
+                defaultMonth={undefined}
                 startMonth={offsetDate(7)}
-                selected={value ? new Date(value) : null}
+                selected={value ? new Date(value) : undefined}
                 mode="single"
                 disabled={(date: Date) => date < offsetDate(7)}
                 onSelect={(date: Date | undefined) => {
@@ -92,7 +92,10 @@ export const ProductField = ({
                     if (props.name) {
                       try {
                         z.object({
-                          [props.name]: fieldSchema.shape[props.name as keyof typeof fieldSchema.shape],
+                          [props.name]:
+                            fieldSchema.shape[
+                              props.name as keyof typeof fieldSchema.shape
+                            ],
                         }).parse({ [props.name]: date });
                         setError(null);
                         onValidation?.({
@@ -121,12 +124,17 @@ export const ProductField = ({
             key={props.label}
             maxLength={1000}
             placeholder={props.placeholderText}
-            className={`w-full h-32 border-gray-300 focus-visible:ring-transparent shadow-none ${props?.classes?.formItem || ""}`}
+            className={`w-full h-32 border-gray-300 focus-visible:ring-transparent shadow-none ${
+              props?.classes?.formItem || ""
+            }`}
             onBlur={(e) => {
               if (props.name) {
                 try {
                   z.object({
-                    [props.name]: fieldSchema.shape[props.name as keyof typeof fieldSchema.shape],
+                    [props.name]:
+                      fieldSchema.shape[
+                        props.name as keyof typeof fieldSchema.shape
+                      ],
                   }).parse({ [props.name]: e.target.value });
                   setError(null);
                   onValidation?.({
@@ -164,7 +172,10 @@ export const ProductField = ({
                 if (props.name) {
                   try {
                     z.object({
-                      [props.name]: fieldSchema.shape[props.name as keyof typeof fieldSchema.shape],
+                      [props.name]:
+                        fieldSchema.shape[
+                          props.name as keyof typeof fieldSchema.shape
+                        ],
                     }).parse({ [props.name]: e.target.value });
                     setError(null);
 

@@ -17,7 +17,7 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
 
   return (
     <div className="flex flex-col min-h-screen mt-12">
-      <main className="flex-grow p-4">{children}</main>
+      <main className="grow p-4">{children}</main>
     </div>
   );
 };

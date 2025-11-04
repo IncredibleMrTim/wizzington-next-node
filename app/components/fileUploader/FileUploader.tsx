@@ -10,7 +10,7 @@ interface FileUploaderProps {
   updateProductImageOrder: (key: string, order: number) => void;
 }
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 const MAX_FILES = 10;
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 
@@ -39,7 +39,7 @@ export const FileUploader = ({
     const filesToUpload = Array.from(files).slice(0, remainingSlots);
 
     // Validate file types and sizes
-    const validFiles = filesToUpload.filter(file => {
+    const validFiles = filesToUpload.filter((file) => {
       const isImage = file.type.match(/^image\/(jpeg|jpg|png|gif|webp)$/);
       const isValidSize = file.size <= MAX_FILE_SIZE;
 
@@ -60,29 +60,31 @@ export const FileUploader = ({
 
     try {
       const formData = new FormData();
-      validFiles.forEach(file => {
-        formData.append('files', file);
+      validFiles.forEach((file) => {
+        formData.append("files", file);
       });
 
       const response = await fetch(`${API_URL}/api/upload/multiple`, {
-        method: 'POST',
+        method: "POST",
         body: formData,
       });
 
       if (!response.ok) {
-        throw new Error('Upload failed');
+        throw new Error("Upload failed");
       }
 
       const result = await response.json();
-      const newImages = result.files.map((file: { filename: string }, index: number) => ({
-        url: file.filename,
-        order: currentImages.length + index
-      }));
+      const newImages = result.files.map(
+        (file: { filename: string }, index: number) => ({
+          url: file.filename,
+          order: currentImages.length + index,
+        })
+      );
 
       updateProductImages([...currentImages, ...newImages]);
     } catch (error) {
-      console.error('Upload error:', error);
-      alert('Failed to upload files. Please try again.');
+      console.error("Upload error:", error);
+      alert("Failed to upload files. Please try again.");
     } finally {
       setUploading(false);
     }
@@ -114,7 +116,7 @@ export const FileUploader = ({
       <div className="flex flex-col gap-2 w-1/2">
         <div
           className={`flex flex-col gap-4 justify-center items-center border-2 border-dashed rounded-md h-64 bg-white cursor-pointer transition-colors ${
-            isDragging ? 'border-blue-500 bg-blue-50' : 'border-gray-300'
+            isDragging ? "border-blue-500 bg-blue-50" : "border-gray-300"
           }`}
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
@@ -124,8 +126,8 @@ export const FileUploader = ({
           <FiUpload className="text-4xl text-gray-400" />
           <p className="text-sm text-gray-500 text-center px-4">
             {uploading
-              ? 'Uploading...'
-              : 'Drag and drop files here, or click to select files'}
+              ? "Uploading..."
+              : "Drag and drop files here, or click to select files"}
           </p>
           <p className="text-xs text-gray-400">
             Max {MAX_FILES} files, 5MB each (JPEG, PNG, GIF, WEBP)
@@ -144,7 +146,7 @@ export const FileUploader = ({
 
       {/* Image Preview List */}
       <div className="flex flex-col gap-2 w-1/2">
-        <div className="flex flex-wrap border-1 border-gray-300 bg-white h-64 p-2 overflow-scroll w-full">
+        <div className="flex flex-wrap border border-gray-300 bg-white h-64 p-2 overflow-scroll w-full">
           {product?.images &&
             [...product.images]
               ?.sort((a, b) => (a?.order ?? 0) - (b?.order ?? 0))
@@ -155,7 +157,7 @@ export const FileUploader = ({
                     className="flex flex-col bg-white w-1/5 items-center p-2"
                   >
                     <div
-                      className="flex border-1 border-gray-200 h-32 p-2 relative justify-center items-center"
+                      className="flex border border-gray-200 h-32 p-2 relative justify-center items-center"
                       draggable
                       onDragStart={() => {
                         dragKey.current = file?.url;
@@ -176,7 +178,7 @@ export const FileUploader = ({
                       />
 
                       <div
-                        className="ml-2 text-gray-300 hover:text-gray-400 !rounded-full !border-1 !absolute !-top-2 !-right-2 bg-white p-1 cursor-pointer"
+                        className="ml-2 text-gray-300 hover:text-gray-400 rounded-full! border! absolute! -top-2! -right-2! bg-white p-1 cursor-pointer"
                         onClick={() => {
                           updateProductImages(
                             Array.isArray(product?.images)

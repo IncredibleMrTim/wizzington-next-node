@@ -4,8 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FiEdit, FiShoppingCart } from "react-icons/fi";
 import { Product } from "@/lib/types";
-
-import { STORE_KEYS, useAppDispatch, useAppSelector } from "@/stores/store";
+import { useAuthStore, useProductStore } from "@/app/stores";
 
 interface ProductCardProps {
   product: Product;
@@ -24,8 +23,8 @@ const ProductCard = ({
   showImage = true,
   showPrice = true,
 }: ProductCardProps) => {
-  const currentUser = useAppSelector((state) => state.auth.currentUser);
-  const dispatch = useAppDispatch();
+  const currentUser = useAuthStore((state) => state.currentUser);
+  const setCurrentProduct = useProductStore((state) => state.setCurrentProduct);
   const router = useRouter();
 
   return (
@@ -45,10 +44,7 @@ const ProductCard = ({
               prefetch
               href={`/product/${product.name.replace(/\s+/g, "-")}`}
               onClick={() => {
-                dispatch({
-                  type: STORE_KEYS.SET_CURRENT_PRODUCT,
-                  payload: product,
-                });
+                setCurrentProduct(product);
               }}
             >
               <img
@@ -71,10 +67,7 @@ const ProductCard = ({
                     className="flex p-3 mb-1 ml-1 self-end rounded-full bg-pink-200 opacity-60 hover:opacity-90  hover:bg-pink-200 duration-300 transition-all cursor-pointer"
                     aria-label="Edit Product"
                     onClick={() => {
-                      dispatch({
-                        type: STORE_KEYS.SET_CURRENT_PRODUCT,
-                        payload: product,
-                      });
+                      setCurrentProduct(product);
                     }}
                   >
                     <FiEdit />

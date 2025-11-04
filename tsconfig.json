@@ -21,6 +21,7 @@
     "paths": {
       "@/*": ["./*"],
       "@/stores/*": ["./app/stores/*"],
+      "@/stores": ["./app/stores/index.ts"],
       "@/testing/*": ["./app/testing/*"],
       "@/services/*": ["./app/services/*"],
       "@/providers/*": ["./app/providers/*"],

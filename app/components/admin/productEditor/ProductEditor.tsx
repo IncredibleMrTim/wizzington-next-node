@@ -1,5 +1,4 @@
 "use client";
-import { Schema } from "amplify/data/resource";
 import { ChevronDown } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import { SubmitHandler, useForm } from "react-hook-form";
@@ -26,6 +25,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Product } from "@/lib/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 
 import { useProductEditor } from "./useProductEditor";
@@ -36,12 +36,12 @@ const formSchema = z.object({
     .string()
     .min(1, { message: "Description is required" })
     .optional(),
-  price: z.coerce
+  price: z
     .number()
     .min(0, { message: "Price must be a positive number" })
     .max(10000, { message: "Price must be less than 10000" })
     .optional(),
-  stock: z.coerce
+  stock: z
     .number()
     .min(0, { message: "Stock must be a positive number" })
     .max(10000, { message: "Stock must be less than 10000" })
@@ -58,11 +58,7 @@ export const ProductEditor = () => {
   const { product, isLoading, updateImages, save } = useProductEditor();
 
   const router = useRouter();
-  const form = useForm<
-    z.infer<typeof formSchema>,
-    any,
-    z.infer<typeof formSchema>
-  >({
+  const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     mode: "onBlur",
     values: {
@@ -78,7 +74,7 @@ export const ProductEditor = () => {
   });
 
   const updateProductImageOrder = (key: string, orderPosition: number) => {
-    if (!product || product.images?.length === 0) return product;
+    if (!product || !product.images || product.images.length === 0) return product;
 
     const images = [...product.images];
 
@@ -106,11 +102,17 @@ export const ProductEditor = () => {
     values
   ) => {
     console.log("here");
-    const payload: Schema["Product"]["type"] = {
-      ...product,
-      ...values,
-      images: product.images ?? [],
-      createdAt: product.createdAt ?? new Date().toISOString(),
+    const payload: Product = {
+      id: values.id || product?.id || crypto.randomUUID(),
+      name: values.name,
+      description: values.description ?? null,
+      price: values.price,
+      stock: values.stock,
+      isFeatured: values.isFeatured,
+      isEnquiryOnly: values.isEnquiryOnly,
+      category: values.category ?? null,
+      images: product?.images ?? [],
+      createdAt: product?.createdAt ?? new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
     await save(payload);
@@ -302,7 +304,11 @@ export const ProductEditor = () => {
                               field.onChange(checked === true);
                             }}
                             disabled={field.disabled}
-                            className={`h-4 w-4 bg-white border-gray-500 ${form.getValues("isFeatured") === true ? "bg-pink-500 border-pink-500 text-white" : ""}`}
+                            className={`h-4 w-4 bg-white border-gray-500 ${
+                              form.getValues("isFeatured") === true
+                                ? "bg-pink-500 border-pink-500 text-white"
+                                : ""
+                            }`}
                           />
                         </div>
                       </FormControl>
@@ -330,7 +336,11 @@ export const ProductEditor = () => {
                             Check this box to mark the product as Enquiry Only.
                           </p>
                           <Checkbox
-                            className={`h-4 w-4 bg-white border-gray-500 ${form.getValues("isEnquiryOnly") === true ? "bg-pink-500 border-pink-500 text-white" : ""}`}
+                            className={`h-4 w-4 bg-white border-gray-500 ${
+                              form.getValues("isEnquiryOnly") === true
+                                ? "bg-pink-500 border-pink-500 text-white"
+                                : ""
+                            }`}
                             id={field.name}
                             checked={field.value}
                             name={field.name}
@@ -377,7 +387,9 @@ export const ProductEditor = () => {
                 form.formState.isSubmitting || !form.formState.isValid || false
               }
               className="flex items-center gap-2"
-              aria-label={`Submit ${product ? "Update" : "Create"} product form`}
+              aria-label={`Submit ${
+                product ? "Update" : "Create"
+              } product form`}
             >
               <FiCheck />
               {product ? "Update" : "Create"} Product

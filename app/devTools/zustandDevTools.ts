@@ -1,6 +1,6 @@
 import type { StoreApi, UseBoundStore } from "zustand";
 
-import { useAuthStore, useProductStore } from "../stores";
+import { useAuthStore, useProductStore, useOrderStore } from "../stores";
 
 type ReduxDevToolsExtensionType = {
   connect: (options: { name: string; trace: boolean; traceLimit: number }) => {
@@ -15,6 +15,7 @@ const STORES_SUBSCRIPTION_LIST: Record<
 > = {
   AuthStore: useAuthStore,
   ProductStore: useProductStore,
+  OrderStore: useOrderStore,
 };
 
 let globalState = {};
@@ -24,11 +25,13 @@ export const subscribeZustandStoresToReduxDevtool = () => {
   const isDevelopment = process.env.NODE_ENV === "development";
   const hasStores = zustandStoresList.length > 0;
   const hasWindow = typeof window !== "undefined";
-  const hasReduxDevTools = hasWindow && !!(
-    window as unknown as {
-      __REDUX_DEVTOOLS_EXTENSION__: ReduxDevToolsExtensionType;
-    }
-  )?.__REDUX_DEVTOOLS_EXTENSION__;
+  const hasReduxDevTools =
+    hasWindow &&
+    !!(
+      window as unknown as {
+        __REDUX_DEVTOOLS_EXTENSION__: ReduxDevToolsExtensionType;
+      }
+    )?.__REDUX_DEVTOOLS_EXTENSION__;
 
   console.log("🔍 Zustand DevTools Debug:");
   console.log("  - NODE_ENV:", process.env.NODE_ENV);
@@ -49,7 +52,8 @@ export const subscribeZustandStoresToReduxDevtool = () => {
     if (!isDevelopment) console.log("   Reason: Not in development mode");
     if (!hasStores) console.log("   Reason: No stores found");
     if (!hasWindow) console.log("   Reason: Window not available");
-    if (!hasReduxDevTools) console.log("   Reason: Redux DevTools extension not found");
+    if (!hasReduxDevTools)
+      console.log("   Reason: Redux DevTools extension not found");
     return;
   }
 

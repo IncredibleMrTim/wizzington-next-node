@@ -1,4 +1,3 @@
-import { Schema } from "amplify/data/resource";
 import { Check, ChevronDown, X } from "lucide-react";
 import { FiSearch } from "react-icons/fi";
 
@@ -9,13 +8,10 @@ import {
   DropdownMenuTrigger,
 } from "@radix-ui/react-dropdown-menu";
 import { TextField } from "@radix-ui/themes";
-import { Table } from "@tanstack/react-table/build/lib/";
+import { Product } from "@/lib/types";
+import { Table } from "@tanstack/react-table";
 
-export const ProductFilter = ({
-  table,
-}: {
-  table: Table<Schema["Product"]["type"]>;
-}) => {
+export const ProductFilter = ({ table }: { table: Table<Product> }) => {
   return (
     <div className="flex items-center py-4 justify-between">
       <TextField.Root

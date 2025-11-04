@@ -1,22 +1,20 @@
 "use client";
 import { useEffect, useState } from "react";
-import { useAppSelector, useAppDispatch, STORE_KEYS } from "@/stores/store";
+import { useAppDispatch, STORE_KEYS } from "@/stores/store";
 import { useGetProductQuery } from "@/services/product/useGetProductQuery";
 import { useParams } from "next/navigation";
 import Link from "next/link";
-// import { FaFacebook } from "react-icons/fa6";
 import { FiEdit } from "react-icons/fi";
 import { ProductDetails } from "@/components/productDetails/ProductDetails";
+import { useProductStore, useAuthStore } from "@/stores";
 
 const ProductPage = () => {
   const params = useParams();
   const [selectedImageUrl, setSelectedImageUrl] = useState<string | null>(null);
   const { getProductByName } = useGetProductQuery();
   const dispatch = useAppDispatch();
-  const currentProduct = useAppSelector(
-    (state) => state.products.currentProduct
-  );
-  const currentUser = useAppSelector((state) => state.auth.currentUser);
+  const currentProduct = useProductStore((state) => state.currentProduct);
+  const currentUser = useAuthStore((state) => state.currentUser);
 
   // Fetch current product is not already in state
   // this allows deep linking to product pages
@@ -49,10 +47,9 @@ const ProductPage = () => {
       />
       <meta
         name="og:url"
-        content={`${process.env.ROOT_URL}/product/${currentProduct?.name?.replace(
-          /\s+/g,
-          "-"
-        )}`}
+        content={`${
+          process.env.ROOT_URL
+        }/product/${currentProduct?.name?.replace(/\s+/g, "-")}`}
       />
       {/* Mobile title */}
       <h1 className="flex md:hidden">
@@ -92,7 +89,9 @@ const ProductPage = () => {
         <div className="flex flex-col justify-around w-full gap-2 overflow-hidden md:w-3/5 md:h-164 md:flex-row">
           <div className="flex relative w-full h-128 md:h-auto md:w-7/8">
             <img
-              src={`${process.env.S3_PRODUCT_IMAGE_URL}${selectedImageUrl ?? currentProduct?.images?.[0]?.url}`}
+              src={`${process.env.S3_PRODUCT_IMAGE_URL}${
+                selectedImageUrl ?? currentProduct?.images?.[0]?.url
+              }`}
               alt={currentProduct?.name}
               className="flex w-full object-cover grow-0 shrink-0"
             />
@@ -112,8 +111,8 @@ const ProductPage = () => {
               return (
                 <img
                   key={image?.url}
-                  src={`${process.env.S3_PRODUCT_IMAGE_URL}${image?.url}`}
-                  alt={image?.altText || currentProduct?.name}
+                  src={image?.url}
+                  alt={currentProduct?.name}
                   className="border-1 object-fit border-pink-100 p-1  cursor-pointer  hover:border-pink-200 hover:shadow-lg transition-all duration-300 rounded-sm flex-shrink-0"
                   onClick={() => setSelectedImageUrl(image?.url || null)}
                 />

@@ -1,13 +1,12 @@
-import { Schema } from "amplify/data/resource";
-
 import { Button } from "@/components/ui/button";
-import { Table } from "@tanstack/react-table/build/lib/";
+import { Product } from "@/lib/types";
+import { Table } from "@tanstack/react-table";
 
 export const ProductTableFooter = ({
   table,
   allRowCount,
 }: {
-  table: Table<Schema["Product"]["type"]>;
+  table: Table<Product>;
   allRowCount: number;
 }) => (
   <div className="flex items-center justify-end space-x-2 py-4">
