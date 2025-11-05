@@ -8,7 +8,7 @@ exports.remove = remove;
 const post_model_1 = require("../models/post.model");
 async function getAll(req, res) {
     try {
-        const posts = (0, post_model_1.getAllPosts)();
+        const posts = await (0, post_model_1.getAllPosts)();
         res.json(posts);
     }
     catch (error) {
@@ -19,7 +19,7 @@ async function getAll(req, res) {
 async function getById(req, res) {
     try {
         const id = parseInt(req.params.id);
-        const post = (0, post_model_1.getPostById)(id);
+        const post = await (0, post_model_1.getPostById)(id);
         if (!post) {
             return res.status(404).json({ error: 'Post not found' });
         }
@@ -36,7 +36,7 @@ async function create(req, res) {
         if (!input.title) {
             return res.status(400).json({ error: 'Title is required' });
         }
-        const post = (0, post_model_1.createPost)(input);
+        const post = await (0, post_model_1.createPost)(input);
         res.status(201).json(post);
     }
     catch (error) {
@@ -48,7 +48,7 @@ async function update(req, res) {
     try {
         const id = parseInt(req.params.id);
         const input = req.body;
-        const post = (0, post_model_1.updatePost)(id, input);
+        const post = await (0, post_model_1.updatePost)(id, input);
         if (!post) {
             return res.status(404).json({ error: 'Post not found' });
         }
@@ -62,7 +62,7 @@ async function update(req, res) {
 async function remove(req, res) {
     try {
         const id = parseInt(req.params.id);
-        const success = (0, post_model_1.deletePost)(id);
+        const success = await (0, post_model_1.deletePost)(id);
         if (!success) {
             return res.status(404).json({ error: 'Post not found' });
         }

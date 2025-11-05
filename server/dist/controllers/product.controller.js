@@ -11,7 +11,7 @@ async function getAll(req, res) {
     try {
         const isFeatured = req.query.isFeatured === 'true' ? true : req.query.isFeatured === 'false' ? false : undefined;
         const category = req.query.category;
-        const products = (0, product_model_1.getAllProducts)({ isFeatured, category });
+        const products = await (0, product_model_1.getAllProducts)({ isFeatured, category });
         res.json(products);
     }
     catch (error) {
@@ -22,7 +22,7 @@ async function getAll(req, res) {
 async function getById(req, res) {
     try {
         const id = req.params.id;
-        const product = (0, product_model_1.getProductById)(id);
+        const product = await (0, product_model_1.getProductById)(id);
         if (!product) {
             return res.status(404).json({ error: 'Product not found' });
         }
@@ -36,7 +36,7 @@ async function getById(req, res) {
 async function getByCategory(req, res) {
     try {
         const categoryId = req.params.categoryId;
-        const products = (0, product_model_1.getProductsByCategory)(categoryId);
+        const products = await (0, product_model_1.getProductsByCategory)(categoryId);
         res.json(products);
     }
     catch (error) {
@@ -50,7 +50,7 @@ async function create(req, res) {
         if (!input.name) {
             return res.status(400).json({ error: 'Name is required' });
         }
-        const product = (0, product_model_1.createProduct)(input);
+        const product = await (0, product_model_1.createProduct)(input);
         res.status(201).json(product);
     }
     catch (error) {
@@ -62,7 +62,7 @@ async function update(req, res) {
     try {
         const id = req.params.id;
         const input = { ...req.body, id };
-        const product = (0, product_model_1.updateProduct)(input);
+        const product = await (0, product_model_1.updateProduct)(input);
         if (!product) {
             return res.status(404).json({ error: 'Product not found' });
         }
@@ -76,7 +76,7 @@ async function update(req, res) {
 async function remove(req, res) {
     try {
         const id = req.params.id;
-        const success = (0, product_model_1.deleteProduct)(id);
+        const success = await (0, product_model_1.deleteProduct)(id);
         if (!success) {
             return res.status(404).json({ error: 'Product not found' });
         }

@@ -19,30 +19,23 @@ function rowToCategory(row) {
         updatedAt: row.updated_at
     };
 }
-function getAllCategories() {
-    const stmt = db_1.default.prepare('SELECT * FROM categories ORDER BY name ASC');
-    const rows = stmt.all();
+async function getAllCategories() {
+    const [rows] = await db_1.default.query('SELECT * FROM categories ORDER BY name ASC');
     return rows.map(rowToCategory);
 }
-function getCategoryById(id) {
-    const stmt = db_1.default.prepare('SELECT * FROM categories WHERE id = ?');
-    const row = stmt.get(id);
-    return row ? rowToCategory(row) : undefined;
+async function getCategoryById(id) {
+    const [rows] = await db_1.default.query('SELECT * FROM categories WHERE id = ?', [id]);
+    return rows.length > 0 ? rowToCategory(rows[0]) : undefined;
 }
-function createCategory(input) {
+async function createCategory(input) {
     const id = (0, crypto_1.randomUUID)();
-    const now = new Date().toISOString();
-    const stmt = db_1.default.prepare(`
-    INSERT INTO categories (id, name, description, created_at, updated_at)
-    VALUES (?, ?, ?, ?, ?)
-  `);
-    stmt.run(id, input.name, input.description || null, now, now);
-    const category = getCategoryById(id);
+    await db_1.default.query('INSERT INTO categories (id, name, description) VALUES (?, ?, ?)', [id, input.name, input.description || null]);
+    const category = await getCategoryById(id);
     if (!category)
         throw new Error('Failed to create category');
     return category;
 }
-function updateCategory(input) {
+async function updateCategory(input) {
     const updates = [];
     const values = [];
     if (input.name !== undefined) {
@@ -53,17 +46,13 @@ function updateCategory(input) {
         updates.push('description = ?');
         values.push(input.description);
     }
-    updates.push('updated_at = ?');
-    values.push(new Date().toISOString());
-    if (updates.length > 1) {
+    if (updates.length > 0) {
         values.push(input.id);
-        const stmt = db_1.default.prepare(`UPDATE categories SET ${updates.join(', ')} WHERE id = ?`);
-        stmt.run(...values);
+        await db_1.default.query(`UPDATE categories SET ${updates.join(', ')} WHERE id = ?`, values);
     }
     return getCategoryById(input.id);
 }
-function deleteCategory(id) {
-    const stmt = db_1.default.prepare('DELETE FROM categories WHERE id = ?');
-    const result = stmt.run(id);
-    return result.changes > 0;
+async function deleteCategory(id) {
+    const [result] = await db_1.default.query('DELETE FROM categories WHERE id = ?', [id]);
+    return result.affectedRows > 0;
 }

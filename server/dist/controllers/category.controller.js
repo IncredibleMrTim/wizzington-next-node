@@ -8,7 +8,7 @@ exports.remove = remove;
 const category_model_1 = require("../models/category.model");
 async function getAll(req, res) {
     try {
-        const categories = (0, category_model_1.getAllCategories)();
+        const categories = await (0, category_model_1.getAllCategories)();
         res.json(categories);
     }
     catch (error) {
@@ -19,7 +19,7 @@ async function getAll(req, res) {
 async function getById(req, res) {
     try {
         const id = req.params.id;
-        const category = (0, category_model_1.getCategoryById)(id);
+        const category = await (0, category_model_1.getCategoryById)(id);
         if (!category) {
             return res.status(404).json({ error: 'Category not found' });
         }
@@ -36,12 +36,12 @@ async function create(req, res) {
         if (!input.name) {
             return res.status(400).json({ error: 'Name is required' });
         }
-        const category = (0, category_model_1.createCategory)(input);
+        const category = await (0, category_model_1.createCategory)(input);
         res.status(201).json(category);
     }
     catch (error) {
         console.error('Error creating category:', error);
-        if (error.message?.includes('UNIQUE constraint failed')) {
+        if (error.message?.includes('ER_DUP_ENTRY') || error.code === 'ER_DUP_ENTRY') {
             return res.status(409).json({ error: 'Category name already exists' });
         }
         res.status(500).json({ error: 'Failed to create category' });
@@ -51,7 +51,7 @@ async function update(req, res) {
     try {
         const id = req.params.id;
         const input = { ...req.body, id };
-        const category = (0, category_model_1.updateCategory)(input);
+        const category = await (0, category_model_1.updateCategory)(input);
         if (!category) {
             return res.status(404).json({ error: 'Category not found' });
         }
@@ -59,7 +59,7 @@ async function update(req, res) {
     }
     catch (error) {
         console.error('Error updating category:', error);
-        if (error.message?.includes('UNIQUE constraint failed')) {
+        if (error.message?.includes('ER_DUP_ENTRY') || error.code === 'ER_DUP_ENTRY') {
             return res.status(409).json({ error: 'Category name already exists' });
         }
         res.status(500).json({ error: 'Failed to update category' });
@@ -68,7 +68,7 @@ async function update(req, res) {
 async function remove(req, res) {
     try {
         const id = req.params.id;
-        const success = (0, category_model_1.deleteCategory)(id);
+        const success = await (0, category_model_1.deleteCategory)(id);
         if (!success) {
             return res.status(404).json({ error: 'Category not found' });
         }

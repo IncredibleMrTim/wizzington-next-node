@@ -8,7 +8,7 @@ exports.remove = remove;
 const order_model_1 = require("../models/order.model");
 async function getAll(req, res) {
     try {
-        const orders = (0, order_model_1.getAllOrders)();
+        const orders = await (0, order_model_1.getAllOrders)();
         res.json(orders);
     }
     catch (error) {
@@ -19,7 +19,7 @@ async function getAll(req, res) {
 async function getById(req, res) {
     try {
         const id = req.params.id;
-        const order = (0, order_model_1.getOrderById)(id);
+        const order = await (0, order_model_1.getOrderById)(id);
         if (!order) {
             return res.status(404).json({ error: 'Order not found' });
         }
@@ -36,7 +36,7 @@ async function create(req, res) {
         if (!input.products || input.products.length === 0) {
             return res.status(400).json({ error: 'Order must have at least one product' });
         }
-        const order = (0, order_model_1.createOrder)(input);
+        const order = await (0, order_model_1.createOrder)(input);
         res.status(201).json(order);
     }
     catch (error) {
@@ -48,7 +48,7 @@ async function update(req, res) {
     try {
         const id = req.params.id;
         const input = { ...req.body, id };
-        const order = (0, order_model_1.updateOrder)(input);
+        const order = await (0, order_model_1.updateOrder)(input);
         if (!order) {
             return res.status(404).json({ error: 'Order not found' });
         }
@@ -62,7 +62,7 @@ async function update(req, res) {
 async function remove(req, res) {
     try {
         const id = req.params.id;
-        const success = (0, order_model_1.deleteOrder)(id);
+        const success = await (0, order_model_1.deleteOrder)(id);
         if (!success) {
             return res.status(404).json({ error: 'Order not found' });
         }

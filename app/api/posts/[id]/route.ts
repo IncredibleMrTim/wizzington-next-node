@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import db from '@/lib/db';
+import pool from '@/lib/db';
 import { Post } from '@/lib/types';
+import { RowDataPacket, ResultSetHeader } from 'mysql2';
 
 // GET /api/posts/[id] - Get a specific post
 export async function GET(
@@ -9,17 +10,18 @@ export async function GET(
 ) {
   try {
     const { id } = await params;
-    const post = db.prepare(`
+    const [rows] = await pool.query<RowDataPacket[]>(`
       SELECT posts.*, users.name as user_name
       FROM posts
       LEFT JOIN users ON posts.user_id = users.id
       WHERE posts.id = ?
-    `).get(id) as Post | undefined;
+    `, [id]);
 
-    if (!post) {
+    if (rows.length === 0) {
       return NextResponse.json({ error: 'Post not found' }, { status: 404 });
     }
 
+    const post = rows[0] as Post;
     return NextResponse.json(post);
   } catch (error) {
     console.error('Error fetching post:', error);
@@ -59,14 +61,15 @@ export async function PUT(
 
     values.push(id);
 
-    const stmt = db.prepare(`UPDATE posts SET ${updates.join(', ')} WHERE id = ?`);
-    const result = stmt.run(...values);
+    await pool.query(`UPDATE posts SET ${updates.join(', ')} WHERE id = ?`, values);
 
-    if (result.changes === 0) {
+    const [rows] = await pool.query<RowDataPacket[]>('SELECT * FROM posts WHERE id = ?', [id]);
+
+    if (rows.length === 0) {
       return NextResponse.json({ error: 'Post not found' }, { status: 404 });
     }
 
-    const updatedPost = db.prepare('SELECT * FROM posts WHERE id = ?').get(id) as Post;
+    const updatedPost = rows[0] as Post;
     return NextResponse.json(updatedPost);
   } catch (error) {
     console.error('Error updating post:', error);
@@ -81,10 +84,9 @@ export async function DELETE(
 ) {
   try {
     const { id } = await params;
-    const stmt = db.prepare('DELETE FROM posts WHERE id = ?');
-    const result = stmt.run(id);
+    const [result] = await pool.query<ResultSetHeader>('DELETE FROM posts WHERE id = ?', [id]);
 
-    if (result.changes === 0) {
+    if (result.affectedRows === 0) {
       return NextResponse.json({ error: 'Post not found' }, { status: 404 });
     }
 

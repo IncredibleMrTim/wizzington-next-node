@@ -9,34 +9,33 @@ exports.createPost = createPost;
 exports.updatePost = updatePost;
 exports.deletePost = deletePost;
 const db_1 = __importDefault(require("../db"));
-function getAllPosts() {
-    const stmt = db_1.default.prepare(`
+async function getAllPosts() {
+    const [rows] = await db_1.default.query(`
     SELECT posts.*, users.name as user_name
     FROM posts
     LEFT JOIN users ON posts.user_id = users.id
     ORDER BY posts.created_at DESC
   `);
-    return stmt.all();
+    return rows;
 }
-function getPostById(id) {
-    const stmt = db_1.default.prepare(`
+async function getPostById(id) {
+    const [rows] = await db_1.default.query(`
     SELECT posts.*, users.name as user_name
     FROM posts
     LEFT JOIN users ON posts.user_id = users.id
     WHERE posts.id = ?
-  `);
-    return stmt.get(id);
+  `, [id]);
+    return rows.length > 0 ? rows[0] : undefined;
 }
-function createPost(input) {
-    const stmt = db_1.default.prepare('INSERT INTO posts (title, content, user_id) VALUES (?, ?, ?)');
-    const result = stmt.run(input.title, input.content || null, input.user_id || null);
-    const newPost = getPostById(result.lastInsertRowid);
+async function createPost(input) {
+    const [result] = await db_1.default.query('INSERT INTO posts (title, content, user_id) VALUES (?, ?, ?)', [input.title, input.content || null, input.user_id || null]);
+    const newPost = await getPostById(result.insertId);
     if (!newPost) {
         throw new Error('Failed to create post');
     }
     return newPost;
 }
-function updatePost(id, input) {
+async function updatePost(id, input) {
     const updates = [];
     const values = [];
     if (input.title !== undefined) {
@@ -55,12 +54,10 @@ function updatePost(id, input) {
         return getPostById(id);
     }
     values.push(id);
-    const stmt = db_1.default.prepare(`UPDATE posts SET ${updates.join(', ')} WHERE id = ?`);
-    stmt.run(...values);
+    await db_1.default.query(`UPDATE posts SET ${updates.join(', ')} WHERE id = ?`, values);
     return getPostById(id);
 }
-function deletePost(id) {
-    const stmt = db_1.default.prepare('DELETE FROM posts WHERE id = ?');
-    const result = stmt.run(id);
-    return result.changes > 0;
+async function deletePost(id) {
+    const [result] = await db_1.default.query('DELETE FROM posts WHERE id = ?', [id]);
+    return result.affectedRows > 0;
 }

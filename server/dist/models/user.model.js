@@ -9,21 +9,24 @@ exports.createUser = createUser;
 exports.updateUser = updateUser;
 exports.deleteUser = deleteUser;
 const db_1 = __importDefault(require("../db"));
-function getAllUsers() {
-    const stmt = db_1.default.prepare('SELECT * FROM users ORDER BY created_at DESC');
-    return stmt.all();
+const crypto_1 = require("crypto");
+async function getAllUsers() {
+    const [rows] = await db_1.default.query('SELECT * FROM users ORDER BY created_at DESC');
+    return rows;
 }
-function getUserById(id) {
-    const stmt = db_1.default.prepare('SELECT * FROM users WHERE id = ?');
-    return stmt.get(id);
+async function getUserById(id) {
+    const [rows] = await db_1.default.query('SELECT * FROM users WHERE id = ?', [id]);
+    return rows.length > 0 ? rows[0] : undefined;
 }
-function createUser(input) {
-    const stmt = db_1.default.prepare('INSERT INTO users (name, email) VALUES (?, ?)');
-    const result = stmt.run(input.name, input.email);
-    const newUser = db_1.default.prepare('SELECT * FROM users WHERE id = ?').get(result.lastInsertRowid);
-    return newUser;
+async function createUser(input) {
+    const id = (0, crypto_1.randomUUID)();
+    await db_1.default.query('INSERT INTO users (id, name, email) VALUES (?, ?, ?)', [id, input.name, input.email]);
+    const user = await getUserById(id);
+    if (!user)
+        throw new Error('Failed to create user');
+    return user;
 }
-function updateUser(id, input) {
+async function updateUser(id, input) {
     const updates = [];
     const values = [];
     if (input.name !== undefined) {
@@ -38,12 +41,10 @@ function updateUser(id, input) {
         return getUserById(id);
     }
     values.push(id);
-    const stmt = db_1.default.prepare(`UPDATE users SET ${updates.join(', ')} WHERE id = ?`);
-    stmt.run(...values);
+    await db_1.default.query(`UPDATE users SET ${updates.join(', ')} WHERE id = ?`, values);
     return getUserById(id);
 }
-function deleteUser(id) {
-    const stmt = db_1.default.prepare('DELETE FROM users WHERE id = ?');
-    const result = stmt.run(id);
-    return result.changes > 0;
+async function deleteUser(id) {
+    const [result] = await db_1.default.query('DELETE FROM users WHERE id = ?', [id]);
+    return result.affectedRows > 0;
 }

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import db from '@/lib/db';
+import pool from '@/lib/db';
 import { User } from '@/lib/types';
+import { RowDataPacket, ResultSetHeader } from 'mysql2';
 
 // GET /api/users/[id] - Get a specific user
 export async function GET(
@@ -9,12 +10,13 @@ export async function GET(
 ) {
   try {
     const { id } = await params;
-    const user = db.prepare('SELECT * FROM users WHERE id = ?').get(id) as User | undefined;
+    const [rows] = await pool.query<RowDataPacket[]>('SELECT * FROM users WHERE id = ?', [id]);
 
-    if (!user) {
+    if (rows.length === 0) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
+    const user = rows[0] as User;
     return NextResponse.json(user);
   } catch (error) {
     console.error('Error fetching user:', error);
@@ -50,18 +52,19 @@ export async function PUT(
 
     values.push(id);
 
-    const stmt = db.prepare(`UPDATE users SET ${updates.join(', ')} WHERE id = ?`);
-    const result = stmt.run(...values);
+    await pool.query(`UPDATE users SET ${updates.join(', ')} WHERE id = ?`, values);
 
-    if (result.changes === 0) {
+    const [rows] = await pool.query<RowDataPacket[]>('SELECT * FROM users WHERE id = ?', [id]);
+
+    if (rows.length === 0) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
-    const updatedUser = db.prepare('SELECT * FROM users WHERE id = ?').get(id) as User;
+    const updatedUser = rows[0] as User;
     return NextResponse.json(updatedUser);
   } catch (error: unknown) {
     console.error('Error updating user:', error);
-    if (error instanceof Error && error.message.includes('UNIQUE constraint failed')) {
+    if (error instanceof Error && error.message.includes('Duplicate entry')) {
       return NextResponse.json({ error: 'Email already exists' }, { status: 409 });
     }
     return NextResponse.json({ error: 'Failed to update user' }, { status: 500 });
@@ -75,10 +78,9 @@ export async function DELETE(
 ) {
   try {
     const { id } = await params;
-    const stmt = db.prepare('DELETE FROM users WHERE id = ?');
-    const result = stmt.run(id);
+    const [result] = await pool.query<ResultSetHeader>('DELETE FROM users WHERE id = ?', [id]);
 
-    if (result.changes === 0) {
+    if (result.affectedRows === 0) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
