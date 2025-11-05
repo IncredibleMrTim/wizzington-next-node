@@ -4,6 +4,26 @@
 
 This application runs via PM2 (Node.js process manager), not directly through Plesk's Apache/Nginx. Plesk needs to proxy HTTP requests to your PM2 processes.
 
+## IMPORTANT: Where Are My Files in Plesk?
+
+**If you don't see files in Plesk File Manager, you're looking in the wrong place!**
+
+Your files deploy to `/var/www/wizz-app/` (or your custom `DEPLOY_PATH`), **NOT** to `httpdocs/`.
+
+### Finding Your Files in Plesk:
+
+1. Open Plesk → **Files** → **File Manager**
+2. By default, it opens to `httpdocs/` - **this is WRONG for Node.js apps**
+3. Navigate to the path bar and type: `/var/www/wizz-app/`
+4. You should see: `package.json`, `.next/`, `server/`, etc.
+
+### Why Not httpdocs?
+
+- **Static websites** (HTML/PHP): Use `httpdocs/` and are served by Apache/Nginx directly
+- **Node.js with PM2** (this app): Uses `/var/www/wizz-app/` and runs independently via PM2
+- Plesk's web server (Apache/Nginx) only proxies traffic to PM2 ports (3000/3001)
+- Your app doesn't need to be in `httpdocs/` - it's not served as static files
+
 ## Architecture
 
 ```
@@ -16,10 +36,16 @@ Internet → Plesk (Apache/Nginx) → Proxy → PM2 Processes
 
 ### 1. Verify Deployment Location
 
-After pushing changes, check GitHub Actions logs to see where files are deployed:
+**Your deployment path should be:** `/var/www/wizz-app`
+
+After pushing changes, check GitHub Actions logs to confirm where files are deployed:
 - Go to: GitHub → Actions → Latest Deployment
 - Look for "=== Deployment Information ===" section
-- Note the deployment path (likely `/home/username/wizz-next-node`)
+- Verify the deployment path matches your `DEPLOY_PATH` secret (should be `/var/www/wizz-app`)
+
+**Check your GitHub secret:**
+- GitHub repo → Settings → Secrets → `DEPLOY_PATH`
+- Value should be: `/var/www/wizz-app`
 
 ### 2. Verify Files Are Deployed
 
