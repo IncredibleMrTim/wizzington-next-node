@@ -105,12 +105,22 @@ jobs:
             echo "=== Verifying Deployment ==="
             echo "Deploying to: ${{ secrets.DEPLOY_PATH }}"
             echo "Current directory: $(pwd)"
+            echo "Current user: $(whoami)"
             echo "Checking deployed files..."
             ls -la
             echo "Checking if package.json exists..."
             test -f package.json && echo "✓ package.json found" || echo "✗ package.json NOT found"
             test -d .next && echo "✓ .next directory found" || echo "✗ .next directory NOT found"
             test -d server && echo "✓ server directory found" || echo "✗ server directory NOT found"
+            echo ""
+            echo "=== Fixing File Permissions ==="
+            echo "Setting ownership to current user..."
+            chown -R $(whoami):$(whoami) ${{ secrets.DEPLOY_PATH }} || echo "⚠ Warning: Could not change ownership (this is normal on some hosting providers)"
+            echo "Setting directory permissions to 755..."
+            find ${{ secrets.DEPLOY_PATH }} -type d -exec chmod 755 {} \;
+            echo "Setting file permissions to 644..."
+            find ${{ secrets.DEPLOY_PATH }} -type f -exec chmod 644 {} \;
+            echo "✓ Permissions fixed"
             echo ""
             echo "Installing dependencies..."
             yarn install --production --frozen-lockfile
