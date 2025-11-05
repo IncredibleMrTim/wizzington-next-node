@@ -51,19 +51,38 @@ jobs:
           REMOTE_PORT: ${{ secrets.REMOTE_PORT || 22 }}
           SOURCE: "./"
           TARGET: ${{ secrets.DEPLOY_PATH }}
-          EXCLUDE: "/node_modules/, /.git/, /.github/, /uploads/, *.log, .env, .env.local"
+          EXCLUDE: "/node_modules/, /.git/, /.github/, /uploads/, /plesk-configs/, *.log, .env, .env.local, PLESK-SETUP.md"
           SCRIPT_BEFORE: |
-            whoami
-            ls -al
+            echo "=== Deployment Information ==="
+            echo "Current user: $(whoami)"
+            echo "Home directory: $HOME"
+            echo "Target deployment path: ${{ secrets.DEPLOY_PATH }}"
+            echo "Creating deployment directory if it doesn't exist..."
+            mkdir -p ${{ secrets.DEPLOY_PATH }}
+            echo "Current directory contents:"
+            ls -al ${{ secrets.DEPLOY_PATH }}
           SCRIPT_AFTER: |
             cd ${{ secrets.DEPLOY_PATH }}
+            echo "=== Verifying Deployment ==="
+            echo "Current directory: $(pwd)"
+            echo "Checking deployed files..."
+            ls -la
+            echo "Checking if package.json exists..."
+            test -f package.json && echo "✓ package.json found" || echo "✗ package.json NOT found"
+            test -d .next && echo "✓ .next directory found" || echo "✗ .next directory NOT found"
+            test -d server && echo "✓ server directory found" || echo "✗ server directory NOT found"
+            echo ""
             echo "Installing dependencies..."
             yarn install --production --frozen-lockfile
             cd server && yarn install --production --frozen-lockfile && cd ..
+            echo ""
             echo "Restarting PM2 processes..."
             pm2 restart wizz-next
             pm2 restart wizz-server
             pm2 save
+            echo ""
+            echo "=== PM2 Status ==="
+            pm2 list
             echo "Deployment completed successfully!"
 
       - name: Notify deployment status
