@@ -13,6 +13,23 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Debug - Show Deployment Configuration
+        run: |
+          echo "=== DEPLOYMENT CONFIGURATION DEBUG ==="
+          echo "⚠️  WARNING: Showing deployment secrets for debugging"
+          echo ""
+          echo "Remote Host: ${{ secrets.REMOTE_HOST }}"
+          echo "Remote User: ${{ secrets.REMOTE_USER }}"
+          echo "Remote Port: ${{ secrets.REMOTE_PORT || '22 (default)' }}"
+          echo "Deploy Path: ${{ secrets.DEPLOY_PATH }}"
+          echo ""
+          echo "SSH Key Length: ${#SSH_KEY}"
+          echo "SSH Key Start: ${SSH_KEY:0:50}..."
+          echo ""
+          echo "=== END DEBUG INFO ==="
+        env:
+          SSH_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+
       - name: Checkout code
         uses: actions/checkout@v4
 
