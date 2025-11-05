@@ -4,7 +4,7 @@ import { CreatePostInput, UpdatePostInput } from '../types';
 
 export async function getAll(req: Request, res: Response) {
   try {
-    const posts = getAllPosts();
+    const posts = await getAllPosts();
     res.json(posts);
   } catch (error) {
     console.error('Error fetching posts:', error);
@@ -15,7 +15,7 @@ export async function getAll(req: Request, res: Response) {
 export async function getById(req: Request, res: Response) {
   try {
     const id = parseInt(req.params.id);
-    const post = getPostById(id);
+    const post = await getPostById(id);
 
     if (!post) {
       return res.status(404).json({ error: 'Post not found' });
@@ -36,7 +36,7 @@ export async function create(req: Request, res: Response) {
       return res.status(400).json({ error: 'Title is required' });
     }
 
-    const post = createPost(input);
+    const post = await createPost(input);
     res.status(201).json(post);
   } catch (error) {
     console.error('Error creating post:', error);
@@ -49,7 +49,7 @@ export async function update(req: Request, res: Response) {
     const id = parseInt(req.params.id);
     const input: UpdatePostInput = req.body;
 
-    const post = updatePost(id, input);
+    const post = await updatePost(id, input);
 
     if (!post) {
       return res.status(404).json({ error: 'Post not found' });
@@ -65,7 +65,7 @@ export async function update(req: Request, res: Response) {
 export async function remove(req: Request, res: Response) {
   try {
     const id = parseInt(req.params.id);
-    const success = deletePost(id);
+    const success = await deletePost(id);
 
     if (!success) {
       return res.status(404).json({ error: 'Post not found' });

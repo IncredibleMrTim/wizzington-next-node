@@ -1,25 +1,32 @@
-import db from '../db';
+import pool from '../db';
 import { User, CreateUserInput, UpdateUserInput } from '../types';
+import { randomUUID } from 'crypto';
+import { RowDataPacket, ResultSetHeader } from 'mysql2';
 
-export function getAllUsers(): User[] {
-  const stmt = db.prepare('SELECT * FROM users ORDER BY created_at DESC');
-  return stmt.all() as User[];
+export async function getAllUsers(): Promise<User[]> {
+  const [rows] = await pool.query<RowDataPacket[]>('SELECT * FROM users ORDER BY created_at DESC');
+  return rows as User[];
 }
 
-export function getUserById(id: number): User | undefined {
-  const stmt = db.prepare('SELECT * FROM users WHERE id = ?');
-  return stmt.get(id) as User | undefined;
+export async function getUserById(id: string): Promise<User | undefined> {
+  const [rows] = await pool.query<RowDataPacket[]>('SELECT * FROM users WHERE id = ?', [id]);
+  return rows.length > 0 ? (rows[0] as User) : undefined;
 }
 
-export function createUser(input: CreateUserInput): User {
-  const stmt = db.prepare('INSERT INTO users (name, email) VALUES (?, ?)');
-  const result = stmt.run(input.name, input.email);
+export async function createUser(input: CreateUserInput): Promise<User> {
+  const id = randomUUID();
 
-  const newUser = db.prepare('SELECT * FROM users WHERE id = ?').get(result.lastInsertRowid) as User;
-  return newUser;
+  await pool.query<ResultSetHeader>(
+    'INSERT INTO users (id, name, email) VALUES (?, ?, ?)',
+    [id, input.name, input.email]
+  );
+
+  const user = await getUserById(id);
+  if (!user) throw new Error('Failed to create user');
+  return user;
 }
 
-export function updateUser(id: number, input: UpdateUserInput): User | undefined {
+export async function updateUser(id: string, input: UpdateUserInput): Promise<User | undefined> {
   const updates: string[] = [];
   const values: any[] = [];
 
@@ -38,14 +45,12 @@ export function updateUser(id: number, input: UpdateUserInput): User | undefined
   }
 
   values.push(id);
-  const stmt = db.prepare(`UPDATE users SET ${updates.join(', ')} WHERE id = ?`);
-  stmt.run(...values);
+  await pool.query<ResultSetHeader>(`UPDATE users SET ${updates.join(', ')} WHERE id = ?`, values);
 
   return getUserById(id);
 }
 
-export function deleteUser(id: number): boolean {
-  const stmt = db.prepare('DELETE FROM users WHERE id = ?');
-  const result = stmt.run(id);
-  return result.changes > 0;
+export async function deleteUser(id: string): Promise<boolean> {
+  const [result] = await pool.query<ResultSetHeader>('DELETE FROM users WHERE id = ?', [id]);
+  return result.affectedRows > 0;
 }

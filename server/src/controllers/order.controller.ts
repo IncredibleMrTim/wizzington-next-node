@@ -10,7 +10,7 @@ import { CreateOrderInput, UpdateOrderInput } from '../types';
 
 export async function getAll(req: Request, res: Response) {
   try {
-    const orders = getAllOrders();
+    const orders = await getAllOrders();
     res.json(orders);
   } catch (error) {
     console.error('Error fetching orders:', error);
@@ -21,7 +21,7 @@ export async function getAll(req: Request, res: Response) {
 export async function getById(req: Request, res: Response) {
   try {
     const id = req.params.id;
-    const order = getOrderById(id);
+    const order = await getOrderById(id);
 
     if (!order) {
       return res.status(404).json({ error: 'Order not found' });
@@ -42,7 +42,7 @@ export async function create(req: Request, res: Response) {
       return res.status(400).json({ error: 'Order must have at least one product' });
     }
 
-    const order = createOrder(input);
+    const order = await createOrder(input);
     res.status(201).json(order);
   } catch (error) {
     console.error('Error creating order:', error);
@@ -55,7 +55,7 @@ export async function update(req: Request, res: Response) {
     const id = req.params.id;
     const input: UpdateOrderInput = { ...req.body, id };
 
-    const order = updateOrder(input);
+    const order = await updateOrder(input);
 
     if (!order) {
       return res.status(404).json({ error: 'Order not found' });
@@ -71,7 +71,7 @@ export async function update(req: Request, res: Response) {
 export async function remove(req: Request, res: Response) {
   try {
     const id = req.params.id;
-    const success = deleteOrder(id);
+    const success = await deleteOrder(id);
 
     if (!success) {
       return res.status(404).json({ error: 'Order not found' });

@@ -4,7 +4,7 @@ import { CreateUserInput, UpdateUserInput } from '../types';
 
 export async function getAll(req: Request, res: Response) {
   try {
-    const users = getAllUsers();
+    const users = await getAllUsers();
     res.json(users);
   } catch (error) {
     console.error('Error fetching users:', error);
@@ -14,8 +14,8 @@ export async function getAll(req: Request, res: Response) {
 
 export async function getById(req: Request, res: Response) {
   try {
-    const id = parseInt(req.params.id);
-    const user = getUserById(id);
+    const id = req.params.id;
+    const user = await getUserById(id);
 
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
@@ -36,11 +36,11 @@ export async function create(req: Request, res: Response) {
       return res.status(400).json({ error: 'Name and email are required' });
     }
 
-    const user = createUser(input);
+    const user = await createUser(input);
     res.status(201).json(user);
   } catch (error: any) {
     console.error('Error creating user:', error);
-    if (error.message?.includes('UNIQUE constraint failed')) {
+    if (error.message?.includes('ER_DUP_ENTRY') || error.code === 'ER_DUP_ENTRY') {
       return res.status(409).json({ error: 'Email already exists' });
     }
     res.status(500).json({ error: 'Failed to create user' });
@@ -49,10 +49,10 @@ export async function create(req: Request, res: Response) {
 
 export async function update(req: Request, res: Response) {
   try {
-    const id = parseInt(req.params.id);
+    const id = req.params.id;
     const input: UpdateUserInput = req.body;
 
-    const user = updateUser(id, input);
+    const user = await updateUser(id, input);
 
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
@@ -61,7 +61,7 @@ export async function update(req: Request, res: Response) {
     res.json(user);
   } catch (error: any) {
     console.error('Error updating user:', error);
-    if (error.message?.includes('UNIQUE constraint failed')) {
+    if (error.message?.includes('ER_DUP_ENTRY') || error.code === 'ER_DUP_ENTRY') {
       return res.status(409).json({ error: 'Email already exists' });
     }
     res.status(500).json({ error: 'Failed to update user' });
@@ -70,8 +70,8 @@ export async function update(req: Request, res: Response) {
 
 export async function remove(req: Request, res: Response) {
   try {
-    const id = parseInt(req.params.id);
-    const success = deleteUser(id);
+    const id = req.params.id;
+    const success = await deleteUser(id);
 
     if (!success) {
       return res.status(404).json({ error: 'User not found' });

@@ -1,8 +1,8 @@
-import db from '../db';
+import pool from '../db';
 import { Product, CreateProductInput, UpdateProductInput, ProductImage } from '../types';
 import { randomUUID } from 'crypto';
+import { RowDataPacket, ResultSetHeader } from 'mysql2';
 
-// Helper function to convert database row to Product with images
 function rowToProduct(row: any): Product {
   return {
     id: row.id,
@@ -19,19 +19,18 @@ function rowToProduct(row: any): Product {
   };
 }
 
-// Get images for a product
-function getProductImages(productId: string): ProductImage[] {
-  const stmt = db.prepare(`
-    SELECT id, product_id, url, order_position as 'order', created_at
-    FROM product_images
-    WHERE product_id = ?
-    ORDER BY order_position ASC
-  `);
-  return stmt.all(productId) as ProductImage[];
+async function getProductImages(productId: string): Promise<ProductImage[]> {
+  const [rows] = await pool.query<RowDataPacket[]>(
+    `SELECT id, product_id, url, order_position as 'order', created_at
+     FROM product_images
+     WHERE product_id = ?
+     ORDER BY order_position ASC`,
+    [productId]
+  );
+  return rows as ProductImage[];
 }
 
-// Get all products with their images
-export function getAllProducts(options?: { isFeatured?: boolean; category?: string }): Product[] {
+export async function getAllProducts(options?: { isFeatured?: boolean; category?: string }): Promise<Product[]> {
   let query = 'SELECT * FROM products WHERE 1=1';
   const params: any[] = [];
 
@@ -47,73 +46,69 @@ export function getAllProducts(options?: { isFeatured?: boolean; category?: stri
 
   query += ' ORDER BY created_at DESC';
 
-  const stmt = db.prepare(query);
-  const rows = stmt.all(...params) as any[];
+  const [rows] = await pool.query<RowDataPacket[]>(query, params);
 
-  return rows.map(row => {
-    const product = rowToProduct(row);
-    product.images = getProductImages(product.id);
-    return product;
-  });
+  const products = await Promise.all(
+    rows.map(async (row) => {
+      const product = rowToProduct(row);
+      product.images = await getProductImages(product.id);
+      return product;
+    })
+  );
+
+  return products;
 }
 
-// Get product by ID with images
-export function getProductById(id: string): Product | undefined {
-  const stmt = db.prepare('SELECT * FROM products WHERE id = ?');
-  const row = stmt.get(id) as any;
+export async function getProductById(id: string): Promise<Product | undefined> {
+  const [rows] = await pool.query<RowDataPacket[]>('SELECT * FROM products WHERE id = ?', [id]);
 
-  if (!row) return undefined;
+  if (rows.length === 0) return undefined;
 
-  const product = rowToProduct(row);
-  product.images = getProductImages(product.id);
+  const product = rowToProduct(rows[0]);
+  product.images = await getProductImages(product.id);
   return product;
 }
 
-// Create a new product
-export function createProduct(input: CreateProductInput): Product {
+export async function createProduct(input: CreateProductInput): Promise<Product> {
   const id = randomUUID();
-  const now = new Date().toISOString();
 
-  const stmt = db.prepare(`
-    INSERT INTO products (
+  await pool.query<ResultSetHeader>(
+    `INSERT INTO products (
       id, name, description, price, stock,
-      is_featured, is_enquiry_only, category_id,
-      created_at, updated_at
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-  `);
-
-  stmt.run(
-    id,
-    input.name,
-    input.description || null,
-    input.price || 0,
-    input.stock || 0,
-    input.isFeatured ? 1 : 0,
-    input.isEnquiryOnly ? 1 : 0,
-    input.category || null,
-    now,
-    now
+      is_featured, is_enquiry_only, category_id
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+    [
+      id,
+      input.name,
+      input.description || null,
+      input.price || 0,
+      input.stock || 0,
+      input.isFeatured ? 1 : 0,
+      input.isEnquiryOnly ? 1 : 0,
+      input.category || null
+    ]
   );
 
-  // Add images if provided
   if (input.images && input.images.length > 0) {
-    const imageStmt = db.prepare(`
-      INSERT INTO product_images (id, product_id, url, order_position, created_at)
-      VALUES (?, ?, ?, ?, ?)
-    `);
+    const imageValues = input.images.map(img => [
+      randomUUID(),
+      id,
+      img.url,
+      img.order
+    ]);
 
-    for (const img of input.images) {
-      imageStmt.run(randomUUID(), id, img.url, img.order, now);
-    }
+    await pool.query<ResultSetHeader>(
+      `INSERT INTO product_images (id, product_id, url, order_position) VALUES ?`,
+      [imageValues]
+    );
   }
 
-  const product = getProductById(id);
+  const product = await getProductById(id);
   if (!product) throw new Error('Failed to create product');
   return product;
 }
 
-// Update a product
-export function updateProduct(input: UpdateProductInput): Product | undefined {
+export async function updateProduct(input: UpdateProductInput): Promise<Product | undefined> {
   const updates: string[] = [];
   const values: any[] = [];
 
@@ -152,45 +147,40 @@ export function updateProduct(input: UpdateProductInput): Product | undefined {
     values.push(input.category);
   }
 
-  updates.push('updated_at = ?');
-  values.push(new Date().toISOString());
-
-  if (updates.length > 1) { // More than just updated_at
+  if (updates.length > 0) {
     values.push(input.id);
-    const stmt = db.prepare(`UPDATE products SET ${updates.join(', ')} WHERE id = ?`);
-    stmt.run(...values);
+    await pool.query<ResultSetHeader>(
+      `UPDATE products SET ${updates.join(', ')} WHERE id = ?`,
+      values
+    );
   }
 
-  // Update images if provided
   if (input.images !== undefined) {
-    // Delete existing images
-    const deleteStmt = db.prepare('DELETE FROM product_images WHERE product_id = ?');
-    deleteStmt.run(input.id);
+    await pool.query<ResultSetHeader>('DELETE FROM product_images WHERE product_id = ?', [input.id]);
 
-    // Insert new images
     if (input.images.length > 0) {
-      const imageStmt = db.prepare(`
-        INSERT INTO product_images (id, product_id, url, order_position, created_at)
-        VALUES (?, ?, ?, ?, ?)
-      `);
+      const imageValues = input.images.map(img => [
+        randomUUID(),
+        input.id,
+        img.url,
+        img.order
+      ]);
 
-      for (const img of input.images) {
-        imageStmt.run(randomUUID(), input.id, img.url, img.order, new Date().toISOString());
-      }
+      await pool.query<ResultSetHeader>(
+        `INSERT INTO product_images (id, product_id, url, order_position) VALUES ?`,
+        [imageValues]
+      );
     }
   }
 
   return getProductById(input.id);
 }
 
-// Delete a product
-export function deleteProduct(id: string): boolean {
-  const stmt = db.prepare('DELETE FROM products WHERE id = ?');
-  const result = stmt.run(id);
-  return result.changes > 0;
+export async function deleteProduct(id: string): Promise<boolean> {
+  const [result] = await pool.query<ResultSetHeader>('DELETE FROM products WHERE id = ?', [id]);
+  return result.affectedRows > 0;
 }
 
-// Get products by category
-export function getProductsByCategory(categoryId: string): Product[] {
+export async function getProductsByCategory(categoryId: string): Promise<Product[]> {
   return getAllProducts({ category: categoryId });
 }

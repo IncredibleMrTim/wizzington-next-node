@@ -1,38 +1,41 @@
-import db from '../db';
+import pool from '../db';
 import { Post, CreatePostInput, UpdatePostInput } from '../types';
+import { RowDataPacket, ResultSetHeader } from 'mysql2';
 
-export function getAllPosts(): Post[] {
-  const stmt = db.prepare(`
+export async function getAllPosts(): Promise<Post[]> {
+  const [rows] = await pool.query<RowDataPacket[]>(`
     SELECT posts.*, users.name as user_name
     FROM posts
     LEFT JOIN users ON posts.user_id = users.id
     ORDER BY posts.created_at DESC
   `);
-  return stmt.all() as Post[];
+  return rows as Post[];
 }
 
-export function getPostById(id: number): Post | undefined {
-  const stmt = db.prepare(`
+export async function getPostById(id: number): Promise<Post | undefined> {
+  const [rows] = await pool.query<RowDataPacket[]>(`
     SELECT posts.*, users.name as user_name
     FROM posts
     LEFT JOIN users ON posts.user_id = users.id
     WHERE posts.id = ?
-  `);
-  return stmt.get(id) as Post | undefined;
+  `, [id]);
+  return rows.length > 0 ? (rows[0] as Post) : undefined;
 }
 
-export function createPost(input: CreatePostInput): Post {
-  const stmt = db.prepare('INSERT INTO posts (title, content, user_id) VALUES (?, ?, ?)');
-  const result = stmt.run(input.title, input.content || null, input.user_id || null);
+export async function createPost(input: CreatePostInput): Promise<Post> {
+  const [result] = await pool.query<ResultSetHeader>(
+    'INSERT INTO posts (title, content, user_id) VALUES (?, ?, ?)',
+    [input.title, input.content || null, input.user_id || null]
+  );
 
-  const newPost = getPostById(result.lastInsertRowid as number);
+  const newPost = await getPostById(result.insertId);
   if (!newPost) {
     throw new Error('Failed to create post');
   }
   return newPost;
 }
 
-export function updatePost(id: number, input: UpdatePostInput): Post | undefined {
+export async function updatePost(id: number, input: UpdatePostInput): Promise<Post | undefined> {
   const updates: string[] = [];
   const values: any[] = [];
 
@@ -56,14 +59,12 @@ export function updatePost(id: number, input: UpdatePostInput): Post | undefined
   }
 
   values.push(id);
-  const stmt = db.prepare(`UPDATE posts SET ${updates.join(', ')} WHERE id = ?`);
-  stmt.run(...values);
+  await pool.query<ResultSetHeader>(`UPDATE posts SET ${updates.join(', ')} WHERE id = ?`, values);
 
   return getPostById(id);
 }
 
-export function deletePost(id: number): boolean {
-  const stmt = db.prepare('DELETE FROM posts WHERE id = ?');
-  const result = stmt.run(id);
-  return result.changes > 0;
+export async function deletePost(id: number): Promise<boolean> {
+  const [result] = await pool.query<ResultSetHeader>('DELETE FROM posts WHERE id = ?', [id]);
+  return result.affectedRows > 0;
 }

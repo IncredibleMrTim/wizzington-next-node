@@ -1,6 +1,7 @@
-import db from '../db';
+import pool from '../db';
 import { Order, CreateOrderInput, UpdateOrderInput, OrderProduct } from '../types';
 import { randomUUID } from 'crypto';
+import { RowDataPacket, ResultSetHeader } from 'mysql2';
 
 function rowToOrder(row: any): Order {
   return {
@@ -17,91 +18,84 @@ function rowToOrder(row: any): Order {
   };
 }
 
-function getOrderProducts(orderId: string): OrderProduct[] {
-  const stmt = db.prepare(`
-    SELECT id, order_id, product_id as productId, product_name as name, quantity, price, created_at
-    FROM order_products
-    WHERE order_id = ?
-    ORDER BY created_at ASC
-  `);
-  const products = stmt.all(orderId) as OrderProduct[];
-  return products.map(p => ({ ...p, uid: p.id }));
+async function getOrderProducts(orderId: string): Promise<OrderProduct[]> {
+  const [rows] = await pool.query<RowDataPacket[]>(
+    `SELECT id, order_id, product_id as productId, product_name as name, quantity, price, created_at
+     FROM order_products
+     WHERE order_id = ?
+     ORDER BY created_at ASC`,
+    [orderId]
+  );
+  return rows.map(p => ({ ...p, uid: p.id })) as OrderProduct[];
 }
 
-export function getAllOrders(): Order[] {
-  const stmt = db.prepare('SELECT * FROM orders ORDER BY created_at DESC');
-  const rows = stmt.all() as any[];
+export async function getAllOrders(): Promise<Order[]> {
+  const [rows] = await pool.query<RowDataPacket[]>('SELECT * FROM orders ORDER BY created_at DESC');
 
-  return rows.map(row => {
-    const order = rowToOrder(row);
-    order.products = getOrderProducts(order.id);
-    return order;
-  });
+  const orders = await Promise.all(
+    rows.map(async (row) => {
+      const order = rowToOrder(row);
+      order.products = await getOrderProducts(order.id);
+      return order;
+    })
+  );
+
+  return orders;
 }
 
-export function getOrderById(id: string): Order | undefined {
-  const stmt = db.prepare('SELECT * FROM orders WHERE id = ?');
-  const row = stmt.get(id) as any;
+export async function getOrderById(id: string): Promise<Order | undefined> {
+  const [rows] = await pool.query<RowDataPacket[]>('SELECT * FROM orders WHERE id = ?', [id]);
 
-  if (!row) return undefined;
+  if (rows.length === 0) return undefined;
 
-  const order = rowToOrder(row);
-  order.products = getOrderProducts(order.id);
+  const order = rowToOrder(rows[0]);
+  order.products = await getOrderProducts(order.id);
   return order;
 }
 
-export function createOrder(input: CreateOrderInput): Order {
+export async function createOrder(input: CreateOrderInput): Promise<Order> {
   const id = randomUUID();
-  const now = new Date().toISOString();
 
-  // Calculate total amount
   const totalAmount = input.products.reduce((sum, p) => sum + (p.price * p.quantity), 0);
 
-  const stmt = db.prepare(`
-    INSERT INTO orders (
+  await pool.query<ResultSetHeader>(
+    `INSERT INTO orders (
       id, customer_name, customer_email, customer_phone,
-      status, total_amount, notes, created_at, updated_at
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-  `);
-
-  stmt.run(
-    id,
-    input.customer_name || null,
-    input.customer_email || null,
-    input.customer_phone || null,
-    'pending',
-    totalAmount,
-    input.notes || null,
-    now,
-    now
+      status, total_amount, notes
+    ) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+    [
+      id,
+      input.customer_name || null,
+      input.customer_email || null,
+      input.customer_phone || null,
+      'pending',
+      totalAmount,
+      input.notes || null
+    ]
   );
 
-  // Add order products
   if (input.products && input.products.length > 0) {
-    const productStmt = db.prepare(`
-      INSERT INTO order_products (id, order_id, product_id, product_name, quantity, price, created_at)
-      VALUES (?, ?, ?, ?, ?, ?, ?)
-    `);
+    const productValues = input.products.map(product => [
+      randomUUID(),
+      id,
+      product.productId,
+      product.name,
+      product.quantity,
+      product.price
+    ]);
 
-    for (const product of input.products) {
-      productStmt.run(
-        randomUUID(),
-        id,
-        product.productId,
-        product.name,
-        product.quantity,
-        product.price,
-        now
-      );
-    }
+    await pool.query<ResultSetHeader>(
+      `INSERT INTO order_products (id, order_id, product_id, product_name, quantity, price) VALUES ?`,
+      [productValues]
+    );
   }
 
-  const order = getOrderById(id);
+  const order = await getOrderById(id);
   if (!order) throw new Error('Failed to create order');
   return order;
 }
 
-export function updateOrder(input: UpdateOrderInput): Order | undefined {
+export async function updateOrder(input: UpdateOrderInput): Promise<Order | undefined> {
   const updates: string[] = [];
   const values: any[] = [];
 
@@ -130,55 +124,44 @@ export function updateOrder(input: UpdateOrderInput): Order | undefined {
     values.push(input.notes);
   }
 
-  updates.push('updated_at = ?');
-  values.push(new Date().toISOString());
-
-  // Update products if provided
   if (input.products !== undefined) {
     const totalAmount = input.products.reduce((sum, p) => sum + (p.price * p.quantity), 0);
     updates.push('total_amount = ?');
     values.push(totalAmount);
   }
 
-  if (updates.length > 1) {
+  if (updates.length > 0) {
     values.push(input.id);
-    const stmt = db.prepare(`UPDATE orders SET ${updates.join(', ')} WHERE id = ?`);
-    stmt.run(...values);
+    await pool.query<ResultSetHeader>(
+      `UPDATE orders SET ${updates.join(', ')} WHERE id = ?`,
+      values
+    );
   }
 
-  // Update order products if provided
   if (input.products !== undefined) {
-    // Delete existing products
-    const deleteStmt = db.prepare('DELETE FROM order_products WHERE order_id = ?');
-    deleteStmt.run(input.id);
+    await pool.query<ResultSetHeader>('DELETE FROM order_products WHERE order_id = ?', [input.id]);
 
-    // Insert new products
     if (input.products.length > 0) {
-      const productStmt = db.prepare(`
-        INSERT INTO order_products (id, order_id, product_id, product_name, quantity, price, created_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
-      `);
+      const productValues = input.products.map(product => [
+        product.uid || randomUUID(),
+        input.id,
+        product.productId,
+        product.name,
+        product.quantity,
+        product.price
+      ]);
 
-      const now = new Date().toISOString();
-      for (const product of input.products) {
-        productStmt.run(
-          product.uid || randomUUID(),
-          input.id,
-          product.productId,
-          product.name,
-          product.quantity,
-          product.price,
-          now
-        );
-      }
+      await pool.query<ResultSetHeader>(
+        `INSERT INTO order_products (id, order_id, product_id, product_name, quantity, price) VALUES ?`,
+        [productValues]
+      );
     }
   }
 
   return getOrderById(input.id);
 }
 
-export function deleteOrder(id: string): boolean {
-  const stmt = db.prepare('DELETE FROM orders WHERE id = ?');
-  const result = stmt.run(id);
-  return result.changes > 0;
+export async function deleteOrder(id: string): Promise<boolean> {
+  const [result] = await pool.query<ResultSetHeader>('DELETE FROM orders WHERE id = ?', [id]);
+  return result.affectedRows > 0;
 }

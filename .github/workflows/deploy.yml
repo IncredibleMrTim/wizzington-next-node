@@ -76,8 +76,11 @@ jobs:
           cp package.json deploy/
           cp yarn.lock deploy/
           cp ecosystem.config.js deploy/
+          cp start.js deploy/
+          chmod +x deploy/start.js
           cp server/package.json deploy/server/
           cp server/yarn.lock deploy/server/
+          mkdir -p deploy/logs
           echo "Deployment directory contents:"
           ls -la deploy/
 
@@ -114,12 +117,16 @@ jobs:
             test -d server && echo "✓ server directory found" || echo "✗ server directory NOT found"
             echo ""
             echo "=== Fixing File Permissions ==="
+            echo "Creating logs directory..."
+            mkdir -p ${{ secrets.DEPLOY_PATH }}/logs
             echo "Setting ownership to current user..."
             chown -R $(whoami):$(whoami) ${{ secrets.DEPLOY_PATH }} || echo "⚠ Warning: Could not change ownership (this is normal on some hosting providers)"
             echo "Setting directory permissions to 755..."
             find ${{ secrets.DEPLOY_PATH }} -type d -exec chmod 755 {} \;
             echo "Setting file permissions to 644..."
             find ${{ secrets.DEPLOY_PATH }} -type f -exec chmod 644 {} \;
+            echo "Making start.js executable..."
+            chmod +x ${{ secrets.DEPLOY_PATH }}/start.js
             echo "✓ Permissions fixed"
             echo ""
             echo "Installing dependencies..."

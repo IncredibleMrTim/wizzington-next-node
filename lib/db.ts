@@ -1,40 +1,33 @@
-import Database from 'better-sqlite3';
-import path from 'path';
+import mysql from 'mysql2/promise';
+import dotenv from 'dotenv';
 
-const dbPath = path.join(process.cwd(), 'data.db');
-const db = new Database(dbPath);
+dotenv.config();
 
-// Enable foreign keys
-db.pragma('foreign_keys = ON');
+const pool = mysql.createPool({
+  host: process.env.DB_HOST || 'localhost',
+  user: process.env.DB_USER || 'root',
+  password: process.env.DB_PASSWORD || '',
+  database: process.env.DB_NAME || 'wizz_db',
+  port: parseInt(process.env.DB_PORT || '3306'),
+  waitForConnections: true,
+  connectionLimit: 10,
+  queueLimit: 0,
+  enableKeepAlive: true,
+  keepAliveInitialDelay: 0
+});
 
-// Initialize database tables
-export function initDB() {
-  // Create users table as an example
-  db.exec(`
-    CREATE TABLE IF NOT EXISTS users (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      name TEXT NOT NULL,
-      email TEXT UNIQUE NOT NULL,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-    )
-  `);
-
-  // Create posts table as an example
-  db.exec(`
-    CREATE TABLE IF NOT EXISTS posts (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      title TEXT NOT NULL,
-      content TEXT,
-      user_id INTEGER,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
-    )
-  `);
-
-  console.log('Database initialized successfully');
+export async function initDB() {
+  try {
+    const connection = await pool.getConnection();
+    console.log('✓ MySQL database connected successfully');
+    console.log('Database tables should be created from schema.sql');
+    connection.release();
+  } catch (error) {
+    console.error('✗ MySQL connection error:', error);
+    throw error;
+  }
 }
 
-// Initialize DB on import
 initDB();
 
-export default db;
+export default pool;

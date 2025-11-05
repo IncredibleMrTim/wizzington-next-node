@@ -1,6 +1,7 @@
-import db from '../db';
+import pool from '../db';
 import { Category, CreateCategoryInput, UpdateCategoryInput } from '../types';
 import { randomUUID } from 'crypto';
+import { RowDataPacket, ResultSetHeader } from 'mysql2';
 
 function rowToCategory(row: any): Category {
   return {
@@ -12,35 +13,30 @@ function rowToCategory(row: any): Category {
   };
 }
 
-export function getAllCategories(): Category[] {
-  const stmt = db.prepare('SELECT * FROM categories ORDER BY name ASC');
-  const rows = stmt.all() as any[];
+export async function getAllCategories(): Promise<Category[]> {
+  const [rows] = await pool.query<RowDataPacket[]>('SELECT * FROM categories ORDER BY name ASC');
   return rows.map(rowToCategory);
 }
 
-export function getCategoryById(id: string): Category | undefined {
-  const stmt = db.prepare('SELECT * FROM categories WHERE id = ?');
-  const row = stmt.get(id) as any;
-  return row ? rowToCategory(row) : undefined;
+export async function getCategoryById(id: string): Promise<Category | undefined> {
+  const [rows] = await pool.query<RowDataPacket[]>('SELECT * FROM categories WHERE id = ?', [id]);
+  return rows.length > 0 ? rowToCategory(rows[0]) : undefined;
 }
 
-export function createCategory(input: CreateCategoryInput): Category {
+export async function createCategory(input: CreateCategoryInput): Promise<Category> {
   const id = randomUUID();
-  const now = new Date().toISOString();
 
-  const stmt = db.prepare(`
-    INSERT INTO categories (id, name, description, created_at, updated_at)
-    VALUES (?, ?, ?, ?, ?)
-  `);
+  await pool.query<ResultSetHeader>(
+    'INSERT INTO categories (id, name, description) VALUES (?, ?, ?)',
+    [id, input.name, input.description || null]
+  );
 
-  stmt.run(id, input.name, input.description || null, now, now);
-
-  const category = getCategoryById(id);
+  const category = await getCategoryById(id);
   if (!category) throw new Error('Failed to create category');
   return category;
 }
 
-export function updateCategory(input: UpdateCategoryInput): Category | undefined {
+export async function updateCategory(input: UpdateCategoryInput): Promise<Category | undefined> {
   const updates: string[] = [];
   const values: any[] = [];
 
@@ -54,20 +50,18 @@ export function updateCategory(input: UpdateCategoryInput): Category | undefined
     values.push(input.description);
   }
 
-  updates.push('updated_at = ?');
-  values.push(new Date().toISOString());
-
-  if (updates.length > 1) {
+  if (updates.length > 0) {
     values.push(input.id);
-    const stmt = db.prepare(`UPDATE categories SET ${updates.join(', ')} WHERE id = ?`);
-    stmt.run(...values);
+    await pool.query<ResultSetHeader>(
+      `UPDATE categories SET ${updates.join(', ')} WHERE id = ?`,
+      values
+    );
   }
 
   return getCategoryById(input.id);
 }
 
-export function deleteCategory(id: string): boolean {
-  const stmt = db.prepare('DELETE FROM categories WHERE id = ?');
-  const result = stmt.run(id);
-  return result.changes > 0;
+export async function deleteCategory(id: string): Promise<boolean> {
+  const [result] = await pool.query<ResultSetHeader>('DELETE FROM categories WHERE id = ?', [id]);
+  return result.affectedRows > 0;
 }
