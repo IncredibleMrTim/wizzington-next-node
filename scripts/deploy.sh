@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Deployment script for Fasthosts VPS
+# Deployment script for VPS
 # This script should be run on the VPS server
 
 set -e  # Exit on any error
@@ -48,7 +48,6 @@ if [ -d "$APP_DIR" ]; then
         --exclude=node_modules \
         --exclude=.next \
         --exclude=uploads \
-        --exclude=dist \
         .
     print_status "Backup created: backup-$TIMESTAMP.tar.gz"
 fi
@@ -61,22 +60,12 @@ print_status "Pulling latest changes from git..."
 git pull origin main || git pull origin master
 
 # Install dependencies
-print_status "Installing Next.js dependencies..."
+print_status "Installing dependencies..."
 yarn install --production
 
-print_status "Installing server dependencies..."
-cd server
-yarn install --production
-cd ..
-
-# Build applications
+# Build application
 print_status "Building Next.js application..."
 yarn build
-
-print_status "Building server..."
-cd server
-yarn build
-cd ..
 
 # Ensure uploads directory exists with correct permissions
 if [ ! -d "$APP_DIR/uploads" ]; then
@@ -85,28 +74,36 @@ if [ ! -d "$APP_DIR/uploads" ]; then
 fi
 chmod 755 "$APP_DIR/uploads"
 
-# Restart applications with PM2
-print_status "Restarting applications..."
-pm2 restart wizz-next
-pm2 restart wizz-server
-pm2 save
+# Install systemd service if not already installed
+if [ ! -f "/etc/systemd/system/wizz-next.service" ]; then
+    print_status "Installing systemd service..."
+    cp systemd/wizz-next.service /etc/systemd/system/
+    mkdir -p /var/log/wizz-next
+    chown $USER:$USER /var/log/wizz-next
+    systemctl daemon-reload
+    systemctl enable wizz-next
+fi
 
-# Wait for applications to start
+# Restart application with systemd
+print_status "Restarting application..."
+systemctl restart wizz-next
+
+# Wait for application to start
 sleep 5
 
 # Check application status
 print_status "Checking application status..."
-if pm2 describe wizz-next | grep -q "online" && pm2 describe wizz-server | grep -q "online"; then
-    print_status "Both applications are running!"
+if systemctl is-active --quiet wizz-next; then
+    print_status "Application is running!"
 else
-    print_error "One or more applications failed to start!"
+    print_error "Application failed to start!"
     print_warning "Rolling back to previous version..."
 
     # Rollback
     if [ -f "$BACKUP_DIR/backup-$TIMESTAMP.tar.gz" ]; then
         cd "$APP_DIR"
         tar -xzf "$BACKUP_DIR/backup-$TIMESTAMP.tar.gz"
-        pm2 restart all
+        systemctl restart wizz-next
         print_error "Rolled back to previous version"
     fi
     exit 1
@@ -117,29 +114,21 @@ print_status "Cleaning up old backups..."
 cd "$BACKUP_DIR"
 ls -t backup-*.tar.gz | tail -n +11 | xargs -r rm
 
-# Test API endpoint
-print_status "Testing API endpoint..."
-if curl -s -f http://localhost:4000/api/health > /dev/null; then
-    print_status "API is responding correctly"
-else
-    print_warning "API health check failed"
-fi
-
 # Test Next.js app
-print_status "Testing Next.js application..."
+print_status "Testing application..."
 if curl -s -f http://localhost:3000 > /dev/null; then
-    print_status "Next.js app is responding correctly"
+    print_status "Application is responding correctly"
 else
-    print_warning "Next.js health check failed"
+    print_warning "Application health check failed"
 fi
 
 echo ""
 print_status "Deployment completed successfully! 🎉"
 echo ""
 echo "Application Status:"
-pm2 status
+systemctl status wizz-next --no-pager
 
 echo ""
 echo "View logs with:"
-echo "  pm2 logs wizz-next"
-echo "  pm2 logs wizz-server"
+echo "  sudo journalctl -u wizz-next -f"
+echo "  sudo tail -f /var/log/wizz-next/output.log"

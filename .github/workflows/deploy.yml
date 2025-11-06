@@ -1,4 +1,4 @@
-name: Deploy to Fasthosts VPS
+name: Deploy to VPS
 
 on:
   push:
@@ -13,31 +13,6 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Debug - Show Deployment Configuration
-        run: |
-          echo "=== DEPLOYMENT CONFIGURATION DEBUG ==="
-          echo "⚠️  WARNING: Showing deployment secrets for debugging (bypassing GitHub masking)"
-          echo ""
-          # Bypass GitHub's secret masking by adding separators
-          echo "Remote Host:" && echo "$REMOTE_HOST" | sed 's/./& /g'
-          echo ""
-          echo "Remote User:" && echo "$REMOTE_USER" | sed 's/./& /g'
-          echo ""
-          echo "Remote Port:" && echo "${REMOTE_PORT:-22}" | sed 's/./& /g'
-          echo ""
-          echo "Deploy Path:" && echo "$DEPLOY_PATH" | sed 's/./& /g'
-          echo ""
-          echo "SSH Key Length: ${#SSH_KEY}"
-          echo "SSH Key First Line:" && echo "$SSH_KEY" | head -n1 | sed 's/./& /g'
-          echo ""
-          echo "=== END DEBUG INFO ==="
-        env:
-          REMOTE_HOST: ${{ secrets.REMOTE_HOST }}
-          REMOTE_USER: ${{ secrets.REMOTE_USER }}
-          REMOTE_PORT: ${{ secrets.REMOTE_PORT }}
-          DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
-          SSH_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
-
       - name: Checkout code
         uses: actions/checkout@v4
 
@@ -47,42 +22,23 @@ jobs:
           node-version: "20"
           cache: "yarn"
 
-      - name: Install dependencies
+      - name: Install dependencies and build
         run: |
           yarn install --frozen-lockfile
-          cd server && yarn install --frozen-lockfile
-
-      - name: Build Next.js application
-        run: yarn build
+          yarn build
         env:
           NEXTAUTH_URL: ${{ secrets.NEXTAUTH_URL }}
           NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET }}
           GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
           GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
           NEXT_PUBLIC_ADMIN_WHITE_LIST: ${{ secrets.NEXT_PUBLIC_ADMIN_WHITE_LIST }}
-          NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL }}
 
-      - name: Build server
+      - name: Prepare deployment files
         run: |
-          cd server
-          yarn build
-
-      - name: Prepare deployment directory
-        run: |
-          mkdir -p deploy
-          cp -r .next deploy/
-          cp -r public deploy/
-          cp -r server/dist deploy/server/
-          cp package.json deploy/
-          cp yarn.lock deploy/
-          cp ecosystem.config.js deploy/
-          cp start.js deploy/
-          chmod +x deploy/start.js
-          cp server/package.json deploy/server/
-          cp server/yarn.lock deploy/server/
-          mkdir -p deploy/logs
-          echo "Deployment directory contents:"
-          ls -la deploy/
+          mkdir -p deploy/logs deploy/systemd
+          cp -r .next public package.json yarn.lock deploy/
+          cp -r systemd/* deploy/systemd/
+          cp next.config.ts deploy/ 2>/dev/null || cp next.config.js deploy/ 2>/dev/null || true
 
       - name: Deploy to VPS
         uses: easingthemes/ssh-deploy@main
@@ -93,60 +49,51 @@ jobs:
           REMOTE_PORT: ${{ secrets.REMOTE_PORT || 22 }}
           SOURCE: "deploy/"
           TARGET: ${{ secrets.DEPLOY_PATH }}
-          EXCLUDE: ""
           SCRIPT_BEFORE: |
-            echo "=== Deployment Information ==="
-            echo "Current user: $(whoami)"
-            echo "Home directory: $HOME"
-            echo "Target deployment path: ${{ secrets.DEPLOY_PATH }}"
-            echo "Creating deployment directory if it doesn't exist..."
             mkdir -p ${{ secrets.DEPLOY_PATH }}
-            echo "Current directory contents:"
-            ls -al ${{ secrets.DEPLOY_PATH }}
+            [ -d "${{ secrets.DEPLOY_PATH }}/uploads" ] && mv ${{ secrets.DEPLOY_PATH }}/uploads ${{ secrets.DEPLOY_PATH }}/uploads_backup
           SCRIPT_AFTER: |
             cd ${{ secrets.DEPLOY_PATH }}
-            echo "=== Verifying Deployment ==="
-            echo "Deploying to: ${{ secrets.DEPLOY_PATH }}"
-            echo "Current directory: $(pwd)"
-            echo "Current user: $(whoami)"
-            echo "Checking deployed files..."
-            ls -la
-            echo "Checking if package.json exists..."
-            test -f package.json && echo "✓ package.json found" || echo "✗ package.json NOT found"
-            test -d .next && echo "✓ .next directory found" || echo "✗ .next directory NOT found"
-            test -d server && echo "✓ server directory found" || echo "✗ server directory NOT found"
-            echo ""
-            echo "=== Fixing File Permissions ==="
-            echo "Creating logs directory..."
-            mkdir -p ${{ secrets.DEPLOY_PATH }}/logs
-            echo "Setting ownership to current user..."
-            chown -R $(whoami):$(whoami) ${{ secrets.DEPLOY_PATH }} || echo "⚠ Warning: Could not change ownership (this is normal on some hosting providers)"
-            echo "Setting directory permissions to 755..."
-            find ${{ secrets.DEPLOY_PATH }} -type d -exec chmod 755 {} \;
-            echo "Setting file permissions to 644..."
-            find ${{ secrets.DEPLOY_PATH }} -type f -exec chmod 644 {} \;
-            echo "Making start.js executable..."
-            chmod +x ${{ secrets.DEPLOY_PATH }}/start.js
-            echo "✓ Permissions fixed"
-            echo ""
-            echo "Installing dependencies..."
-            yarn install --production --frozen-lockfile
-            cd server && yarn install --production --frozen-lockfile && cd ..
-            echo ""
-            echo "Restarting PM2 processes..."
-            pm2 restart wizz-next
-            pm2 restart wizz-server
-            pm2 save
-            echo ""
-            echo "=== PM2 Status ==="
-            pm2 list
-            echo "Deployment completed successfully!"
 
-      - name: Notify deployment status
-        if: always()
-        run: |
-          if [ ${{ job.status }} == 'success' ]; then
-            echo "✅ Deployment successful!"
-          else
-            echo "❌ Deployment failed!"
-          fi
+            # Setup directories
+            mkdir -p logs uploads
+            [ -d "uploads_backup" ] && rm -rf uploads && mv uploads_backup uploads
+
+            # Create environment file
+            cat > .env << 'EOF'
+            NODE_ENV=production
+            PORT=3000
+            DB_HOST=${{ secrets.DB_HOST }}
+            DB_USER=${{ secrets.DB_USER }}
+            DB_PASSWORD=${{ secrets.DB_PASSWORD }}
+            DB_NAME=${{ secrets.DB_NAME }}
+            DB_PORT=${{ secrets.DB_PORT }}
+            NEXTAUTH_URL=${{ secrets.NEXTAUTH_URL }}
+            NEXTAUTH_SECRET=${{ secrets.NEXTAUTH_SECRET }}
+            GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}
+            GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}
+            NEXT_PUBLIC_ADMIN_WHITE_LIST=${{ secrets.NEXT_PUBLIC_ADMIN_WHITE_LIST }}
+            UPLOAD_DIR=./uploads
+            MAX_FILE_SIZE=5242880
+            MAX_FILES=10
+            EOF
+
+            # Set permissions
+            chmod -R 755 uploads logs
+
+            # Install systemd service if not already installed
+            if [ ! -f "/etc/systemd/system/wizz-next.service" ]; then
+              echo "Installing systemd service..."
+              sudo cp systemd/wizz-next.service /etc/systemd/system/
+              sudo mkdir -p /var/log/wizz-next
+              sudo chown $USER:$USER /var/log/wizz-next
+              sudo systemctl daemon-reload
+              sudo systemctl enable wizz-next
+            fi
+
+            # Install dependencies and restart
+            yarn install --production --frozen-lockfile
+            sudo systemctl restart wizz-next
+
+            echo "✅ Deployment complete"
+            sudo systemctl status wizz-next --no-pager

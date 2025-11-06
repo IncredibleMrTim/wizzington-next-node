@@ -10,7 +10,6 @@ interface FileUploaderProps {
   updateProductImageOrder: (key: string, order: number) => void;
 }
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 const MAX_FILES = 10;
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 
@@ -64,7 +63,7 @@ export const FileUploader = ({
         formData.append("files", file);
       });
 
-      const response = await fetch(`${API_URL}/api/upload/multiple`, {
+      const response = await fetch('/api/upload/multiple', {
         method: "POST",
         body: formData,
       });
@@ -171,7 +170,7 @@ export const FileUploader = ({
                       }}
                     >
                       <img
-                        src={`${API_URL}/uploads/${file?.url}`}
+                        src={`/api/uploads/${file?.url}`}
                         alt={`${product?.name} product image`}
                         aria-label={`${product?.name} product image`}
                         className="h-full cursor-move"

@@ -1,293 +1,265 @@
-# Wizz Next Node
+# Wizz Next.js Application
 
 ![Deployment Status](https://github.com/your-username/wizz-next-node/actions/workflows/deploy.yml/badge.svg)
 
-A full-stack application with React Next.js frontend and Express Node.js backend using SQLite database. Features automated deployment to Fasthosts VPS with CI/CD.
+A modern full-stack Next.js application with API routes and MySQL database. Features automated deployment to VPS with systemd and CI/CD.
 
 ## Features
 
-- Next.js 16 with App Router for frontend
-- Express.js backend with clean architecture
-- TypeScript for type safety across frontend and backend
-- SQLite database with better-sqlite3
-- RESTful API with CRUD operations
-- **Custom File Upload System** - Direct uploads to VPS (no AWS required)
-- **GitHub Actions CI/CD** - Automated deployment to Fasthosts VPS
+- Next.js 16 with App Router
+- API Routes (no separate backend server)
+- TypeScript for type safety
+- MySQL database with connection pooling
+- **Custom File Upload System** - Direct uploads to VPS
+- **GitHub Actions CI/CD** - Automated deployment
+- **Systemd Process Management** - Native Linux service
 - NextAuth authentication with Google OAuth
 - Modern UI with Tailwind CSS and Radix UI
-- User and Post management system
-- Concurrent development setup
+- Product, Category, and Order management
 
 ## Architecture
 
-This project uses a separated frontend/backend architecture:
+This project uses a unified Next.js architecture:
 
-- **Frontend**: Next.js runs on `localhost:3000`
-- **Backend**: Express.js runs on `localhost:4000`
-- **Database**: SQLite shared between frontend and backend
+- **Frontend & Backend**: Next.js on port 3000
+- **API Routes**: `/api/*` endpoints
+- **Database**: MySQL
+- **File Uploads**: Stored in `uploads/` directory
+- **Process Manager**: Systemd (native Linux)
 
 ## Tech Stack
 
-- **Frontend**: React 19, Next.js 16, TypeScript, Tailwind CSS
-- **Backend**: Express.js, Node.js, TypeScript
-- **Database**: SQLite (better-sqlite3)
-- **File Upload**: Multer
+- **Framework**: Next.js 16, React 19, TypeScript
+- **Database**: MySQL with mysql2
+- **File Upload**: Next.js API routes with native file handling
+- **Process Management**: Systemd
 - **Package Manager**: Yarn
+- **Hosting**: VPS with systemd service
 
 ## Getting Started
 
 ### Prerequisites
 
-- Node.js 18+ and Yarn installed on your machine
+- Node.js 20+ and Yarn
+- MySQL database
 
 ### Installation
 
-1. Clone the repository
+1. **Clone the repository**
 
-2. Install root dependencies:
+2. **Install dependencies:**
 ```bash
 yarn install
 ```
 
-3. Install server dependencies:
+3. **Set up environment variables:**
 ```bash
-cd server && yarn install && cd ..
+cp .env.example .env
+# Edit .env with your configuration
 ```
 
-4. Seed the database with example data:
+4. **Set up MySQL database:**
 ```bash
-yarn seed
+# Create database and run schema
+mysql -u root -p < schema.sql
 ```
 
-5. Run both frontend and backend concurrently:
+5. **Run development server:**
 ```bash
 yarn dev
 ```
 
-This will start:
-- Next.js frontend on [http://localhost:3000](http://localhost:3000)
-- Express backend on [http://localhost:4000](http://localhost:4000)
-
-### Running Servers Separately
-
-If you prefer to run servers separately:
-
-```bash
-# Terminal 1 - Frontend
-yarn dev:next
-
-# Terminal 2 - Backend
-yarn dev:server
-```
+Visit [http://localhost:3000](http://localhost:3000)
 
 ## Project Structure
 
 ```
 wizz-next-node/
-├── server/                   # Express backend
-│   ├── src/
-│   │   ├── controllers/      # Request handlers
-│   │   │   ├── user.controller.ts
-│   │   │   ├── post.controller.ts
-│   │   │   └── upload.controller.ts
-│   │   ├── models/           # Database queries
-│   │   │   ├── user.model.ts
-│   │   │   └── post.model.ts
-│   │   ├── routes/           # API routes
-│   │   │   ├── user.routes.ts
-│   │   │   ├── post.routes.ts
-│   │   │   ├── upload.routes.ts
-│   │   │   └── index.ts
-│   │   ├── middleware/       # Express middleware
-│   │   │   ├── upload.middleware.ts
-│   │   │   └── error.middleware.ts
-│   │   ├── types/            # TypeScript types
-│   │   │   └── index.ts
-│   │   ├── db.ts             # Database initialization
-│   │   └── index.ts          # Express app setup
-│   ├── package.json
-│   └── tsconfig.json
-├── app/                      # Next.js frontend
-│   ├── layout.tsx
-│   └── page.tsx
-├── components/               # React components
-│   ├── UserManager.tsx
-│   └── PostManager.tsx
+├── app/                      # Next.js app directory
+│   ├── api/                  # API routes
+│   │   ├── products/         # Product endpoints
+│   │   ├── categories/       # Category endpoints
+│   │   ├── orders/           # Order endpoints
+│   │   ├── users/            # User endpoints
+│   │   ├── posts/            # Post endpoints
+│   │   ├── upload/           # File upload endpoints
+│   │   └── uploads/          # Serve uploaded files
+│   ├── components/           # React components
+│   ├── (pages)/              # Next.js pages
+│   └── layout.tsx
 ├── lib/                      # Shared utilities
-│   ├── api.ts                # API configuration
-│   └── types.ts              # Shared TypeScript types
+│   ├── db.ts                 # Database connection
+│   ├── types.ts              # TypeScript types
+│   └── api.ts                # API configuration
+├── systemd/                  # Systemd service files
+│   ├── wizz-next.service     # Service configuration
+│   └── README.md             # Setup instructions
 ├── scripts/
-│   └── seed.ts               # Database seeding
+│   ├── seed.ts               # Database seeding
+│   └── deploy.sh             # Manual deployment
 ├── uploads/                  # File uploads directory
-└── data.db                   # SQLite database
+└── schema.sql                # Database schema
 ```
 
 ## API Endpoints
 
-All API endpoints are served from the Express backend at `http://localhost:4000/api`
+All API endpoints are at `/api/*`
+
+### Products
+- `GET /api/products` - Get all products (with query params)
+- `GET /api/products/:id` - Get single product
+- `GET /api/products/category/:categoryId` - Get products by category
+- `POST /api/products` - Create product
+- `PUT /api/products/:id` - Update product
+- `DELETE /api/products/:id` - Delete product
+
+### Categories
+- `GET /api/categories` - Get all categories
+- `GET /api/categories/:id` - Get single category
+- `POST /api/categories` - Create category
+- `PUT /api/categories/:id` - Update category
+- `DELETE /api/categories/:id` - Delete category
+
+### Orders
+- `GET /api/orders` - Get all orders
+- `GET /api/orders/:id` - Get single order
+- `POST /api/orders` - Create order
+- `PUT /api/orders/:id` - Update order
+- `DELETE /api/orders/:id` - Delete order
 
 ### Users
-
 - `GET /api/users` - Get all users
-- `GET /api/users/:id` - Get a specific user
-- `POST /api/users` - Create a new user
-- `PUT /api/users/:id` - Update a user
-- `DELETE /api/users/:id` - Delete a user
+- `GET /api/users/:id` - Get single user
+- `POST /api/users` - Create user
+- `PUT /api/users/:id` - Update user
+- `DELETE /api/users/:id` - Delete user
 
 ### Posts
-
-- `GET /api/posts` - Get all posts with user names
-- `GET /api/posts/:id` - Get a specific post
-- `POST /api/posts` - Create a new post
-- `PUT /api/posts/:id` - Update a post
-- `DELETE /api/posts/:id` - Delete a post
+- `GET /api/posts` - Get all posts
+- `GET /api/posts/:id` - Get single post
+- `POST /api/posts` - Create post
+- `PUT /api/posts/:id` - Update post
+- `DELETE /api/posts/:id` - Delete post
 
 ### File Upload
-
-- `POST /api/upload/single` - Upload a single file (max 5MB)
-  - Field name: `file`
-  - Accepted types: jpeg, jpg, png, gif, webp
+- `POST /api/upload/single` - Upload single file (max 5MB)
 - `POST /api/upload/multiple` - Upload multiple files (max 10 files, 5MB each)
-  - Field name: `files`
-
-### Health Check
-
-- `GET /health` - Server health check
+- `GET /api/uploads/:filename` - Serve uploaded file
 
 ## Scripts
 
-### Root Directory
-
-- `yarn dev` - Start both frontend and backend concurrently
-- `yarn dev:next` - Start Next.js frontend only
-- `yarn dev:server` - Start Express backend only
-- `yarn build` - Build both frontend and backend
-- `yarn start` - Start both in production mode
+- `yarn dev` - Start development server
+- `yarn build` - Build for production
+- `yarn start` - Start production server
 - `yarn lint` - Run ESLint
 - `yarn seed` - Seed database with example data
 
-### Server Directory
-
-- `yarn dev` - Start Express server in watch mode
-- `yarn build` - Compile TypeScript to JavaScript
-- `yarn start` - Start compiled production server
-
 ## Database Schema
 
-### Users Table
-- `id` - Integer (Primary Key, Auto Increment)
-- `name` - Text (Not Null)
-- `email` - Text (Unique, Not Null)
-- `created_at` - DateTime (Default: Current Timestamp)
+See `schema.sql` for complete schema.
 
-### Posts Table
-- `id` - Integer (Primary Key, Auto Increment)
-- `title` - Text (Not Null)
-- `content` - Text (Nullable)
-- `user_id` - Integer (Foreign Key to Users, Cascade Delete)
-- `created_at` - DateTime (Default: Current Timestamp)
-
-## Backend Architecture
-
-The Express backend follows a clean, functional architecture:
-
-- **Controllers**: Handle HTTP requests and responses
-- **Models**: Encapsulate database queries
-- **Routes**: Define API endpoints
-- **Middleware**: Handle cross-cutting concerns (CORS, error handling, file uploads)
-
-All backend code uses **functions instead of classes** for simplicity and functional programming style.
+**Main tables:**
+- `users` - User accounts
+- `posts` - Blog posts
+- `products` - Product catalog
+- `product_images` - Product images
+- `categories` - Product categories
+- `orders` - Customer orders
+- `order_products` - Order line items
 
 ## Environment Variables
 
-### Frontend (.env.local)
+Create `.env` file:
 
 ```env
+# MySQL Database
+DB_HOST=localhost
+DB_USER=root
+DB_PASSWORD=your_password
+DB_NAME=wizz_db
+DB_PORT=3306
+
+# NextAuth
 NEXTAUTH_URL=http://localhost:3000
 NEXTAUTH_SECRET=your-secret-here
+
+# Google OAuth
 GOOGLE_CLIENT_ID=your-google-client-id
 GOOGLE_CLIENT_SECRET=your-google-client-secret
+
+# Admin
 NEXT_PUBLIC_ADMIN_WHITE_LIST=your-email@example.com
-NEXT_PUBLIC_API_URL=http://localhost:4000
-```
 
-### Backend (server/.env)
-
-```env
-PORT=4000
-ALLOWED_ORIGINS=http://localhost:3000,http://localhost:3001
+# Upload Configuration
+UPLOAD_DIR=./uploads
 MAX_FILE_SIZE=5242880
 MAX_FILES=10
-UPLOAD_DIR=../uploads
 ```
+
+## Deployment
+
+### Automated Deployment (GitHub Actions)
+
+1. **Configure GitHub Secrets** (see `GITHUB_SECRETS.md`)
+2. **Push to main/master branch**
+3. Automatic deployment triggers
+
+The CI/CD pipeline will:
+- Build Next.js application
+- Deploy to VPS via SSH
+- Install/update systemd service
+- Restart application
+
+### Manual Deployment
+
+On your VPS, run:
+
+```bash
+sudo bash /var/www/wizz-app/scripts/deploy.sh
+```
+
+### Process Management with Systemd
+
+```bash
+# Start service
+sudo systemctl start wizz-next
+
+# Stop service
+sudo systemctl stop wizz-next
+
+# Restart service
+sudo systemctl restart wizz-next
+
+# Check status
+sudo systemctl status wizz-next
+
+# View logs
+sudo journalctl -u wizz-next -f
+sudo tail -f /var/log/wizz-next/output.log
+
+# Enable auto-start on boot
+sudo systemctl enable wizz-next
+```
+
+See `systemd/README.md` for detailed setup instructions.
 
 ## File Uploads
 
-The application includes a custom file uploader that uploads directly to your VPS (no AWS required):
+The application includes a custom file uploader:
 
 **Features:**
 - Drag-and-drop interface
 - Multiple file uploads (max 10 files)
 - File validation (JPEG, PNG, GIF, WEBP)
 - File size limit (5MB per file)
-- Upload progress tracking
 - Image preview and reordering
 - Direct upload to VPS storage
 
 **Storage:**
 - Files stored in `uploads/` directory
-- Served statically at `/uploads/:filename`
+- Served via `/api/uploads/:filename`
 - Unique filenames with timestamp
-
-**Component:** `app/components/fileUploader/FileUploader.tsx`
-
-## Deployment
-
-This project is configured for automated deployment to Fasthosts VPS.
-
-### Quick Start
-
-1. **Manual Setup**: Follow [DEPLOYMENT.md](./DEPLOYMENT.md#manual-deployment) to set up your VPS
-2. **CI/CD Setup**: Configure [GitHub Actions](./DEPLOYMENT.md#cicd-setup-with-github-actions) for automated deployments
-3. **Deploy**: Push to main/master branch to automatically deploy
-
-### GitHub Actions CI/CD
-
-Every push to main/master triggers automatic deployment:
-- ✅ Builds Next.js application
-- ✅ Builds Node.js server
-- ✅ Deploys to VPS via SSH
-- ✅ Restarts PM2 processes
-- ✅ Automatic rollback on failure
-
-See [DEPLOYMENT.md](./DEPLOYMENT.md) for complete deployment instructions.
-
-### Manual Deployment
-
-For manual deployments, use the deployment script on your VPS:
-
-```bash
-sudo bash /var/www/wizz-app/scripts/deploy.sh
-```
-
-## Customization
-
-To customize this boilerplate:
-
-1. **Add new database tables**: Update `server/src/db.ts`
-2. **Add new types**: Update `server/src/types/index.ts`
-3. **Add new models**: Create files in `server/src/models/`
-4. **Add new controllers**: Create files in `server/src/controllers/`
-5. **Add new routes**: Create files in `server/src/routes/` and register in `server/src/routes/index.ts`
-6. **Add new components**: Create files in `components/`
-7. **Update UI**: Modify `app/page.tsx` or create new pages
-
-## Deployment Files
-
-- `.github/workflows/deploy.yml` - GitHub Actions workflow
-- `scripts/deploy.sh` - Manual deployment script
-- `DEPLOYMENT.md` - Complete deployment guide
-- `ecosystem.config.js` - PM2 configuration (created on VPS)
+- Automatic directory creation
 
 ## Monitoring
 
@@ -298,27 +270,65 @@ yarn dev  # Watch console output
 
 ### Production (on VPS)
 ```bash
-pm2 status              # Check process status
-pm2 logs wizz-next      # Next.js logs
-pm2 logs wizz-server    # Server logs
-pm2 monit               # Real-time monitoring
+sudo systemctl status wizz-next          # Check status
+sudo journalctl -u wizz-next -f          # Follow logs
+sudo journalctl -u wizz-next -n 100      # Last 100 lines
+sudo tail -f /var/log/wizz-next/output.log  # File-based logs
 ```
+
+## Customization
+
+1. **Add new database tables**: Update `schema.sql`
+2. **Add new types**: Update `lib/types.ts`
+3. **Add new API routes**: Create in `app/api/*/route.ts`
+4. **Add new components**: Create in `app/components/`
+5. **Add new pages**: Create in `app/(pages)/`
 
 ## Troubleshooting
 
-See [DEPLOYMENT.md](./DEPLOYMENT.md#troubleshooting) for common issues and solutions.
+### Application won't start
+```bash
+# Check service status
+sudo systemctl status wizz-next
+
+# View logs
+sudo journalctl -u wizz-next -n 50
+
+# Test manually
+cd /var/www/wizz-app
+yarn start
+```
+
+### Database connection issues
+```bash
+# Test MySQL connection
+mysql -u DB_USER -p -h DB_HOST
+
+# Check .env file
+cat .env
+
+# View connection errors in logs
+sudo journalctl -u wizz-next | grep -i mysql
+```
+
+### Port already in use
+```bash
+# Check what's using port 3000
+sudo lsof -i :3000
+
+# Kill the process
+sudo kill -9 <PID>
+```
 
 ## Learn More
 
 - [Next.js Documentation](https://nextjs.org/docs)
-- [Express.js Documentation](https://expressjs.com)
+- [Next.js API Routes](https://nextjs.org/docs/app/building-your-application/routing/route-handlers)
 - [React Documentation](https://react.dev)
 - [TypeScript Documentation](https://www.typescriptlang.org/docs)
-- [Tailwind CSS Documentation](https://tailwindcss.com/docs)
-- [better-sqlite3 Documentation](https://github.com/WiseLibs/better-sqlite3)
-- [Multer Documentation](https://github.com/expressjs/multer)
+- [MySQL Documentation](https://dev.mysql.com/doc/)
+- [Systemd Documentation](https://www.freedesktop.org/software/systemd/man/)
 - [GitHub Actions Documentation](https://docs.github.com/en/actions)
-- [PM2 Documentation](https://pm2.keymetrics.io/docs)
 
 ## License
 
