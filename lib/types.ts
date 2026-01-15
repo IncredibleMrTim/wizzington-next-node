@@ -1,31 +1,3 @@
-// User & Post Types (existing)
-export interface User {
-  id: number;
-  name: string;
-  email: string;
-  created_at: string;
-}
-
-export interface Post {
-  id: number;
-  title: string;
-  content: string | null;
-  user_id: number | null;
-  created_at: string;
-  user_name?: string;
-}
-
-export interface CreateUserInput {
-  name: string;
-  email: string;
-}
-
-export interface CreatePostInput {
-  title: string;
-  content?: string;
-  user_id?: number;
-}
-
 // Product Types
 export interface ProductImage {
   id: string;

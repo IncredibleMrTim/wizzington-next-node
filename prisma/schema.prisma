@@ -1,0 +1,89 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Category {
+  id          String    @id @default(uuid())
+  name        String    @unique
+  description String?
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+  products    Product[]
+
+  @@map("categories")
+}
+
+model Product {
+  id            String         @id @default(uuid())
+  name          String
+  description   String?
+  price         Decimal        @default(0) @db.Decimal(10, 2)
+  stock         Int            @default(0)
+  isFeatured    Boolean        @default(false) @map("is_featured")
+  isEnquiryOnly Boolean        @default(false) @map("is_enquiry_only")
+  categoryId    String?        @map("category_id")
+  createdAt     DateTime       @default(now()) @map("created_at")
+  updatedAt     DateTime       @updatedAt @map("updated_at")
+  category      Category?      @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  images        ProductImage[]
+  orderProducts OrderProduct[]
+
+  @@index([categoryId])
+  @@index([isFeatured])
+  @@index([name])
+  @@map("products")
+}
+
+model ProductImage {
+  id            String   @id @default(uuid())
+  productId     String   @map("product_id")
+  url           String
+  orderPosition Int      @default(0) @map("order_position")
+  createdAt     DateTime @default(now()) @map("created_at")
+  product       Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([productId])
+  @@index([productId, orderPosition])
+  @@map("product_images")
+}
+
+model Order {
+  id            String         @id @default(uuid())
+  customerName  String?        @map("customer_name")
+  customerEmail String?        @map("customer_email")
+  customerPhone String?        @map("customer_phone")
+  status        String         @default("pending")
+  totalAmount   Decimal        @default(0) @db.Decimal(10, 2) @map("total_amount")
+  notes         String?
+  createdAt     DateTime       @default(now()) @map("created_at")
+  updatedAt     DateTime       @updatedAt @map("updated_at")
+  orderProducts OrderProduct[]
+
+  @@index([status])
+  @@index([customerEmail])
+  @@index([createdAt(sort: Desc)])
+  @@map("orders")
+}
+
+model OrderProduct {
+  id          String   @id @default(uuid())
+  orderId     String   @map("order_id")
+  productId   String   @map("product_id")
+  productName String   @map("product_name")
+  quantity    Int      @default(1)
+  price       Decimal  @db.Decimal(10, 2)
+  createdAt   DateTime @default(now()) @map("created_at")
+  order       Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product     Product  @relation(fields: [productId], references: [id], onDelete: Restrict)
+
+  @@index([orderId])
+  @@index([productId])
+  @@map("order_products")
+}
