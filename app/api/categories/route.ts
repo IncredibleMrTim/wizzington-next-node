@@ -1,24 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
-import pool from '@/lib/db';
-import { Category, CreateCategoryInput } from '@/lib/types';
-import { RowDataPacket, ResultSetHeader } from 'mysql2';
-import { randomUUID } from 'crypto';
-
-function rowToCategory(row: any): Category {
-  return {
-    id: row.id,
-    name: row.name,
-    description: row.description,
-    createdAt: row.created_at,
-    updatedAt: row.updated_at
-  };
-}
+import prisma from '@/lib/prisma';
+import { CreateCategoryInput } from '@/lib/types';
 
 // GET /api/categories - Get all categories
 export async function GET() {
   try {
-    const [rows] = await pool.query<RowDataPacket[]>('SELECT * FROM categories ORDER BY name ASC');
-    const categories = rows.map(rowToCategory);
+    const categories = await prisma.category.findMany({
+      orderBy: {
+        name: 'asc',
+      },
+    });
     return NextResponse.json(categories);
   } catch (error) {
     console.error('Error fetching categories:', error);
@@ -35,15 +26,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Name is required' }, { status: 400 });
     }
 
-    const id = randomUUID();
-
-    await pool.query<ResultSetHeader>(
-      'INSERT INTO categories (id, name, description) VALUES (?, ?, ?)',
-      [id, input.name, input.description || null]
-    );
-
-    const [rows] = await pool.query<RowDataPacket[]>('SELECT * FROM categories WHERE id = ?', [id]);
-    const category = rowToCategory(rows[0]);
+    const category = await prisma.category.create({
+      data: {
+        name: input.name,
+        description: input.description || null,
+      },
+    });
 
     return NextResponse.json(category, { status: 201 });
   } catch (error) {

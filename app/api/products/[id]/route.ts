@@ -1,35 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import pool from '@/lib/db';
-import { Product, UpdateProductInput, ProductImage } from '@/lib/types';
-import { RowDataPacket, ResultSetHeader } from 'mysql2';
-import { randomUUID } from 'crypto';
-
-async function getProductImages(productId: string): Promise<ProductImage[]> {
-  const [rows] = await pool.query<RowDataPacket[]>(
-    `SELECT id, product_id, url, order_position as 'order', created_at
-     FROM product_images
-     WHERE product_id = ?
-     ORDER BY order_position ASC`,
-    [productId]
-  );
-  return rows as ProductImage[];
-}
-
-function rowToProduct(row: any): Product {
-  return {
-    id: row.id,
-    name: row.name,
-    description: row.description,
-    price: row.price,
-    stock: row.stock,
-    isFeatured: Boolean(row.is_featured),
-    isEnquiryOnly: Boolean(row.is_enquiry_only),
-    category: row.category_id,
-    images: [],
-    createdAt: row.created_at,
-    updatedAt: row.updated_at
-  };
-}
+import prisma from '@/lib/prisma';
+import { UpdateProductInput } from '@/lib/types';
 
 // GET /api/products/[id] - Get a single product
 export async function GET(
@@ -38,14 +9,20 @@ export async function GET(
 ) {
   try {
     const { id } = await params;
-    const [rows] = await pool.query<RowDataPacket[]>('SELECT * FROM products WHERE id = ?', [id]);
+    const product = await prisma.product.findUnique({
+      where: { id },
+      include: {
+        images: {
+          orderBy: {
+            orderPosition: 'asc',
+          },
+        },
+      },
+    });
 
-    if (rows.length === 0) {
+    if (!product) {
       return NextResponse.json({ error: 'Product not found' }, { status: 404 });
     }
-
-    const product = rowToProduct(rows[0]);
-    product.images = await getProductImages(product.id);
 
     return NextResponse.json(product);
   } catch (error) {
@@ -63,78 +40,57 @@ export async function PUT(
     const { id } = await params;
     const input: UpdateProductInput = { ...await request.json(), id };
 
-    const updates: string[] = [];
-    const values: any[] = [];
+    const data: any = {};
 
     if (input.name !== undefined) {
-      updates.push('name = ?');
-      values.push(input.name);
+      data.name = input.name;
     }
 
     if (input.description !== undefined) {
-      updates.push('description = ?');
-      values.push(input.description);
+      data.description = input.description;
     }
 
     if (input.price !== undefined) {
-      updates.push('price = ?');
-      values.push(input.price);
+      data.price = input.price;
     }
 
     if (input.stock !== undefined) {
-      updates.push('stock = ?');
-      values.push(input.stock);
+      data.stock = input.stock;
     }
 
     if (input.isFeatured !== undefined) {
-      updates.push('is_featured = ?');
-      values.push(input.isFeatured ? 1 : 0);
+      data.isFeatured = input.isFeatured;
     }
 
     if (input.isEnquiryOnly !== undefined) {
-      updates.push('is_enquiry_only = ?');
-      values.push(input.isEnquiryOnly ? 1 : 0);
+      data.isEnquiryOnly = input.isEnquiryOnly;
     }
 
     if (input.category !== undefined) {
-      updates.push('category_id = ?');
-      values.push(input.category);
-    }
-
-    if (updates.length > 0) {
-      values.push(id);
-      await pool.query<ResultSetHeader>(
-        `UPDATE products SET ${updates.join(', ')} WHERE id = ?`,
-        values
-      );
+      data.categoryId = input.category;
     }
 
     if (input.images !== undefined) {
-      await pool.query<ResultSetHeader>('DELETE FROM product_images WHERE product_id = ?', [id]);
-
-      if (input.images.length > 0) {
-        const imageValues = input.images.map(img => [
-          randomUUID(),
-          id,
-          img.url,
-          img.order
-        ]);
-
-        await pool.query<ResultSetHeader>(
-          `INSERT INTO product_images (id, product_id, url, order_position) VALUES ?`,
-          [imageValues]
-        );
-      }
+      data.images = {
+        deleteMany: {},
+        create: input.images.map(img => ({
+          url: img.url,
+          orderPosition: img.order,
+        })),
+      };
     }
 
-    const [rows] = await pool.query<RowDataPacket[]>('SELECT * FROM products WHERE id = ?', [id]);
-
-    if (rows.length === 0) {
-      return NextResponse.json({ error: 'Product not found' }, { status: 404 });
-    }
-
-    const product = rowToProduct(rows[0]);
-    product.images = await getProductImages(product.id);
+    const product = await prisma.product.update({
+      where: { id },
+      data,
+      include: {
+        images: {
+          orderBy: {
+            orderPosition: 'asc',
+          },
+        },
+      },
+    });
 
     return NextResponse.json(product);
   } catch (error) {
@@ -150,11 +106,9 @@ export async function DELETE(
 ) {
   try {
     const { id } = await params;
-    const [result] = await pool.query<ResultSetHeader>('DELETE FROM products WHERE id = ?', [id]);
-
-    if (result.affectedRows === 0) {
-      return NextResponse.json({ error: 'Product not found' }, { status: 404 });
-    }
+    await prisma.product.delete({
+      where: { id },
+    });
 
     return new NextResponse(null, { status: 204 });
   } catch (error) {

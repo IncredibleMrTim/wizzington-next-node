@@ -2,14 +2,14 @@
 
 ![Deployment Status](https://github.com/your-username/wizz-next-node/actions/workflows/deploy.yml/badge.svg)
 
-A modern full-stack Next.js application with API routes and MySQL database. Features automated deployment to VPS with systemd and CI/CD.
+A modern full-stack Next.js application with API routes and Prisma PostgreSQL database. Features automated deployment to VPS with systemd and CI/CD.
 
 ## Features
 
 - Next.js 16 with App Router
 - API Routes (no separate backend server)
 - TypeScript for type safety
-- MySQL database with connection pooling
+- Prisma PostgreSQL database with type-safe queries
 - **Custom File Upload System** - Direct uploads to VPS
 - **GitHub Actions CI/CD** - Automated deployment
 - **Systemd Process Management** - Native Linux service
@@ -23,14 +23,15 @@ This project uses a unified Next.js architecture:
 
 - **Frontend & Backend**: Next.js on port 3000
 - **API Routes**: `/api/*` endpoints
-- **Database**: MySQL
+- **Database**: Prisma PostgreSQL (Prisma Accelerate)
 - **File Uploads**: Stored in `uploads/` directory
 - **Process Manager**: Systemd (native Linux)
 
 ## Tech Stack
 
 - **Framework**: Next.js 16, React 19, TypeScript
-- **Database**: MySQL with mysql2
+- **Database**: Prisma PostgreSQL with Prisma Accelerate
+- **ORM**: Prisma Client for type-safe database queries
 - **File Upload**: Next.js API routes with native file handling
 - **Process Management**: Systemd
 - **Package Manager**: Yarn
@@ -41,7 +42,7 @@ This project uses a unified Next.js architecture:
 ### Prerequisites
 
 - Node.js 20+ and Yarn
-- MySQL database
+- Prisma PostgreSQL database (or any PostgreSQL database)
 
 ### Installation
 
@@ -58,10 +59,13 @@ cp .env.example .env
 # Edit .env with your configuration
 ```
 
-4. **Set up MySQL database:**
+4. **Set up database:**
 ```bash
-# Create database and run schema
-mysql -u root -p < schema.sql
+# Push Prisma schema to database
+npx prisma db push
+
+# Seed database with sample data
+yarn seed
 ```
 
 5. **Run development server:**
@@ -88,9 +92,12 @@ wizz-next-node/
 │   ├── (pages)/              # Next.js pages
 │   └── layout.tsx
 ├── lib/                      # Shared utilities
-│   ├── db.ts                 # Database connection
+│   ├── prisma.ts             # Prisma client singleton
 │   ├── types.ts              # TypeScript types
 │   └── api.ts                # API configuration
+├── prisma/                   # Prisma configuration
+│   ├── schema.prisma         # Database schema
+│   └── migrations/           # Database migrations
 ├── systemd/                  # Systemd service files
 │   ├── wizz-next.service     # Service configuration
 │   └── README.md             # Setup instructions
@@ -156,28 +163,23 @@ All API endpoints are at `/api/*`
 
 ## Database Schema
 
-See `schema.sql` for complete schema.
+See `prisma/schema.prisma` for complete schema.
 
-**Main tables:**
-- `users` - User accounts
-- `posts` - Blog posts
-- `products` - Product catalog
-- `product_images` - Product images
-- `categories` - Product categories
-- `orders` - Customer orders
-- `order_products` - Order line items
+**Main models:**
+- `Category` - Product categories
+- `Product` - Product catalog
+- `ProductImage` - Product images
+- `Order` - Customer orders
+- `OrderProduct` - Order line items
 
 ## Environment Variables
 
 Create `.env` file:
 
 ```env
-# MySQL Database
-DB_HOST=localhost
-DB_USER=root
-DB_PASSWORD=your_password
-DB_NAME=wizz_db
-DB_PORT=3306
+# Prisma PostgreSQL Database
+DATABASE_URL="prisma+postgres://accelerate.prisma-data.net/?api_key=your_api_key"
+DIRECT_URL="postgres://user:password@host:5432/database?sslmode=require"
 
 # NextAuth
 NEXTAUTH_URL=http://localhost:3000
@@ -278,7 +280,7 @@ sudo tail -f /var/log/wizz-next/output.log  # File-based logs
 
 ## Customization
 
-1. **Add new database tables**: Update `schema.sql`
+1. **Add new database models**: Update `prisma/schema.prisma` and run `npx prisma db push`
 2. **Add new types**: Update `lib/types.ts`
 3. **Add new API routes**: Create in `app/api/*/route.ts`
 4. **Add new components**: Create in `app/components/`
@@ -301,14 +303,14 @@ yarn start
 
 ### Database connection issues
 ```bash
-# Test MySQL connection
-mysql -u DB_USER -p -h DB_HOST
+# Test Prisma connection
+npx prisma db push
 
 # Check .env file
 cat .env
 
 # View connection errors in logs
-sudo journalctl -u wizz-next | grep -i mysql
+sudo journalctl -u wizz-next | grep -i prisma
 ```
 
 ### Port already in use
@@ -326,7 +328,8 @@ sudo kill -9 <PID>
 - [Next.js API Routes](https://nextjs.org/docs/app/building-your-application/routing/route-handlers)
 - [React Documentation](https://react.dev)
 - [TypeScript Documentation](https://www.typescriptlang.org/docs)
-- [MySQL Documentation](https://dev.mysql.com/doc/)
+- [Prisma Documentation](https://www.prisma.io/docs)
+- [Prisma Accelerate](https://www.prisma.io/docs/accelerate)
 - [Systemd Documentation](https://www.freedesktop.org/software/systemd/man/)
 - [GitHub Actions Documentation](https://docs.github.com/en/actions)
 
