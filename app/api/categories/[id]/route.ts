@@ -1,17 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import pool from '@/lib/db';
-import { Category, UpdateCategoryInput } from '@/lib/types';
-import { RowDataPacket, ResultSetHeader } from 'mysql2';
-
-function rowToCategory(row: any): Category {
-  return {
-    id: row.id,
-    name: row.name,
-    description: row.description,
-    createdAt: row.created_at,
-    updatedAt: row.updated_at
-  };
-}
+import prisma from '@/lib/prisma';
+import { UpdateCategoryInput } from '@/lib/types';
 
 // GET /api/categories/[id] - Get a single category
 export async function GET(
@@ -20,13 +9,14 @@ export async function GET(
 ) {
   try {
     const { id } = await params;
-    const [rows] = await pool.query<RowDataPacket[]>('SELECT * FROM categories WHERE id = ?', [id]);
+    const category = await prisma.category.findUnique({
+      where: { id },
+    });
 
-    if (rows.length === 0) {
+    if (!category) {
       return NextResponse.json({ error: 'Category not found' }, { status: 404 });
     }
 
-    const category = rowToCategory(rows[0]);
     return NextResponse.json(category);
   } catch (error) {
     console.error('Error fetching category:', error);
@@ -43,34 +33,21 @@ export async function PUT(
     const { id } = await params;
     const input: UpdateCategoryInput = { ...await request.json(), id };
 
-    const updates: string[] = [];
-    const values: any[] = [];
+    const data: any = {};
 
     if (input.name !== undefined) {
-      updates.push('name = ?');
-      values.push(input.name);
+      data.name = input.name;
     }
 
     if (input.description !== undefined) {
-      updates.push('description = ?');
-      values.push(input.description);
+      data.description = input.description;
     }
 
-    if (updates.length > 0) {
-      values.push(id);
-      await pool.query<ResultSetHeader>(
-        `UPDATE categories SET ${updates.join(', ')} WHERE id = ?`,
-        values
-      );
-    }
+    const category = await prisma.category.update({
+      where: { id },
+      data,
+    });
 
-    const [rows] = await pool.query<RowDataPacket[]>('SELECT * FROM categories WHERE id = ?', [id]);
-
-    if (rows.length === 0) {
-      return NextResponse.json({ error: 'Category not found' }, { status: 404 });
-    }
-
-    const category = rowToCategory(rows[0]);
     return NextResponse.json(category);
   } catch (error) {
     console.error('Error updating category:', error);
@@ -85,11 +62,9 @@ export async function DELETE(
 ) {
   try {
     const { id } = await params;
-    const [result] = await pool.query<ResultSetHeader>('DELETE FROM categories WHERE id = ?', [id]);
-
-    if (result.affectedRows === 0) {
-      return NextResponse.json({ error: 'Category not found' }, { status: 404 });
-    }
+    await prisma.category.delete({
+      where: { id },
+    });
 
     return new NextResponse(null, { status: 204 });
   } catch (error) {
