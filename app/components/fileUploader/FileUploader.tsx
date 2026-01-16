@@ -1,7 +1,9 @@
 "use client";
 import { useRef, useState, DragEvent, ChangeEvent } from "react";
 import { Product, ProductImage } from "@/lib/types";
-import { FiX, FiUpload } from "react-icons/fi";
+import { type PutBlobResult } from "@vercel/blob";
+import { upload } from "@vercel/blob/client";
+import { FiUpload, FiX } from "react-icons/fi";
 
 interface FileUploaderProps {
   product: Product;
@@ -58,28 +60,20 @@ export const FileUploader = ({
     setUploading(true);
 
     try {
-      const formData = new FormData();
-      validFiles.forEach((file) => {
-        formData.append("files", file);
-      });
+      // Upload files to Vercel Blob
+      const uploadPromises = validFiles.map(async (file, index) => {
+        const blob = await upload(file.name, file, {
+          access: "public",
+          handleUploadUrl: "/api/upload/blob",
+        });
 
-      const response = await fetch('/api/upload/multiple', {
-        method: "POST",
-        body: formData,
-      });
-
-      if (!response.ok) {
-        throw new Error("Upload failed");
-      }
-
-      const result = await response.json();
-      const newImages = result.files.map(
-        (file: { filename: string }, index: number) => ({
-          url: file.filename,
+        return {
+          url: blob.url,
           order: currentImages.length + index,
-        })
-      );
+        };
+      });
 
+      const newImages = await Promise.all(uploadPromises);
       updateProductImages([...currentImages, ...newImages]);
     } catch (error) {
       console.error("Upload error:", error);
@@ -170,7 +164,7 @@ export const FileUploader = ({
                       }}
                     >
                       <img
-                        src={`/api/uploads/${file?.url}`}
+                        src={file?.url}
                         alt={`${product?.name} product image`}
                         aria-label={`${product?.name} product image`}
                         className="h-full cursor-move"

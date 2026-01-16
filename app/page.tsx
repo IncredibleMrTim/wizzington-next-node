@@ -6,10 +6,6 @@ import { Product } from "@/lib/types";
 import { useGetProductsQuery } from "./services/product/useGetProductsQuery";
 import { useAppDispatch, STORE_KEYS } from "@/stores/store";
 import { Separator } from "./components/separator/Separator";
-import { useAuthStore, User } from "./stores";
-import { useSession } from "next-auth/react";
-
-const FEATURE_PRODUCTS_PER_PAGE = 4;
 
 export default function App() {
   const dispatch = useAppDispatch();
@@ -22,15 +18,7 @@ export default function App() {
         payload: productsData,
       });
     }
-  }, [productsData, isFetched]);
-
-  const { data: session } = useSession();
-  useEffect(() => {
-    if (session?.user) {
-      // only store the user data not the entire JWT
-      useAuthStore.getState().setCurrentUser(session?.user as unknown as User);
-    }
-  }, [session]);
+  }, [productsData, isFetched, dispatch]);
 
   return (
     <main>
