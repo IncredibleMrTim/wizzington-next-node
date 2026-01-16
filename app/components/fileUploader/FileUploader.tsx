@@ -73,7 +73,7 @@ export const FileUploader = ({
         };
       });
 
-      // const newImages = await Promise.all(uploadPromises);
+      const newImages = await Promise.all(uploadPromises);
       updateProductImages([...currentImages, ...newImages]);
     } catch (error) {
       console.error("Upload error:", error);

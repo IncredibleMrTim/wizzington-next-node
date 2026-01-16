@@ -1,98 +1,73 @@
 "use client";
-
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { FiEdit, FiShoppingCart } from "react-icons/fi";
+import Image from "next/image";
 import { Product } from "@/lib/types";
-import { useAuthStore, useProductStore } from "@/app/stores";
+import { useSession } from "next-auth/react";
+import { useProductStore } from "@/app/stores";
+import { FiEdit } from "react-icons/fi";
 
-interface ProductCardProps {
-  product: Product;
-  showTitle?: boolean;
+interface Props {
+  product?: Product;
   showDescription?: boolean;
-  showImage?: boolean;
-  showPrice?: boolean;
-  showQuantity?: boolean;
-  onClick?: (product: Product) => void;
 }
 
-const ProductCard = ({
-  product,
-  showTitle = true,
-  showDescription = true,
-  showImage = true,
-  showPrice = true,
-}: ProductCardProps) => {
-  const currentUser = useAuthStore((state) => state.currentUser);
+const ProductCard = ({ product, showDescription = true }: Props) => {
+  const { data: session } = useSession();
+  const isAdmin = session?.user?.role === "ADMIN";
   const setCurrentProduct = useProductStore((state) => state.setCurrentProduct);
-  const router = useRouter();
+
+  if (!product) return null;
+
+  const price = product.price ? Number(product.price).toFixed(2) : null;
 
   return (
-    <div
-      key={product.id}
-      className="flex flex-col basis-[50%] md:basis-auto fade-in-product w-1/4  h-full p-2"
+    <Link
+      href={`/product/${product?.id}`}
+      className="flex flex-col gap-2 text-black w-60 h-100 mb-8 hover:opacity-75 transition-opacity"
     >
-      <div className="flex h-full flex-col gap-4 justify-between ">
-        {showDescription && (
-          <div className="flex flex-col gap-4 ">
-            <p>{product.description}</p>
-          </div>
-        )}
-        {showImage && product?.images?.[0] && (
-          <div className="flex justify-center align-top relative bg-gray-100 border-gray-200 p-1 rounded-sm">
+      <div className="flex flex-col gap-4 h-full">
+        <div className="relative flex-1 rounded-sm bg-gray-100 overflow-hidden">
+          {product?.images && product.images.length > 0 ? (
+            <Image
+              src={product.images[0]?.url}
+              alt={product.name}
+              fill
+              className="w-full h-full object-cover"
+              sizes="(max-width: 768px) 100vw, 176px"
+            />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center text-gray-400">
+              No image
+            </div>
+          )}
+          {isAdmin && (
             <Link
               prefetch
-              href={`/product/${product.name.replace(/\s+/g, "-")}`}
-              onClick={() => {
+              href={`/admin/product/${product.id}`}
+              className="flex p-3 mb-1 ml-1 absolute top-2 right-2 rounded-full bg-pink-200 opacity-60 hover:opacity-90 hover:bg-pink-200 duration-300 transition-all cursor-pointer"
+              aria-label="Edit Product"
+              onClick={(e) => {
+                e.stopPropagation();
                 setCurrentProduct(product);
               }}
             >
-              <img
-                src={`${process.env.S3_PRODUCT_IMAGE_URL}${product.images?.[0].url}`}
-                alt={product.name}
-                className="flex self-center w-full h-96   object-cover"
-              />
+              <FiEdit />
             </Link>
-
-            <div className="flex w-full align-bottom absolute bottom-2 px-2">
-              <div
-                className={`flex gap-1 w-full ${
-                  currentUser?.isAdmin ? `justify-between` : `justify-end`
-                }`}
-              >
-                {currentUser?.isAdmin && (
-                  <Link
-                    prefetch
-                    href={`/admin/product/${product.id}`}
-                    className="flex p-3 mb-1 ml-1 self-end rounded-full bg-pink-200 opacity-60 hover:opacity-90  hover:bg-pink-200 duration-300 transition-all cursor-pointer"
-                    aria-label="Edit Product"
-                    onClick={() => {
-                      setCurrentProduct(product);
-                    }}
-                  >
-                    <FiEdit />
-                  </Link>
-                )}
-                <button
-                  className="flex p-3 mb-1 mr-1 self-end  rounded-full  bg-pink-200 opacity-60 hover:opacity-90  hover:bg-pink-200 duration-300 transition-all cursor-pointer"
-                  aria-label="Add to cart"
-                  onClick={() => {}}
-                >
-                  <FiShoppingCart />
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        <div className="flex flex-col justify-between items-center w-full px-4 gap-2">
-          {showTitle && <p className="text-center">{product.name}</p>}
-          {showPrice && (
-            <p className="flex text-gray-500">£{product.price} GBP</p>
           )}
         </div>
+
+        <div className="flex flex-col gap-2 px-4">
+          <p className="line-clamp-2 font-bold! text-lg! font-">
+            {product.name}
+          </p>
+          {showDescription && product.description && (
+            <p className="text-gray-600 line-clamp-2">{product.description}</p>
+          )}
+          {price && <p className="text-green-600">£{price}</p>}
+        </div>
       </div>
-    </div>
+    </Link>
   );
 };
+
 export default ProductCard;

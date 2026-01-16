@@ -9,6 +9,7 @@ export interface ProductState {
   clearCurrentProduct: () => void;
   updateProductImages: (images: Product["images"]) => void;
   updateAllProducts: (product: Product) => void;
+  removeProduct: (productId: string) => void;
 }
 
 const initialState: ProductState = {
@@ -19,6 +20,7 @@ const initialState: ProductState = {
   clearCurrentProduct: () => {},
   updateProductImages: () => {},
   updateAllProducts: () => {},
+  removeProduct: () => {},
 };
 
 export const useProductStore = create<ProductState>()((set) => ({
@@ -63,5 +65,11 @@ export const useProductStore = create<ProductState>()((set) => ({
 
       return { allProducts: updatedProducts };
     });
+  },
+
+  removeProduct: (productId: string) => {
+    set((state) => ({
+      allProducts: state.allProducts.filter((p) => p.id !== productId),
+    }));
   },
 }));

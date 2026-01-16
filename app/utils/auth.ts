@@ -3,14 +3,6 @@
 import { getServerSession } from "next-auth";
 import { authOptions } from "../api/auth/[...nextauth]/route";
 
-// auth.js
-
-// import {
-//   fetchAuthSession,
-//   fetchUserAttributes,
-//   getCurrentUser,
-// } from "aws-amplify/auth";
-
 export const getIdToken = () => localStorage.getItem("idToken");
 export const getRefreshToken = () => localStorage.getItem("refreshToken");
 
@@ -18,7 +10,7 @@ export const logout = () => {
   localStorage.removeItem("accessToken");
   localStorage.removeItem("idToken");
   localStorage.removeItem("refreshToken");
-  window.location.href = "/login";
+  window.location.href = "/auth/signin";
 };
 
 export const setTokens = (
