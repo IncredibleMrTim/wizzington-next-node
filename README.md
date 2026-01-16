@@ -190,7 +190,7 @@ GOOGLE_CLIENT_ID=your-google-client-id
 GOOGLE_CLIENT_SECRET=your-google-client-secret
 
 # Admin
-NEXT_PUBLIC_ADMIN_WHITE_LIST=your-email@example.com
+ADMIN_WHITE_LIST=your-email@example.com
 
 # Upload Configuration
 UPLOAD_DIR=./uploads

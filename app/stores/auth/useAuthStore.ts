@@ -1,7 +1,10 @@
 import { User as NextAuthUser } from "next-auth";
 import { create } from "zustand";
 
-export type User = NextAuthUser & { isAdmin?: boolean };
+export type User = NextAuthUser & { 
+  isAdmin?: boolean;
+  role?: string;
+};
 
 export interface AuthState {
   currentUser: User | null;
@@ -10,7 +13,6 @@ export interface AuthState {
 
 const initialState: AuthState = {
   currentUser: null,
-
   setCurrentUser: () => {},
 };
 
@@ -22,9 +24,8 @@ export const useAuthStore = create<AuthState>()((set) => ({
       return;
     }
 
-    const adminWhiteList = process.env.NEXT_PUBLIC_ADMIN_WHITE_LIST || "";
-    const userEmail = currentUser.email || "";
-    const isAdmin = adminWhiteList.indexOf(userEmail) > -1;
+    // Use the role from NextAuth session (comes from database)
+    const isAdmin = currentUser.role === "ADMIN";
 
     set({ currentUser: { ...currentUser, isAdmin } as User });
   },

@@ -30,7 +30,7 @@ Automatically deploys the application to your Fasthosts VPS when changes are pus
 - `NEXTAUTH_SECRET` - NextAuth secret
 - `GOOGLE_CLIENT_ID` - Google OAuth client ID
 - `GOOGLE_CLIENT_SECRET` - Google OAuth secret
-- `NEXT_PUBLIC_ADMIN_WHITE_LIST` - Admin emails
+- `ADMIN_WHITE_LIST` - Admin emails
 - `NEXT_PUBLIC_API_URL` - API URL
 
 ## Manual Trigger

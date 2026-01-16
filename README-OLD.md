@@ -207,7 +207,7 @@ NEXTAUTH_URL=http://localhost:3000
 NEXTAUTH_SECRET=your-secret-here
 GOOGLE_CLIENT_ID=your-google-client-id
 GOOGLE_CLIENT_SECRET=your-google-client-secret
-NEXT_PUBLIC_ADMIN_WHITE_LIST=your-email@example.com
+ADMIN_WHITE_LIST=your-email@example.com
 NEXT_PUBLIC_API_URL=http://localhost:4000
 ```
 

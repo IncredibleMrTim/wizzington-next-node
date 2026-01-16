@@ -1,4 +1,8 @@
 "use client";
+
+import { getServerSession } from "next-auth";
+import { authOptions } from "../api/auth/[...nextauth]/route";
+
 // auth.js
 
 // import {
@@ -54,4 +58,18 @@ export const getUserRole = async () => {
   //   console.error("Error fetching user role:", error);
   //   return null;
   // }
+};
+
+export const requireAuth = async (requiredRole?: "ADMIN" | "USER") => {
+  const session = await getServerSession(authOptions);
+
+  if (!session) {
+    return { error: "Unauthorized", status: 401 };
+  }
+
+  if (requiredRole && session.user?.role !== requiredRole) {
+    return { error: "Forbidden", status: 403 };
+  }
+
+  return { session };
 };
