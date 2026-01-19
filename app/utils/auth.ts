@@ -2,6 +2,7 @@
 
 import { getServerSession } from "next-auth";
 import { authOptions } from "../api/auth/[...nextauth]/route";
+import { USER_ROLE } from "@/lib/types";
 
 export const getIdToken = () => localStorage.getItem("idToken");
 export const getRefreshToken = () => localStorage.getItem("refreshToken");
@@ -52,7 +53,7 @@ export const getUserRole = async () => {
   // }
 };
 
-export const requireAuth = async (requiredRole?: "ADMIN" | "USER") => {
+export const requireAuth = async (requiredRole?: USER_ROLE) => {
   const session = await getServerSession(authOptions);
 
   if (!session) {

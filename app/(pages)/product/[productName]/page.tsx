@@ -5,6 +5,7 @@ import { useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { useProductStore } from "@/stores";
 import { useGetProductsQuery } from "@/app/services/product/useGetProductsQuery";
+import { USER_ROLE } from "@/lib/types";
 
 interface ProductPageProps {
   params: {
@@ -14,7 +15,7 @@ interface ProductPageProps {
 
 export default function ProductPage({ params }: ProductPageProps) {
   const { data: session } = useSession();
-  const isAdmin = session?.user?.role === "ADMIN";
+  const isAdmin = session?.user?.role === USER_ROLE.ADMIN;
   const { data: productsData } = useGetProductsQuery();
   const setProducts = useProductStore((state) => state.setProducts);
   const allProducts = useProductStore((state) => state.allProducts);
@@ -54,7 +55,10 @@ export default function ProductPage({ params }: ProductPageProps) {
               {product.images.length > 1 && (
                 <div className="flex gap-2 overflow-x-auto">
                   {product.images.map((img) => (
-                    <div key={img.id} className="relative w-20 h-20 flex-shrink-0">
+                    <div
+                      key={img.id}
+                      className="relative w-20 h-20 flex-shrink-0"
+                    >
                       <Image
                         src={img.url}
                         alt="thumbnail"
@@ -76,7 +80,7 @@ export default function ProductPage({ params }: ProductPageProps) {
         {/* Product Details */}
         <div className="flex flex-col gap-4">
           <h1 className="text-4xl font-bold">{product.name}</h1>
-          
+
           {product.description && (
             <p className="text-gray-600 text-lg">{product.description}</p>
           )}
@@ -89,14 +93,18 @@ export default function ProductPage({ params }: ProductPageProps) {
             )}
             {product.stock !== undefined && (
               <span className="text-sm text-gray-500">
-                Stock: {product.stock > 0 ? `${product.stock} available` : "Out of stock"}
+                Stock:{" "}
+                {product.stock > 0
+                  ? `${product.stock} available`
+                  : "Out of stock"}
               </span>
             )}
           </div>
 
           {product.isEnquiryOnly && (
             <div className="bg-yellow-50 border border-yellow-200 rounded p-3 text-yellow-800">
-              This item is available on enquiry only. Please contact us for more information.
+              This item is available on enquiry only. Please contact us for more
+              information.
             </div>
           )}
 

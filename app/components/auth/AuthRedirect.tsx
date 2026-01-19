@@ -1,5 +1,6 @@
 "use client";
 
+import { USER_ROLE } from "@/lib/types";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef } from "react";
@@ -16,19 +17,12 @@ export function AuthRedirect() {
   const hasRedirected = useRef(false);
 
   useEffect(() => {
-    console.log("🔄 [AuthRedirect] Status:", status, "Role:", session?.user?.role, "HasRedirected:", hasRedirected.current);
-
     // Only redirect once per component lifecycle
     if (status === "authenticated" && session?.user && !hasRedirected.current) {
       hasRedirected.current = true;
-      
-      console.log("✅ [AuthRedirect] Redirecting user with role:", session.user.role);
-
-      if (session.user.role === "ADMIN") {
-        console.log("➡️ [AuthRedirect] Pushing to /admin");
+      if (session.user.role === USER_ROLE.ADMIN) {
         router.push("/admin");
       } else {
-        console.log("➡️ [AuthRedirect] Pushing to /");
         router.push("/");
       }
     }
