@@ -11,7 +11,7 @@ export const AuthUserMenu = ({
   role,
 }: {
   onMenuItemClick: (e: React.MouseEvent<HTMLAnchorElement>) => void;
-  role: ROLE;
+  role: USER_ROLE;
 }) => {
   const { data: session } = useSession();
   const [isSigningOut, setIsSigningOut] = useState(false);
