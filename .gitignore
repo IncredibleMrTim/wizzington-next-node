@@ -54,3 +54,4 @@ data.db-wal
 !/uploads/.gitkeep
 
 /lib/generated/prisma
+.env*.local

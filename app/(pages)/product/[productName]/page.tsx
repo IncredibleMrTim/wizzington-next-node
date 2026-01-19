@@ -1,127 +1,112 @@
 "use client";
-import { useEffect, useState } from "react";
-import { useAppDispatch, STORE_KEYS } from "@/stores/store";
-import { useGetProductQuery } from "@/services/product/useGetProductQuery";
-import { useParams } from "next/navigation";
-import Link from "next/link";
-import { FiEdit } from "react-icons/fi";
-import { ProductDetails } from "@/components/productDetails/ProductDetails";
-import { useProductStore, useAuthStore } from "@/stores";
 
-const ProductPage = () => {
-  const params = useParams();
-  const [selectedImageUrl, setSelectedImageUrl] = useState<string | null>(null);
-  const { getProductByName } = useGetProductQuery();
-  const dispatch = useAppDispatch();
-  const currentProduct = useProductStore((state) => state.currentProduct);
-  const currentUser = useAuthStore((state) => state.currentUser);
+import Image from "next/image";
+import { useEffect } from "react";
+import { useSession } from "next-auth/react";
+import { useProductStore } from "@/stores";
+import { useGetProductsQuery } from "@/app/services/product/useGetProductsQuery";
 
-  // Fetch current product is not already in state
-  // this allows deep linking to product pages
-  const queryResult = params.productName?.[0]
-    ? getProductByName(params.productName[0])
-    : null;
+interface ProductPageProps {
+  params: {
+    productName: string;
+  };
+}
 
+export default function ProductPage({ params }: ProductPageProps) {
+  const { data: session } = useSession();
+  const isAdmin = session?.user?.role === "ADMIN";
+  const { data: productsData } = useGetProductsQuery();
+  const setProducts = useProductStore((state) => state.setProducts);
+  const allProducts = useProductStore((state) => state.allProducts);
+
+  // Load products into store only if store is empty
   useEffect(() => {
-    if (!currentProduct && queryResult?.data) {
-      dispatch({
-        type: STORE_KEYS.SET_CURRENT_PRODUCT,
-        payload: queryResult.data,
-      });
+    if (productsData && allProducts.length === 0) {
+      setProducts(productsData);
     }
-  }, [currentProduct, queryResult, dispatch]);
+  }, [productsData, allProducts.length, setProducts]);
+
+  // Find product by ID (productName param is actually the ID)
+  const product = allProducts.find((p) => p.id === params.productName);
+
+  if (!product) {
+    return <div className="p-4">Product not found</div>;
+  }
+
+  const price = product.price ? Number(product.price).toFixed(2) : null;
 
   return (
-    <div className="flex flex-col gap-4">
-      <meta
-        name="og:image"
-        content={`${process.env.S3_PRODUCT_IMAGE_URL}${currentProduct?.images?.[0]?.url}`}
-      />
-      <meta
-        name="og:title"
-        content={`Wizzington Moo's Boutique - ${currentProduct?.name}`}
-      />
-      <meta
-        name="og:description"
-        content={`Checkout this product i found on Wizzington Moo's Boutique: ${currentProduct?.name}.`}
-      />
-      <meta
-        name="og:url"
-        content={`${
-          process.env.ROOT_URL
-        }/product/${currentProduct?.name?.replace(/\s+/g, "-")}`}
-      />
-      {/* Mobile title */}
-      <h1 className="flex md:hidden">
-        {currentProduct ? currentProduct?.name : "...Loading"}
-      </h1>
-      <div className="flex flex-col-reverse gap-8 md:gap-16 md:flex-row justify-between">
-        <div className="flex flex-col gap-4 w-full md:w-3/5">
-          {/* Desktop title */}
-          <h1 className="hidden md:flex">
-            {currentProduct ? currentProduct?.name : "...Loading"}
-          </h1>
-          <div className="flex flex-col gap-4">
-            <p className="whitespace-pre-wrap">{currentProduct?.description}</p>
-            <div className="flex items-center justify-between w-full">
-              <p className="!font-bold !text-lg">
-                Price: £{currentProduct?.price}
-              </p>
-              {/* <Link
-                href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(
-                  `${process.env.ROOT_URL}/product/${currentProduct?.name?.replace(
-                    /\s+/g,
-                    "-"
-                  )}`
-                )}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex gap-2 opacity-70 hover:opacity-100 transition-opacity w-auto"
-              >
-                Share on Facebook:
-                <FaFacebook size={20} />
-              </Link> */}
+    <div className="container mx-auto p-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        {/* Product Images */}
+        <div className="flex flex-col gap-4">
+          {product.images && product.images.length > 0 ? (
+            <>
+              <div className="relative w-full h-96">
+                <Image
+                  src={product.images[0]?.url}
+                  alt={product.name}
+                  fill
+                  className="object-cover rounded-lg"
+                  priority
+                />
+              </div>
+              {product.images.length > 1 && (
+                <div className="flex gap-2 overflow-x-auto">
+                  {product.images.map((img) => (
+                    <div key={img.id} className="relative w-20 h-20 flex-shrink-0">
+                      <Image
+                        src={img.url}
+                        alt="thumbnail"
+                        fill
+                        className="object-cover rounded cursor-pointer"
+                      />
+                    </div>
+                  ))}
+                </div>
+              )}
+            </>
+          ) : (
+            <div className="w-full h-96 bg-gray-100 rounded-lg flex items-center justify-center">
+              No images available
             </div>
-            <hr className="mt-4 md:mt-auto" />
-            <ProductDetails />
-          </div>
+          )}
         </div>
-        <div className="flex flex-col justify-around w-full gap-2 overflow-hidden md:w-3/5 md:h-164 md:flex-row">
-          <div className="flex relative w-full h-128 md:h-auto md:w-7/8">
-            <img
-              src={`${process.env.S3_PRODUCT_IMAGE_URL}${
-                selectedImageUrl ?? currentProduct?.images?.[0]?.url
-              }`}
-              alt={currentProduct?.name}
-              className="flex w-full object-cover grow-0 shrink-0"
-            />
-            {currentUser?.isAdmin && (
-              <Link
-                prefetch
-                href={`/admin/product/${currentProduct?.id}`}
-                className="flex p-3 border-1 self-end rounded-full bg-pink-200 opacity-60 absolute bottom-2 right-2 hover:opacity-90  hover:bg-pink-200 duration-300 transition-all"
-                aria-label="Edit Product"
-              >
-                <FiEdit />
-              </Link>
+
+        {/* Product Details */}
+        <div className="flex flex-col gap-4">
+          <h1 className="text-4xl font-bold">{product.name}</h1>
+          
+          {product.description && (
+            <p className="text-gray-600 text-lg">{product.description}</p>
+          )}
+
+          <div className="flex gap-4 items-center">
+            {price && (
+              <span className="text-3xl font-bold text-green-600">
+                £{price}
+              </span>
+            )}
+            {product.stock !== undefined && (
+              <span className="text-sm text-gray-500">
+                Stock: {product.stock > 0 ? `${product.stock} available` : "Out of stock"}
+              </span>
             )}
           </div>
-          <div className="flex w-full shrink-0 gap-1 overflow-scroll h-32 md:h-full md:flex-col md:w-1/8">
-            {currentProduct?.images?.map((image) => {
-              return (
-                <img
-                  key={image?.url}
-                  src={image?.url}
-                  alt={currentProduct?.name}
-                  className="border-1 object-fit border-pink-100 p-1  cursor-pointer  hover:border-pink-200 hover:shadow-lg transition-all duration-300 rounded-sm flex-shrink-0"
-                  onClick={() => setSelectedImageUrl(image?.url || null)}
-                />
-              );
-            })}
-          </div>
+
+          {product.isEnquiryOnly && (
+            <div className="bg-yellow-50 border border-yellow-200 rounded p-3 text-yellow-800">
+              This item is available on enquiry only. Please contact us for more information.
+            </div>
+          )}
+
+          {isAdmin && (
+            <div className="bg-blue-50 border border-blue-200 rounded p-3">
+              <p className="text-sm text-blue-800">Admin tools available</p>
+            </div>
+          )}
         </div>
       </div>
     </div>
   );
-};
-export default ProductPage;
+}

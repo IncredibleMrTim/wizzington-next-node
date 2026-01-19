@@ -127,7 +127,7 @@ const Navigation = ({ type = "user" }: NavigationProps) => {
                       fill
                     />
                   ) : (
-                    <div className="flex justify-center items-center mt-1 w-full h-full">
+                    <div className="flex justify-center items-center">
                       {getInitials()}
                     </div>
                   )}

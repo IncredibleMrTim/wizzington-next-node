@@ -1,6 +1,6 @@
 import type { StoreApi, UseBoundStore } from "zustand";
 
-import { useAuthStore, useProductStore, useOrderStore } from "../stores";
+import { useProductStore, useOrderStore } from "../stores";
 
 type ReduxDevToolsExtensionType = {
   connect: (options: { name: string; trace: boolean; traceLimit: number }) => {
@@ -13,7 +13,6 @@ const STORES_SUBSCRIPTION_LIST: Record<
   string,
   UseBoundStore<StoreApi<unknown>>
 > = {
-  AuthStore: useAuthStore,
   ProductStore: useProductStore,
   OrderStore: useOrderStore,
 };

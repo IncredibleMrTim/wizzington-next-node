@@ -1,23 +1,23 @@
-"use client"
-import JWTViewer from "@/components/JWTViewer"
-import { useSession, signOut } from "next-auth/react"
+"use client";
+import JWTViewer from "@/components/JWTViewer";
+import { useSession, signOut } from "next-auth/react";
 
 export default function ProfilePage() {
-  const { data: session, status } = useSession()
+  const { data: session, status } = useSession();
 
   if (status === "loading") {
-    return <div className="p-8">Loading...</div>
+    return <div className="p-8">Loading...</div>;
   }
 
   if (!session) {
     return (
       <div className="p-8">
         <p>Not logged in</p>
-        <a href="/login" className="text-blue-500 underline">
+        <a href="/auth/signin" className="text-blue-500 underline">
           Go to login
         </a>
       </div>
-    )
+    );
   }
 
   return (
@@ -34,9 +34,15 @@ export default function ProfilePage() {
 
       <div className="border rounded p-4">
         <h2 className="text-xl font-bold mb-2">User Info</h2>
-        <p><strong>Name:</strong> {session.user?.name}</p>
-        <p><strong>Email:</strong> {session.user?.email}</p>
-        <p><strong>ID:</strong> {(session.user as any)?.id}</p>
+        <p>
+          <strong>Name:</strong> {session.user?.name}
+        </p>
+        <p>
+          <strong>Email:</strong> {session.user?.email}
+        </p>
+        <p>
+          <strong>ID:</strong> {(session.user as any)?.id}
+        </p>
         {session.user?.image && (
           <img
             src={session.user.image}
@@ -48,5 +54,5 @@ export default function ProfilePage() {
 
       <JWTViewer />
     </div>
-  )
+  );
 }

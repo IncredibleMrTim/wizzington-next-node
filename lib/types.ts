@@ -1,6 +1,6 @@
 // Product Types
 export interface ProductImage {
-  id: string;
+  id?: string;
   product_id?: string;
   url: string;
   order: number;

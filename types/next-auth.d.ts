@@ -5,36 +5,25 @@ declare module "next-auth" {
   interface Session {
     user: {
       id: string;
-      name?: string | null;
-      email?: string | null;
-      image?: string | null;
+      role: "USER" | "ADMIN";
       firstName?: string;
       lastName?: string;
-      picture?: string;
-      role?: string;
-    };
+    } & DefaultSession["user"];
     accessToken?: string;
   }
 
   interface User {
     id: string;
-    name?: string | null;
-    email?: string | null;
-    image?: string | null;
+    role: "USER" | "ADMIN";
     firstName?: string;
     lastName?: string;
   }
-}
 
-declare module "next-auth/jwt" {
   interface JWT {
+    role: "USER" | "ADMIN";
     id: string;
-    email?: string | null;
-    name?: string | null;
     firstName?: string;
     lastName?: string;
     picture?: string;
-    role?: string;
-    accessToken?: string;
   }
 }

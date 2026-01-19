@@ -13,8 +13,8 @@ model Category {
   id          String    @id @default(uuid())
   name        String    @unique
   description String?
-  createdAt   DateTime  @default(now()) @map("created_at")
-  updatedAt   DateTime  @updatedAt @map("updated_at")
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
   products    Product[]
 
   @@map("categories")
@@ -26,11 +26,11 @@ model Product {
   description   String?
   price         Decimal        @default(0) @db.Decimal(10, 2)
   stock         Int            @default(0)
-  isFeatured    Boolean        @default(false) @map("is_featured")
-  isEnquiryOnly Boolean        @default(false) @map("is_enquiry_only")
-  categoryId    String?        @map("category_id")
-  createdAt     DateTime       @default(now()) @map("created_at")
-  updatedAt     DateTime       @updatedAt @map("updated_at")
+  isFeatured    Boolean        @default(false)
+  isEnquiryOnly Boolean        @default(false)
+  categoryId    String?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
   category      Category?      @relation(fields: [categoryId], references: [id], onDelete: SetNull)
   images        ProductImage[]
   orderProducts OrderProduct[]
@@ -43,10 +43,10 @@ model Product {
 
 model ProductImage {
   id            String   @id @default(uuid())
-  productId     String   @map("product_id")
+  productId     String
   url           String
-  orderPosition Int      @default(0) @map("order_position")
-  createdAt     DateTime @default(now()) @map("created_at")
+  orderPosition Int      @default(0)
+  createdAt     DateTime @default(now())
   product       Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
 
   @@index([productId])
@@ -56,14 +56,14 @@ model ProductImage {
 
 model Order {
   id            String         @id @default(uuid())
-  customerName  String?        @map("customer_name")
-  customerEmail String?        @map("customer_email")
-  customerPhone String?        @map("customer_phone")
+  customerName  String?
+  customerEmail String?
+  customerPhone String?
   status        String         @default("pending")
-  totalAmount   Decimal        @default(0) @db.Decimal(10, 2) @map("total_amount")
+  totalAmount   Decimal        @default(0) @db.Decimal(10, 2)
   notes         String?
-  createdAt     DateTime       @default(now()) @map("created_at")
-  updatedAt     DateTime       @updatedAt @map("updated_at")
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
   orderProducts OrderProduct[]
 
   @@index([status])
@@ -74,16 +74,34 @@ model Order {
 
 model OrderProduct {
   id          String   @id @default(uuid())
-  orderId     String   @map("order_id")
-  productId   String   @map("product_id")
-  productName String   @map("product_name")
+  orderId     String
+  productId   String
+  productName String
   quantity    Int      @default(1)
   price       Decimal  @db.Decimal(10, 2)
-  createdAt   DateTime @default(now()) @map("created_at")
+  createdAt   DateTime @default(now())
   order       Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
   product     Product  @relation(fields: [productId], references: [id], onDelete: Restrict)
 
   @@index([orderId])
   @@index([productId])
   @@map("order_products")
+}
+
+model User {
+  id          String   @id @default(uuid())
+  firstName   String
+  surname     String
+  email       String   @unique
+  phone       String?
+  role        UserRole @default(USER)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("users")
+}
+
+enum UserRole {
+  USER
+  ADMIN
 }
