@@ -17,6 +17,7 @@ import { PopoverClose } from "@radix-ui/react-popover";
 import { FiPlus } from "react-icons/fi";
 import { CgShoppingCart } from "react-icons/cg";
 import { useSession } from "next-auth/react";
+import { USER_ROLE } from "@/lib/types";
 
 export type NavComponent = {
   id: string;
@@ -33,13 +34,14 @@ export type NavComponent = {
 // if the type is "user", it will render the user components
 // if the type is "admin", it will render the admin components
 interface NavigationProps {
-  type?: "user" | "admin";
+  type?: USER_ROLE;
 }
 
-const Navigation = ({ type = "user" }: NavigationProps) => {
+const Navigation = ({ type = USER_ROLE.USER }: NavigationProps) => {
+  console.log(type);
   const [selected, setSelected] = useState<NavComponent | null>(null);
   const [adminMenuOpen, setAdminMenuOpen] = useState(false);
-  const components = type === "admin" ? adminComponents : userComponents;
+  const components = userComponents;
   const router = useRouter();
   const { data: userData } = useSession();
 
@@ -58,16 +60,15 @@ const Navigation = ({ type = "user" }: NavigationProps) => {
     return "?";
   };
 
-  const handleAdminMenuItemClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+  const handleAdminMenuItemClick = () => {
     setAdminMenuOpen(false);
   };
 
   return (
     <div>
       <div
-        className={`w-full bg-white box-border z-1 ${
-          type === "user" && "absolute  shadow-md"
-        } ${selected && "h-auto"} `}
+        className={`w-full bg-white box-border z-1 absolute shadow-md
+         ${selected && "h-auto"} `}
         onMouseLeave={() => {
           setSelected(null);
         }}
@@ -76,10 +77,12 @@ const Navigation = ({ type = "user" }: NavigationProps) => {
           {components &&
             components.map((component) => (
               <li
-                className={`${type === "user" && "first:ml-4 h-10"}  ${
-                  selected?.id === component.id &&
-                  type === "user" &&
-                  "border-b-2 border-gray-400"
+                className={`${
+                  type === USER_ROLE.USER ? "first:ml-4 h-10" : ""
+                }  ${
+                  selected?.id === component.id
+                    ? "border-b-2 border-gray-400"
+                    : ""
                 }`}
                 key={component.id}
               >
@@ -133,9 +136,12 @@ const Navigation = ({ type = "user" }: NavigationProps) => {
                   )}
                 </div>
               </PopoverTrigger>
-              <PopoverContent className="mr-4 mt-1 bg-white rounded-sm !border-gray-200">
+              <PopoverContent className="mr-4 mt-1 bg-white rounded-sm border-gray-200!">
                 <PopoverClose asChild>
-                  <AuthUserMenu onMenuItemClick={handleAdminMenuItemClick} />
+                  <AuthUserMenu
+                    onMenuItemClick={handleAdminMenuItemClick}
+                    role={type}
+                  />
                 </PopoverClose>
               </PopoverContent>
             </Popover>
@@ -144,8 +150,8 @@ const Navigation = ({ type = "user" }: NavigationProps) => {
           )}
         </div>
         <div
-          className={`overflow-hidden bg-white !z-1 ${
-            selected?.content && "fade-in-scale border-t-1 border-gray-100 "
+          className={`overflow-hidden bg-white z-1! ${
+            selected?.content ? "fade-in-scale border-t border-gray-100" : ""
           }`}
         >
           {selected?.content}
