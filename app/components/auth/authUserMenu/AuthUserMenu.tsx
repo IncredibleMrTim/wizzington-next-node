@@ -2,13 +2,16 @@
 
 import { useState } from "react";
 import { signOut, useSession } from "next-auth/react";
+import { USER_ROLE } from "@/lib/types";
 import { FiLogOut, FiHome, FiSettings } from "react-icons/fi";
 import Link from "next/link";
 
 export const AuthUserMenu = ({
   onMenuItemClick,
+  role,
 }: {
   onMenuItemClick: (e: React.MouseEvent<HTMLAnchorElement>) => void;
+  role: USER_ROLE;
 }) => {
   const { data: session } = useSession();
   const [isSigningOut, setIsSigningOut] = useState(false);
@@ -43,18 +46,20 @@ export const AuthUserMenu = ({
           </Link>
         </li>
 
-        <li className="flex gap-4">
-          <FiSettings size={22} className="text-gray-400" />
+        {role === USER_ROLE.ADMIN && (
+          <li className="flex gap-4">
+            <FiSettings size={22} className="text-gray-400" />
 
-          <Link
-            prefetch
-            href="/admin"
-            className="text-black"
-            onClick={onMenuItemClick}
-          >
-            Admin
-          </Link>
-        </li>
+            <Link
+              prefetch
+              href="/admin"
+              className="text-black"
+              onClick={onMenuItemClick}
+            >
+              Admin
+            </Link>
+          </li>
+        )}
 
         <li className="flex gap-4">
           <FiLogOut size={22} className="text-gray-400" />

@@ -7,14 +7,15 @@ import adminComponents from "../navigation/adminComponents";
 import userComponents from "../navigation/userComponents";
 import { FiChevronsRight } from "react-icons/fi";
 import { useSession } from "next-auth/react";
+import { USER_ROLE } from "@/lib/types";
 
 interface DrawerTemplateProps {
-  type?: "user" | "admin";
+  type?: USER_ROLE;
 }
 
 export const DrawerTemplate = ({ type }: DrawerTemplateProps) => {
   const { data: session } = useSession();
-  const components = type === "admin" ? adminComponents : userComponents;
+  const components = type === USER_ROLE.USER ? adminComponents : userComponents;
   const dispatch = useAppDispatch();
 
   return (
@@ -69,11 +70,11 @@ export const DrawerTemplate = ({ type }: DrawerTemplateProps) => {
                 <Avatar.Image src={session.user.image || undefined} />
                 <Avatar.Fallback className="bg-blue-500 text-white p-2 rounded-full">
                   {session.user.name
-                    ?.split(' ')
+                    ?.split(" ")
                     .map((n: string) => n[0])
-                    .join('')
+                    .join("")
                     .toUpperCase()
-                    .slice(0, 2) || '?'}
+                    .slice(0, 2) || "?"}
                 </Avatar.Fallback>
               </Avatar.Root>
               <div className="flex flex-col ml-2">
@@ -85,7 +86,7 @@ export const DrawerTemplate = ({ type }: DrawerTemplateProps) => {
                 </span>
               </div>
             </div>
-            {type === "admin" && (
+            {type === USER_ROLE.USER && (
               <Link
                 href="/admin"
                 onClick={() => {
