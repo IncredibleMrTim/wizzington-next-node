@@ -5,7 +5,6 @@ import Image from "next/image";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { AuthUserMenu } from "../auth/authUserMenu/AuthUserMenu";
-import adminComponents from "./adminComponents";
 import userComponents from "./userComponents";
 import { Button } from "@/components/ui/button";
 import {

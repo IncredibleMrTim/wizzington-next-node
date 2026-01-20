@@ -1,4 +1,4 @@
-import { Product } from "@/lib/types";
+import { ProductDTO } from "@/lib/types";
 import { CellContext, ColumnDef } from "@tanstack/react-table";
 
 import Link from "next/link";
@@ -22,7 +22,7 @@ export type CustomCellContext<TData, TValue> = CellContext<TData, TValue> & {
   }: ProductListCustomCellContextProps) => void; // Add the onClick handler type
 };
 
-export const columns: ColumnDef<Product>[] = [
+export const columns: ColumnDef<ProductDTO>[] = [
   {
     accessorKey: "id",
     header: "id",
@@ -119,7 +119,7 @@ export const columns: ColumnDef<Product>[] = [
     accessorKey: "edit/view",
     header: "Edit/View",
     size: 20, // Explicit size
-    cell: ({ row, onClick }: CustomCellContext<Product, unknown>) => {
+    cell: ({ row, onClick }: CustomCellContext<ProductDTO, unknown>) => {
       return (
         <div className="flex gap-4 items-center">
           <Link
@@ -131,7 +131,7 @@ export const columns: ColumnDef<Product>[] = [
           </Link>
 
           <Link
-            href={`/product/${(row.getValue("name") as string).replace(
+            href={`/product/${(row.getValue("id") as string).replace(
               /\s+/g,
               "-"
             )}`}

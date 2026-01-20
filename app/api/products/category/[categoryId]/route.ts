@@ -24,7 +24,12 @@ export async function GET(
       },
     });
 
-    return NextResponse.json(products);
+    return NextResponse.json(
+      products.map((product) => ({
+        ...product,
+        price: Number(product.price),
+      }))
+    );
   } catch (error) {
     console.error('Error fetching products by category:', error);
     return NextResponse.json({ error: 'Failed to fetch products by category' }, { status: 500 });

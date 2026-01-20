@@ -1,0 +1,196 @@
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+## Quick Start Commands
+
+### Development
+- `yarn dev` - Start Next.js dev server (http://localhost:3000)
+- `yarn build` - Build for production
+- `yarn start` - Start production server
+- `yarn lint` - Run ESLint
+
+### Database
+- `yarn db:migrate` - Run Prisma migrations
+- `yarn db:seed` - Seed the database with initial data
+- `yarn db:generate` - Generate Prisma client
+- `yarn db:reset` - Reset database to initial state (runs migrations)
+
+### Testing
+- Tests use Jest with React Testing Library
+- No test runner script defined yet; tests files are marked with `.test.tsx`
+- Many test files use `describe.skip()` - check `app/components/admin/productEditor/useProductEditor.test.tsx` as reference
+
+## Architecture Overview
+
+### Tech Stack
+- **Framework**: Next.js 16 (App Router)
+- **Styling**: Tailwind CSS 4 + Radix UI themes
+- **State Management**: Zustand (with Redux DevTools middleware)
+- **Data Fetching**: TanStack React Query (v5)
+- **Forms**: React Hook Form + Zod validation
+- **Database**: PostgreSQL + Prisma ORM
+- **Authentication**: NextAuth.js v4 (Google OAuth)
+- **File Storage**: Vercel Blob
+- **Payments**: PayPal (server SDK + React integration)
+
+### State Management (Zustand + Redux DevTools)
+All application state uses Zustand stores with Redux DevTools integration:
+
+**Stores Location**: `app/stores/`
+- `useProductStore.ts` - Product catalog and editing state
+- `useOrderStore.ts` - Shopping cart and order data
+- `useNavStore.ts` - Navigation/drawer open state
+
+Each store wraps its state with the `devtools` middleware:
+```typescript
+export const useProductStore = create<ProductState>()(
+  devtools((set) => ({ /* state */ }), { name: "ProductStore" })
+);
+```
+
+This enables Redux DevTools in browser for debugging state changes.
+
+### Data Fetching Pattern
+Uses TanStack React Query with custom hooks in `app/services/`:
+- Hooks follow naming: `useGet*Query`, `use*Mutation`
+- Query keys defined in `keys.ts` files per service
+- Mutations automatically invalidate related queries
+
+### Authentication & Authorization
+- Google OAuth via NextAuth.js
+- User roles: `USER` and `ADMIN`
+- Admin routes protected by middleware (`middleware.ts`)
+- Session extended with custom fields: `role`, `firstName`, `lastName`, `picture`
+
+### Database Schema (Prisma)
+Key entities:
+- `User` - Authentication and profile
+- `Product` - Catalog with images and categories
+- `Category` - Product grouping
+- `Order` - Customer orders with line items
+- `OrderProduct` - Order line items with custom fields
+
+See `prisma/schema.prisma` for full schema.
+
+## Key File Locations
+
+### Routes & Pages
+- Public pages: `app/(pages)/`
+- Admin pages: `app/(pages)/admin/`
+- API endpoints: `app/api/`
+- Authentication: `app/api/auth/[...nextauth]/route.ts`
+
+### Components
+- Reusable UI: `app/components/ui/` (Radix UI wrapped)
+- Feature components: `app/components/` (organized by feature)
+- Special components:
+  - `FileUploader.tsx` - Image upload with Vercel Blob integration
+  - `PayPalButton.tsx` - Payment processing
+  - `ProductEditor.tsx` - Admin product management
+
+### Utilities & Services
+- API utilities: `app/utils/`
+- Email: `app/utils/email.ts`
+- Auth helpers: `app/utils/auth.ts`
+- Date formatting: `app/utils/date.ts`
+- React Query services: `app/services/` (organized by domain)
+
+### Providers
+- `SessionProvider.tsx` - NextAuth session wrapper
+- `reactQueryProvider.tsx` - React Query client setup
+
+## Important Implementation Details
+
+### File Uploads
+- Uses Vercel Blob for storage
+- Endpoint: `app/api/upload/blob/route.ts`
+- Integrated with product editor via `FileUploader.tsx`
+- Stores references in Prisma `ProductImage` table
+
+### State Update Patterns
+After recent migration from Redux to Zustand, **always use store methods directly**:
+```typescript
+// Correct: Direct Zustand call
+useProductStore.getState().updateProductImages(images);
+
+// Wrong: Do not dispatch actions
+dispatch({ type: "UPDATE", payload: images });
+```
+
+### Product Editor Hook
+`useProductEditor.ts` manages:
+- Loading product data by ID (if editing)
+- Handling image updates via store
+- Saving products (creates or updates)
+- Clearing state on unmount
+
+Always use the returned `save()`, `updateImages()` methods - they handle store updates correctly.
+
+### Field Validation
+Custom field validation in `ProductField.tsx`:
+- Validates on change via Zod schemas
+- Passes validation errors up to parent
+- Parent (`page.tsx`) tracks field errors in state
+
+## Common Tasks
+
+### Adding a New API Endpoint
+1. Create route file: `app/api/[feature]/route.ts`
+2. Use Prisma client: `import prisma from "@/lib/prisma"`
+3. Handle auth if needed via `NextAuth`
+
+### Adding a New Zustand Store
+1. Create file: `app/stores/[feature]/use[Feature]Store.ts`
+2. Wrap with devtools middleware (see ProductStore example)
+3. Export from `app/stores/index.ts`
+4. Use selector pattern in components: `useStore((state) => state.property)`
+
+### Creating a New React Query Hook
+1. Create service: `app/services/[domain]/use[Action]Query.ts` or `use[Action]Mutation.ts`
+2. Define query key in `keys.ts`
+3. Import and use in components
+
+### Adding Authentication to a Route
+Admin routes are auto-protected by middleware if prefixed with `/admin`. For custom auth:
+1. Get session: `const session = await getServerSession(authOptions)`
+2. Check role: `if (session?.user.role !== "ADMIN")`
+
+## File Path Aliases
+TypeScript paths configured in `tsconfig.json`:
+- `@/*` - Root of project (useful for relative imports)
+- `@/stores` - `app/stores/index.ts`
+- `@/stores/*` - `app/stores/[path]`
+- `@/services/*` - `app/services/[path]`
+- `@/components/*` - `app/components/[path]`
+- `@/ui/*` - `app/components/ui/[path]`
+- `@/utils/*` - `app/utils/[path]`
+
+## Environment Variables
+See `.env.example` for required variables:
+- `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` - OAuth
+- `NEXTAUTH_SECRET`, `NEXTAUTH_URL` - NextAuth config
+- `SMTP_EMAIL` - Email notifications
+- PayPal SDK credentials
+- Database connection string
+
+## Development Patterns to Follow
+
+### Error Handling
+- Server components: Use try/catch, return error states
+- Client components: Let mutations handle via `onError`
+- API routes: Return appropriate HTTP status codes
+
+### Loading States
+- Use React Query's `isPending`, `isLoading` from queries/mutations
+- Disable buttons/forms during mutations
+
+### Type Safety
+- Strict TypeScript enabled (`strict: true`)
+- Define types in `lib/types.ts`
+- Use Zod for runtime validation on API boundaries
+
+### Testing
+- Use `renderWithProviders` from `app/testing/utils.tsx` to wrap components with all providers
+- Mock Zustand stores via `jest.mock()` at module level
+- Mock React Query via `jest.mock()`

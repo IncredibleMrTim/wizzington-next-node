@@ -6,7 +6,7 @@ import { screen, render } from "@testing-library/react";
 
 import { ProductEditor } from "./ProductEditor";
 import { Schema } from "amplify/data/resource";
-import { useGetProductQuery } from "@/services/product/useGetProductQuery";
+import { useGetProductById } from "@/app/services/product/useGetProductById";
 
 import { FileUploader } from "@/components/fileUploader/FileUploader";
 import { useProductEditor } from "./useProductEditor";
@@ -63,8 +63,8 @@ jest.mock("next/navigation", () => {
 });
 
 // Mock product query/mutation hooks
-jest.mock("@/services/product/useGetProductQuery", () => ({
-  useGetProductQuery: jest.fn(),
+jest.mock("@/services/product/useGetProductById", () => ({
+  useGetProductById: jest.fn(),
 }));
 
 jest.mock("@/services/product/useAddProductMutation", () => ({
@@ -259,7 +259,7 @@ describe("ProductEditor", () => {
     ).not.toBeChecked();
   });
 
-  (useGetProductQuery as jest.Mock).mockImplementation(() => ({
+  (useGetProductById as jest.Mock).mockImplementation(() => ({
     getProductById: () => ({
       data: null, // Simulate no product being loaded
     }),
@@ -366,7 +366,7 @@ describe("ProductEditor", () => {
       await act(() => userEvent.click(reorderProductImages));
 
       expect(mockUpdateProductImages).toHaveBeenCalledWith(
-        expect.arrayContaining([{ ...mockProduct.images[0], order: 1 }])
+        expect.arrayContaining([{ ...mockProduct.images[0], orderPosition: 1 }])
       );
     });
 

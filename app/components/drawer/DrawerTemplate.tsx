@@ -1,5 +1,5 @@
 "use client";
-import { STORE_KEYS, useAppDispatch } from "@/app/stores/store";
+import { useNavStore } from "@/stores";
 import Link from "next/link";
 import { Avatar } from "radix-ui";
 import { Separator } from "../separator/Separator";
@@ -16,7 +16,7 @@ interface DrawerTemplateProps {
 export const DrawerTemplate = ({ type }: DrawerTemplateProps) => {
   const { data: session } = useSession();
   const components = type === USER_ROLE.USER ? adminComponents : userComponents;
-  const dispatch = useAppDispatch();
+  const setIsDrawerOpen = useNavStore((state) => state.setIsDrawerOpen);
 
   return (
     <div className="bg-white h-full w-full rounded-md bg-gradient-to-tr from-gray-300 from-20% to-transparent to-100%">
@@ -27,10 +27,7 @@ export const DrawerTemplate = ({ type }: DrawerTemplateProps) => {
             size={24}
             className="text-gray-500 cursor-pointer"
             onClick={() => {
-              dispatch({
-                type: STORE_KEYS.SET_DRAWER_IS_OPEN,
-                payload: false,
-              });
+              setIsDrawerOpen(false);
             }}
           />
         </div>
@@ -46,10 +43,7 @@ export const DrawerTemplate = ({ type }: DrawerTemplateProps) => {
                     href={component.href}
                     className="flex text-lg text-gray-700 w-full place-items-center"
                     onClick={() => {
-                      dispatch({
-                        type: STORE_KEYS.SET_DRAWER_IS_OPEN,
-                        payload: false,
-                      });
+                      setIsDrawerOpen(false);
                     }}
                   >
                     {component.title}
@@ -90,10 +84,7 @@ export const DrawerTemplate = ({ type }: DrawerTemplateProps) => {
               <Link
                 href="/admin"
                 onClick={() => {
-                  dispatch({
-                    type: STORE_KEYS.SET_DRAWER_IS_OPEN,
-                    payload: false,
-                  });
+                  setIsDrawerOpen(false);
                 }}
                 className="text-gray-800 text-sm w-full text-center mt-2"
               >

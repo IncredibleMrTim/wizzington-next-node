@@ -1,6 +1,6 @@
 "use client";
 import { ChevronDown } from "lucide-react";
-import { useParams, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { FiArrowLeft, FiCheck } from "react-icons/fi";
 import z from "zod";
@@ -25,10 +25,11 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Product } from "@/lib/types";
+import { ProductDTO, ProductImage } from "@/lib/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 
 import { useProductEditor } from "./useProductEditor";
+import { useEffect } from "react";
 
 const formSchema = z.object({
   name: z.string().min(1, { message: "Name is required" }),
@@ -53,14 +54,12 @@ const formSchema = z.object({
 });
 
 export const ProductEditor = () => {
-  const params = useParams();
-  const id = params.productId?.[0];
-  const { product, isLoading, updateImages, save } = useProductEditor();
-
+  const { product, updateImages, save } = useProductEditor();
   const router = useRouter();
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
-    mode: "onBlur",
+    mode: "onChange",
     values: {
       id: product?.id || "",
       name: product?.name || "",
@@ -73,53 +72,61 @@ export const ProductEditor = () => {
     },
   });
 
-  const updateProductImageOrder = (key: string, orderPosition: number) => {
-    if (!product || !product.images || product.images.length === 0) return product;
+  useEffect(() => {
+    const validateForm = async () => {
+      await form.trigger(); // Validates all fields immediately
+    };
+    validateForm();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [product?.id]);
 
-    const images = [...product.images];
+  const updateProductImageOrder = (key: string, newPosition: number) => {
+    if (!product?.images || product.images.length === 0) {
+      return;
+    }
 
-    const imageIndex = images.findIndex((img) => img?.url === key);
+    const currentImages = product.images as ProductImage[];
+    const imagesCopy = [...currentImages];
 
-    const currentImage = images[imageIndex];
+    const currentIndex = imagesCopy.findIndex((img) => img.url === key);
+    if (currentIndex === -1) return;
 
-    images.splice(imageIndex, 1);
+    // Remove image from current position
+    const [movedImage] = imagesCopy.splice(currentIndex, 1);
 
-    images.splice(orderPosition, 0, {
-      ...currentImage,
-      order: orderPosition,
-      url: currentImage.url,
-    });
+    // Insert at new position
+    imagesCopy.splice(newPosition, 0, movedImage);
 
-    const orderedImages = images.map((img, index) => ({
+    // Update order positions for all images
+    const reorderedImages = imagesCopy.map((img, index) => ({
       ...img,
-      order: index,
-    }));
+      orderPosition: index,
+    })) as ProductImage[];
 
-    updateImages(orderedImages);
+    updateImages(reorderedImages);
   };
 
   const handleSubmit: SubmitHandler<z.infer<typeof formSchema>> = async (
     values
   ) => {
-    console.log("here");
-    const payload: Product = {
+    const payload: ProductDTO = {
       id: values.id || product?.id || crypto.randomUUID(),
       name: values.name,
       description: values.description ?? null,
-      price: values.price,
-      stock: values.stock,
-      isFeatured: values.isFeatured,
-      isEnquiryOnly: values.isEnquiryOnly,
-      category: values.category ?? null,
-      images: product?.images ?? [],
-      createdAt: product?.createdAt ?? new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+      price: values.price ?? 0,
+      stock: values.stock ?? 0,
+      isFeatured: !!values.isFeatured,
+      isEnquiryOnly: !!values.isEnquiryOnly,
+      categoryId: values.category ?? null,
+      images: (product?.images ?? []) as ProductImage[],
+      createdAt: product?.createdAt ?? new Date(),
+      updatedAt: new Date(),
     };
     await save(payload);
   };
 
   return (
-    <div className="-mt-8 bg-violet-50 p-4   shadow-sm shadow-gray-300 border-gray-200">
+    <div className="-mt-8 bg-violet-50 p-4 shadow-sm shadow-gray-300 border-gray-200">
       <Form {...form}>
         <form onSubmit={form.handleSubmit(handleSubmit)} aria-controls="form">
           <div className="flex flex-col gap-6">
@@ -168,7 +175,7 @@ export const ProductEditor = () => {
                           {...field}
                           id={field.name}
                           placeholder="Product Description"
-                          className="border-0 border-b-1 border-gray-300 rounded-none focus:!ring-0"
+                          className="border-0 border-b border-gray-300 rounded-none focus:ring-0!"
                         />
                       </div>
                     </FormControl>
@@ -197,6 +204,9 @@ export const ProductEditor = () => {
                           id={field.name}
                           type="number"
                           placeholder="Price"
+                          onChange={(e) =>
+                            field.onChange(e.target.valueAsNumber || 0)
+                          }
                         />
                       </div>
                     </FormControl>
@@ -223,6 +233,9 @@ export const ProductEditor = () => {
                           type="number"
                           placeholder="Stock"
                           id={field.name}
+                          onChange={(e) =>
+                            field.onChange(e.target.valueAsNumber || 0)
+                          }
                         />
                       </div>
                     </FormControl>
@@ -252,7 +265,7 @@ export const ProductEditor = () => {
                             <DropdownMenuTrigger
                               disabled={field.disabled}
                               asChild
-                              className="!ring-0 bg-white w-full"
+                              className="ring-0! bg-white w-full"
                             >
                               <Button
                                 id={field.name}
@@ -383,9 +396,7 @@ export const ProductEditor = () => {
             <Button
               role="submit"
               type="submit"
-              disabled={
-                form.formState.isSubmitting || !form.formState.isValid || false
-              }
+              disabled={!form.formState.isValid || form.formState.isSubmitting}
               className="flex items-center gap-2"
               aria-label={`Submit ${
                 product ? "Update" : "Create"

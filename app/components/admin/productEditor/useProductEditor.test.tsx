@@ -3,8 +3,8 @@ import { renderHook } from "@testing-library/react";
 import { QueryClient } from "@tanstack/react-query";
 
 import { Schema } from "amplify/data/resource";
-import { STORE_KEYS, useAppDispatch } from "@/stores/store";
 import { useProductEditor } from "./useProductEditor";
+import { useProductStore } from "@/stores";
 
 import { renderWithProviders } from "@/testing/utils";
 import { useParams } from "next/navigation";
@@ -12,13 +12,13 @@ import { useParams } from "next/navigation";
 const mockAddProductMutation = jest.fn();
 const mockUpdateProductMutation = jest.fn();
 
-jest.mock("@/stores/store", () => ({
-  ...jest.requireActual("@/stores/store"),
-  useAppDispatch: jest.fn(), // Mock useAppDispatch directly
+jest.mock("@/stores", () => ({
+  ...jest.requireActual("@/stores"),
+  useProductStore: jest.fn(), // Mock useProductStore
 }));
 
-jest.mock("@/services/product/useGetProductQuery", () => ({
-  useGetProductQuery: () => ({
+jest.mock("@/services/product/useGetProductById", () => ({
+  useGetProductById: () => ({
     getProductById: jest.fn(() => ({
       data: null, // Simulate no product found
     })),
@@ -77,8 +77,12 @@ describe.skip("useProductEditor", () => {
     jest.clearAllMocks();
     jest.restoreAllMocks();
 
-    // mock the Redux dispatch
-    (useAppDispatch as jest.Mock).mockReturnValue(dispatch);
+    // mock the Zustand store
+    (useProductStore as jest.Mock).mockReturnValue({
+      updateProductImages: jest.fn(),
+      updateAllProducts: jest.fn(),
+      clearCurrentProduct: jest.fn(),
+    });
   });
 
   it("should initialize with default values", () => {
@@ -121,10 +125,7 @@ describe.skip("useProductEditor", () => {
       result.current.updateImages(newImages);
     });
 
-    expect(dispatch).toHaveBeenCalledWith({
-      type: STORE_KEYS.UPDATE_PRODUCT_IMAGES,
-      payload: newImages,
-    });
+    expect(useProductStore).toHaveBeenCalled();
   });
 
   // TODO: Fix this

@@ -1,6 +1,10 @@
-import { NextRequest, NextResponse } from 'next/server';
-import prisma from '@/lib/prisma';
-import { UpdateProductInput } from '@/lib/types';
+import { NextRequest, NextResponse } from "next/server";
+import { ProductUpdateInput } from "@/lib/types";
+import {
+  getProductById,
+  updateProductById,
+} from "../../../actions/product.actions";
+import prisma from "@/lib/prisma";
 
 // GET /api/products/[id] - Get a single product
 export async function GET(
@@ -9,25 +13,22 @@ export async function GET(
 ) {
   try {
     const { id } = await params;
-    const product = await prisma.product.findUnique({
-      where: { id },
-      include: {
-        images: {
-          orderBy: {
-            orderPosition: 'asc',
-          },
-        },
-      },
-    });
+    const product = await getProductById(id);
 
     if (!product) {
-      return NextResponse.json({ error: 'Product not found' }, { status: 404 });
+      return NextResponse.json({ error: "Product not found" }, { status: 404 });
     }
 
-    return NextResponse.json(product);
+    return NextResponse.json({
+      ...product,
+      price: Number(product.price),
+    });
   } catch (error) {
-    console.error('Error fetching product:', error);
-    return NextResponse.json({ error: 'Failed to fetch product' }, { status: 500 });
+    console.error("Error fetching product:", error);
+    return NextResponse.json(
+      { error: "Failed to fetch product" },
+      { status: 500 }
+    );
   }
 }
 
@@ -38,64 +39,17 @@ export async function PUT(
 ) {
   try {
     const { id } = await params;
-    const input: UpdateProductInput = { ...await request.json(), id };
+    const input: ProductUpdateInput = await request.json();
 
-    const data: any = {};
-
-    if (input.name !== undefined) {
-      data.name = input.name;
-    }
-
-    if (input.description !== undefined) {
-      data.description = input.description;
-    }
-
-    if (input.price !== undefined) {
-      data.price = input.price;
-    }
-
-    if (input.stock !== undefined) {
-      data.stock = input.stock;
-    }
-
-    if (input.isFeatured !== undefined) {
-      data.isFeatured = input.isFeatured;
-    }
-
-    if (input.isEnquiryOnly !== undefined) {
-      data.isEnquiryOnly = input.isEnquiryOnly;
-    }
-
-    if (input.category !== undefined) {
-      data.categoryId = input.category;
-    }
-
-    if (input.images !== undefined) {
-      data.images = {
-        deleteMany: {},
-        create: input.images.map(img => ({
-          url: img.url,
-          orderPosition: img.order,
-        })),
-      };
-    }
-
-    const product = await prisma.product.update({
-      where: { id },
-      data,
-      include: {
-        images: {
-          orderBy: {
-            orderPosition: 'asc',
-          },
-        },
-      },
-    });
+    const product = await updateProductById(id, input);
 
     return NextResponse.json(product);
   } catch (error) {
-    console.error('Error updating product:', error);
-    return NextResponse.json({ error: 'Failed to update product' }, { status: 500 });
+    console.error("Error updating product:", error);
+    return NextResponse.json(
+      { error: "Failed to update product" },
+      { status: 500 }
+    );
   }
 }
 
@@ -112,7 +66,10 @@ export async function DELETE(
 
     return new NextResponse(null, { status: 204 });
   } catch (error) {
-    console.error('Error deleting product:', error);
-    return NextResponse.json({ error: 'Failed to delete product' }, { status: 500 });
+    console.error("Error deleting product:", error);
+    return NextResponse.json(
+      { error: "Failed to delete product" },
+      { status: 500 }
+    );
   }
 }

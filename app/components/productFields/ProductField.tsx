@@ -12,7 +12,7 @@ import {
   PopoverTrigger,
 } from "@radix-ui/react-popover";
 
-import { fieldSchema } from "../../(pages)/product/[productName]/productDetails/fields";
+import { fieldSchema } from "../../(pages)/product/[id]/productDetails/fields";
 import moment from "moment";
 import { offsetDate } from "@/utils/date";
 

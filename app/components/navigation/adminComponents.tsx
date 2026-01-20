@@ -6,7 +6,7 @@ const components: NavComponent[] = [
     id: "new-product",
     type: "button",
     title: "New Product",
-    href: "/admin/product",
+    href: "/admin/product/create",
     icon: <FiPlus className="text-white" />,
   },
 ];

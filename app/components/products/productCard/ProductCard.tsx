@@ -1,13 +1,13 @@
 "use client";
 import Link from "next/link";
 import Image from "next/image";
-import { Product, USER_ROLE } from "@/lib/types";
+import { ProductDTO, USER_ROLE } from "@/lib/types";
 import { useSession } from "next-auth/react";
 import { FiEdit } from "react-icons/fi";
 import { useRouter } from "next/navigation";
 
 interface Props {
-  product?: Product;
+  product?: ProductDTO;
   showDescription?: boolean;
 }
 
@@ -57,16 +57,12 @@ const ProductCard = ({ product, showDescription = true }: Props) => {
             )}
           </div>
 
-          <div className="flex flex-col gap-2 px-4">
-            <p className="line-clamp-2 font-bold! text-lg! font-">
-              {product.name}
-            </p>
+          <div className="flex flex-col gap-2 px-4 justify-center w-full">
+            <p className="text-center">{product.name}</p>
             {showDescription && product.description && (
-              <p className="text-gray-600 line-clamp-2">
-                {product.description}
-              </p>
+              <p className="text-gray-600 text-center">{product.description}</p>
             )}
-            {price && <p className="text-green-600">£{price}</p>}
+            {price && <p className="text-green-600 text-center">£{price}</p>}
           </div>
         </div>
       </Link>

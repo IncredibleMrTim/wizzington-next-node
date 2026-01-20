@@ -1,15 +1,15 @@
 "use client";
 import { useRef, useState, DragEvent, ChangeEvent } from "react";
-import { Product, ProductImage } from "@/lib/types";
+import { ProductDTO, ProductImage } from "@/lib/types";
 import { type PutBlobResult } from "@vercel/blob";
 import { upload } from "@vercel/blob/client";
 import { FiUpload, FiX } from "react-icons/fi";
 
 interface FileUploaderProps {
-  product: Product;
+  product: ProductDTO;
   imagesRef?: React.RefObject<ProductImage[]>;
   updateProductImages: (product: ProductImage[]) => void;
-  updateProductImageOrder: (key: string, order: number) => void;
+  updateProductImageOrder: (key: string, orderPosition: number) => void;
 }
 
 const MAX_FILES = 10;
@@ -68,12 +68,19 @@ export const FileUploader = ({
         });
 
         return {
+          id: crypto.randomUUID(),
+          productId: product?.id || "",
           url: blob.url,
-          order: currentImages.length + index,
+          orderPosition: currentImages.length + index,
+          createdAt: new Date(),
         };
       });
 
       const newImages = await Promise.all(uploadPromises);
+
+      console.log(currentImages);
+      console.log(newImages);
+
       updateProductImages([...currentImages, ...newImages]);
     } catch (error) {
       console.error("Upload error:", error);
@@ -101,6 +108,7 @@ export const FileUploader = ({
 
   const handleFileInputChange = (e: ChangeEvent<HTMLInputElement>) => {
     handleFileUpload(e.target.files);
+    e.target.value = "";
   };
 
   return (
@@ -131,8 +139,8 @@ export const FileUploader = ({
             multiple
             accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
             onChange={handleFileInputChange}
-            className="hidden"
-            disabled={uploading}
+            // className="hidden"
+            // disabled={uploading}
           />
         </div>
       </div>
@@ -142,7 +150,7 @@ export const FileUploader = ({
         <div className="flex flex-wrap border border-gray-300 bg-white h-64 p-2 overflow-scroll w-full">
           {product?.images &&
             [...product.images]
-              ?.sort((a, b) => (a?.order ?? 0) - (b?.order ?? 0))
+              ?.sort((a, b) => (a?.orderPosition ?? 0) - (b?.orderPosition ?? 0))
               ?.map((file, index) => {
                 return (
                   <div

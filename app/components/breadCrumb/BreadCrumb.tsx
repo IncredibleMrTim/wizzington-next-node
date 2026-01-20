@@ -6,11 +6,11 @@ import {
   BreadcrumbSeparator,
 } from "@/ui/breadcrumb";
 import { segmentMappings } from "./breadcrumbMappings";
-import { Product } from "@/lib/types";
+import { ProductDTO } from "@/lib/types";
 
 interface BreadCrumbProps {
   pathname: string;
-  product?: Product | null;
+  product?: ProductDTO | null;
   segments: string[];
 }
 
@@ -31,16 +31,17 @@ export const BreadCrumb = ({
         <BreadcrumbList>
           {segments.map((segment, index) => {
             const isProducts = segmentMappings[segment] === "Products";
-            const href = isProducts ? "/" : segments.slice(0, index + 1).join("/");
-            const label = segmentMappings[segment] || product?.name?.replace(/-/g, " ");
+            const href = isProducts
+              ? "/"
+              : segments.slice(0, index + 1).join("/");
+            const label =
+              segmentMappings[segment] || product?.name?.replace(/-/g, " ");
             const isLastSegment = index === segments.length - 1;
 
             return (
               <div key={index} className="flex place-items-center gap-2">
                 <BreadcrumbItem key={index}>
-                  <Link href={`/${href}`}>
-                    {label}
-                  </Link>
+                  <Link href={`/${href}`}>{label}</Link>
                 </BreadcrumbItem>
 
                 {!isLastSegment && (

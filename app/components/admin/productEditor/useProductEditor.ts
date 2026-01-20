@@ -1,115 +1,136 @@
-import { useRouter, useSearchParams } from "next/navigation";
-import { useCallback, useMemo } from "react";
+import { useParams, useRouter } from "next/navigation";
+import { useCallback, useEffect, useState, useTransition } from "react";
 
-import { Product, ProductImage } from "@/lib/types";
-import { ProductQueryKeys } from "@/services/product/keys";
-import { useAddProductMutation } from "@/services/product/useAddProductMutation";
-import { useGetProductQuery } from "@/services/product/useGetProductQuery";
-import { useUpdateProductMutation } from "@/services/product/useUpdateProductMutation";
+import { ProductImage, ProductDTO } from "@/lib/types";
+import {
+  getProductById,
+  updateProductById,
+} from "@/app/actions/product.actions";
 import { useProductStore } from "@/stores";
-import { STORE_KEYS, useAppDispatch } from "@/stores/store";
-import { useQueryClient } from "@tanstack/react-query";
 
-export const useProductEditor = () => {
+interface UseProductEditorReturn {
+  product: ProductDTO | null;
+  isLoading: boolean;
+  updateImages: (images: ProductImage[]) => void;
+  save: (values: ProductDTO) => Promise<void>;
+}
+
+export const useProductEditor = (): UseProductEditorReturn => {
   const router = useRouter();
-  const dispatch = useAppDispatch();
-  const params = useSearchParams();
-  const productIdSearchParam = params.get("productId");
 
-  const addMutation = useAddProductMutation();
-  const updateMutation = useUpdateProductMutation();
-  const queryClient = useQueryClient();
+  const params = useParams<{ id?: string[] }>();
+  const productId = Array.isArray(params.id) ? params.id[0] : params.id;
 
-  // Get the current product from the store if available
+  const [isPending, startTransition] = useTransition();
+  const [isLoading, setIsLoading] = useState(false);
+
   const currentProduct = useProductStore((state) => state.currentProduct);
 
-  // get the product from the backend if productId is available
-  // this allow the user to refresh the page and still get the product
-  const { data: fetched } = useGetProductQuery().getProductById({
-    id: productIdSearchParam ?? "",
-    enabled: !!productIdSearchParam && !currentProduct,
-  });
+  // Fetch product from server if productId is available and not in store
+  useEffect(() => {
+    if (productId && productId !== "create") {
+      setIsLoading(true);
+      getProductById(productId).then((fetched) => {
+        if (fetched) {
+          useProductStore.getState().setCurrentProduct(fetched);
+        }
+        setIsLoading(false);
+      });
+    } else {
+      useProductStore.getState().clearCurrentProduct();
+    }
+  }, [productId]);
 
-  // currentProduct if is exists otherwise the fetched product
-  const product = useMemo(
-    () => currentProduct || fetched || null,
-    [currentProduct, fetched]
-  );
+  const product = currentProduct;
 
   /* Updates the product images in the state
    * @param images - The new images to set for the product
    */
-  const updateImages = useCallback(
-    (images: ProductImage[]) => {
-      dispatch({ type: STORE_KEYS.UPDATE_PRODUCT_IMAGES, payload: images });
-    },
-    [dispatch]
-  );
+  const updateImages = useCallback((images: ProductImage[]) => {
+    useProductStore.getState().updateProductImages(images);
+  }, []);
 
   /* Saves the product, either creating a new one or updating an existing one
    * @param values - The product values to save
    * @returns A promise that resolves when the product is saved
    */
   const save = useCallback(
-    async (values: Product): Promise<void> => {
-      let newProduct: Product | null;
+    (values: ProductDTO): Promise<void> => {
+      return new Promise((resolve, reject) => {
+        startTransition(async () => {
+          try {
+            let newProduct: ProductDTO | null = null;
+            console.log(values.images);
+            if (productId && product) {
+              // If product exists, update it
+              newProduct = await updateProductById(product.id, {
+                name: values.name,
+                description: values.description ?? undefined,
+                price: values.price,
+                stock: values.stock,
+                isFeatured: values.isFeatured,
+                isEnquiryOnly: values.isEnquiryOnly,
+                category: values.categoryId
+                  ? { connect: { id: values.categoryId } }
+                  : undefined,
+                images: values.images
+                  ? {
+                      deleteMany: {},
+                      create: values.images.map((img) => ({
+                        url: img.url,
+                        orderPosition: img.orderPosition,
+                      })),
+                    }
+                  : undefined,
+              });
+            } else {
+              // If product does not exist, create a new one via API
+              const response = await fetch("/api/products", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  name: values.name,
+                  description: values.description ?? undefined,
+                  price: values.price,
+                  stock: values.stock,
+                  isFeatured: values.isFeatured,
+                  isEnquiryOnly: values.isEnquiryOnly,
+                  category: values.categoryId
+                    ? { connect: { id: values.categoryId } }
+                    : undefined,
+                  images: values.images
+                    ? {
+                        create: values.images.map((img) => ({
+                          url: img.url,
+                          orderPosition: img.orderPosition,
+                        })),
+                      }
+                    : undefined,
+                }),
+              });
 
-      if (productIdSearchParam && product) {
-        // If product exists, update it
-        newProduct = await updateMutation.mutateAsync({
-          id: product.id,
-          name: values.name,
-          description: values.description ?? undefined,
-          price: values.price,
-          stock: values.stock,
-          isFeatured: values.isFeatured,
-          isEnquiryOnly: values.isEnquiryOnly,
-          category: values.category ?? undefined,
-          images: values.images?.map((img) => ({ url: img.url, order: img.order })),
+              if (!response.ok) throw new Error("Failed to create product");
+              newProduct = await response.json();
+            }
+
+            if (!newProduct) throw new Error("Failed to save product");
+
+            useProductStore.getState().updateAllProducts(newProduct);
+            useProductStore.getState().clearCurrentProduct();
+            router.push("/admin");
+            resolve();
+          } catch (error) {
+            reject(error);
+          }
         });
-      } else {
-        // If product does not exist, create a new one
-        newProduct = await addMutation.mutateAsync({
-          name: values.name,
-          description: values.description ?? undefined,
-          price: values.price,
-          stock: values.stock,
-          isFeatured: values.isFeatured,
-          isEnquiryOnly: values.isEnquiryOnly,
-          category: values.category ?? undefined,
-          images: values.images?.map((img) => ({ url: img.url, order: img.order })),
-        });
-      }
-
-      if (!newProduct) {
-        throw new Error("Failed to save product");
-      }
-
-      // update allProducts with the new or updated product
-      dispatch({
-        type: STORE_KEYS.UPDATE_ALL_PRODUCTS_WITH_NEW_PRODUCT,
-        payload: newProduct,
       });
-
-      // Clear current product from state so that the editor resets
-      dispatch({
-        type: STORE_KEYS.CLEAR_CURRENT_PRODUCT,
-      });
-
-      // remove the product from the query cache
-      queryClient.removeQueries({
-        queryKey: [ProductQueryKeys.GET_PRODUCT, product?.id],
-        exact: true,
-      });
-
-      router.push("/admin");
     },
-    [productIdSearchParam, product, addMutation, updateMutation, dispatch, queryClient, router]
+    [productId, product, router]
   );
 
   return {
     product,
-    isLoading: !product,
+    isLoading: isLoading || isPending,
     updateImages,
     save,
   };

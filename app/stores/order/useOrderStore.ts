@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { devtools } from "zustand/middleware";
 import { Order, OrderProduct } from "@/lib/types";
 
 export interface OrderState {
@@ -18,9 +19,10 @@ export interface OrderState {
   updateTotalCost: (cost: number) => void;
 }
 
-export const useOrderStore = create<OrderState>((set) => ({
-  currentOrder: null,
-  totalCost: 0,
+export const useOrderStore = create<OrderState>()(
+  devtools((set) => ({
+    currentOrder: null,
+    totalCost: 0,
 
   setCurrentOrder: (order) => set({ currentOrder: order }),
 
@@ -96,4 +98,5 @@ export const useOrderStore = create<OrderState>((set) => ({
   clearCurrentOrder: () => set({ currentOrder: null, totalCost: 0 }),
 
   updateTotalCost: (cost) => set({ totalCost: cost }),
-}));
+  }), { name: "OrderStore" })
+);

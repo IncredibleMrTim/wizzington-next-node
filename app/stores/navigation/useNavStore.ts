@@ -1,4 +1,5 @@
-import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
+import { create } from "zustand";
+import { devtools } from "zustand/middleware";
 
 export enum MenuItems {
   HOME = "Home",
@@ -16,12 +17,11 @@ export type MenuItem = {
 export interface NavState {
   menuItems: MenuItem[];
   isDrawerOpen: boolean;
-
   setActiveMenuItem: (menuItem: MenuItem) => void;
   setIsDrawerOpen: (isOpen: boolean) => void;
 }
 
-const initialSate = {
+const initialState: Omit<NavState, "setActiveMenuItem" | "setIsDrawerOpen"> = {
   menuItems: [
     { name: MenuItems.HOME, path: "/", isActive: true },
     { name: MenuItems.DRESSES, path: "/dresses", isActive: false },
@@ -39,20 +39,21 @@ const initialSate = {
   isDrawerOpen: false,
 };
 
-export const navSlice = createSlice({
-  name: "NAVIGATION",
-  initialState: initialSate,
-  reducers: {
-    setActiveMenuItem: (state, action: PayloadAction<MenuItem>) => {
-      state.menuItems = state.menuItems.map((item) => ({
-        ...item,
-        isActive: item.name === action.payload.name,
+export const useNavStore = create<NavState>()(
+  devtools((set) => ({
+    ...initialState,
+
+    setActiveMenuItem: (menuItem: MenuItem) => {
+      set((state) => ({
+        menuItems: state.menuItems.map((item) => ({
+          ...item,
+          isActive: item.name === menuItem.name,
+        })),
       }));
     },
-    setIsDrawerOpen: (state, action: PayloadAction<boolean>) => {
-      state.isDrawerOpen = action.payload;
+
+    setIsDrawerOpen: (isOpen: boolean) => {
+      set({ isDrawerOpen: isOpen });
     },
-  },
-});
-export const { setActiveMenuItem, setIsDrawerOpen } = navSlice.actions;
-export const navReducer = navSlice.reducer;
+  }), { name: "NavStore" })
+);

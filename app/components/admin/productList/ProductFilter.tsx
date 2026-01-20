@@ -8,10 +8,10 @@ import {
   DropdownMenuTrigger,
 } from "@radix-ui/react-dropdown-menu";
 import { TextField } from "@radix-ui/themes";
-import { Product } from "@/lib/types";
+import { ProductDTO } from "@/lib/types";
 import { Table } from "@tanstack/react-table";
 
-export const ProductFilter = ({ table }: { table: Table<Product> }) => {
+export const ProductFilter = ({ table }: { table: Table<ProductDTO> }) => {
   return (
     <div className="flex items-center py-4 justify-between">
       <TextField.Root

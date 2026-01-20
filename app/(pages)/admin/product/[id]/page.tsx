@@ -1,6 +1,6 @@
 import { ProductEditor } from "@/components/admin/productEditor/ProductEditor";
 
-const AdminProductsPage = () => {
+const AdminProductsPage = async () => {
   return <ProductEditor />;
 };
 export default AdminProductsPage;

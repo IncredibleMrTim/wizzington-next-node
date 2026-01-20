@@ -1,14 +1,15 @@
 import { create } from "zustand";
-import { Product } from "@/lib/types";
+import { devtools } from "zustand/middleware";
+import { ProductDTO, ProductImage } from "@/lib/types";
 
 export interface ProductState {
-  allProducts: Product[];
-  currentProduct: Product | null;
-  setProducts: (allProducts: Product[] | null) => void;
-  setCurrentProduct: (currentProduct: Product | null) => void;
+  allProducts: ProductDTO[];
+  currentProduct: ProductDTO | null;
+  setProducts: (allProducts: ProductDTO[] | null) => void;
+  setCurrentProduct: (currentProduct: ProductDTO | null) => void;
   clearCurrentProduct: () => void;
-  updateProductImages: (images: Product["images"]) => void;
-  updateAllProducts: (product: Product) => void;
+  updateProductImages: (images: ProductImage[]) => void;
+  updateAllProducts: (product: ProductDTO) => void;
   removeProduct: (productId: string) => void;
 }
 
@@ -23,53 +24,58 @@ const initialState: ProductState = {
   removeProduct: () => {},
 };
 
-export const useProductStore = create<ProductState>()((set) => ({
-  ...initialState,
+export const useProductStore = create<ProductState>()(
+  devtools(
+    (set) => ({
+      ...initialState,
 
-  setProducts: (allProducts: Product[] | null) => {
-    set({ allProducts: allProducts || [] });
-  },
+      setProducts: (allProducts: ProductDTO[] | null) => {
+        set({ allProducts: allProducts || [] });
+      },
 
-  setCurrentProduct: (currentProduct: Product | null) => {
-    set({ currentProduct });
-  },
+      setCurrentProduct: (currentProduct: ProductDTO | null) => {
+        set({ currentProduct });
+      },
 
-  clearCurrentProduct: () => {
-    set({ currentProduct: null });
-  },
+      clearCurrentProduct: () => {
+        set({ currentProduct: null });
+      },
 
-  updateProductImages: (images: Product["images"]) => {
-    set((state) => {
-      if (state.currentProduct) {
-        return {
-          currentProduct: {
-            ...state.currentProduct,
-            images,
-          },
-        };
-      }
-      return state;
-    });
-  },
+      updateProductImages: (images: ProductImage[]) => {
+        set((state) => {
+          if (state.currentProduct) {
+            return {
+              currentProduct: {
+                ...state.currentProduct,
+                images: images as ProductImage[],
+              } as ProductDTO,
+            };
+          }
+          return state;
+        });
+      },
 
-  updateAllProducts: (product: Product) => {
-    set((state) => {
-      const index = state.allProducts.findIndex((p) => p.id === product.id);
-      const updatedProducts = [...state.allProducts];
+      updateAllProducts: (product: ProductDTO) => {
+        set((state) => {
+          const index = state.allProducts.findIndex((p) => p.id === product.id);
+          const updatedProducts = [...state.allProducts];
 
-      if (index !== -1) {
-        updatedProducts[index] = product;
-      } else {
-        updatedProducts.push(product);
-      }
+          if (index !== -1) {
+            updatedProducts[index] = product;
+          } else {
+            updatedProducts.push(product);
+          }
 
-      return { allProducts: updatedProducts };
-    });
-  },
+          return { allProducts: updatedProducts };
+        });
+      },
 
-  removeProduct: (productId: string) => {
-    set((state) => ({
-      allProducts: state.allProducts.filter((p) => p.id !== productId),
-    }));
-  },
-}));
+      removeProduct: (productId: string) => {
+        set((state) => ({
+          allProducts: state.allProducts.filter((p) => p.id !== productId),
+        }));
+      },
+    }),
+    { name: "ProductStore" }
+  )
+);

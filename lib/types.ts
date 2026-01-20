@@ -1,25 +1,34 @@
-// Product Types
-export interface ProductImage {
-  id?: string;
-  product_id?: string;
-  url: string;
-  order: number;
-  created_at?: string;
-}
+import { Prisma } from "@prisma/client";
 
-export interface Product {
+// Product Types
+export type ProductImage = Prisma.ProductImageGetPayload<object>;
+
+export type Product = Prisma.ProductGetPayload<{
+  include: { images: true };
+}>;
+
+// DTO for server actions with serialized price
+export type ProductDTO = {
   id: string;
   name: string;
-  description?: string | null;
-  price?: number;
-  stock?: number;
-  isFeatured?: boolean;
-  isEnquiryOnly?: boolean;
-  category?: string | null;
-  images?: ProductImage[];
-  createdAt?: string;
-  updatedAt?: string;
-}
+  description: string | null;
+  price: number;
+  stock: number;
+  isFeatured: boolean;
+  isEnquiryOnly: boolean;
+  categoryId: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+  images: ProductImage[];
+};
+
+export type Category = Prisma.CategoryGetPayload<object>;
+
+export type OrderProduct = Prisma.OrderProductGetPayload<object>;
+
+export type Order = Prisma.OrderGetPayload<{
+  include: { orderProducts: true };
+}>;
 
 export interface CreateProductInput {
   name: string;
@@ -45,13 +54,9 @@ export interface UpdateProductInput {
 }
 
 // Category Types
-export interface Category {
-  id: string;
-  name: string;
-  description?: string | null;
-  createdAt?: string;
-  updatedAt?: string;
-}
+export type CategoryWithProducts = Prisma.CategoryGetPayload<{
+  include: { products: true };
+}>;
 
 export interface CreateCategoryInput {
   name: string;
@@ -62,31 +67,6 @@ export interface UpdateCategoryInput {
   id: string;
   name?: string;
   description?: string;
-}
-
-// Order Types
-export interface OrderProduct {
-  id: string;
-  uid?: string;
-  order_id?: string;
-  productId: string;
-  name: string;
-  quantity: number;
-  price: number;
-  created_at?: string;
-}
-
-export interface Order {
-  id: string;
-  customer_name?: string | null;
-  customer_email?: string | null;
-  customer_phone?: string | null;
-  status?: string;
-  total_amount?: number;
-  notes?: string | null;
-  products: OrderProduct[];
-  createdAt?: string;
-  updatedAt?: string;
 }
 
 export interface CreateOrderInput {
@@ -117,6 +97,14 @@ export interface UpdateOrderInput {
     price: number;
   }>;
 }
+
+// Prisma Input Types (for use throughout the app)
+export type ProductCreateInput = Prisma.ProductCreateInput;
+export type ProductUpdateInput = Prisma.ProductUpdateInput;
+export type CategoryCreateInput = Prisma.CategoryCreateInput;
+export type CategoryUpdateInput = Prisma.CategoryUpdateInput;
+export type OrderCreateInput = Prisma.OrderCreateInput;
+export type OrderUpdateInput = Prisma.OrderUpdateInput;
 
 export enum USER_ROLE {
   ADMIN = "ADMIN",

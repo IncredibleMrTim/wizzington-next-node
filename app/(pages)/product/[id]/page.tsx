@@ -1,34 +1,41 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect } from "react";
+import { use, useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
-import { useProductStore } from "@/stores";
-import { useGetProductsQuery } from "@/app/services/product/useGetProductsQuery";
-import { USER_ROLE } from "@/lib/types";
+import { getProductById } from "@/app/actions";
+import { ProductDTO, USER_ROLE } from "@/lib/types";
 
 interface ProductPageProps {
-  params: {
-    productName: string;
-  };
+  params: Promise<{
+    id: string;
+  }>;
 }
 
-export default function ProductPage({ params }: ProductPageProps) {
+export default function ProductPage({ params: paramsPromise }: ProductPageProps) {
+  const params = use(paramsPromise);
   const { data: session } = useSession();
   const isAdmin = session?.user?.role === USER_ROLE.ADMIN;
-  const { data: productsData } = useGetProductsQuery();
-  const setProducts = useProductStore((state) => state.setProducts);
-  const allProducts = useProductStore((state) => state.allProducts);
+  const [product, setProduct] = useState<ProductDTO | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Load products into store only if store is empty
   useEffect(() => {
-    if (productsData && allProducts.length === 0) {
-      setProducts(productsData);
-    }
-  }, [productsData, allProducts.length, setProducts]);
+    const fetchProduct = async () => {
+      if (!params.id) {
+        setIsLoading(false);
+        return;
+      }
+      setIsLoading(true);
+      const fetchedProduct = await getProductById(params.id);
+      setProduct(fetchedProduct);
+      setIsLoading(false);
+    };
+    fetchProduct();
+  }, [params.id]);
 
-  // Find product by ID (productName param is actually the ID)
-  const product = allProducts.find((p) => p.id === params.productName);
+  if (isLoading) {
+    return <div className="p-4">Loading...</div>;
+  }
 
   if (!product) {
     return <div className="p-4">Product not found</div>;
@@ -57,7 +64,7 @@ export default function ProductPage({ params }: ProductPageProps) {
                   {product.images.map((img) => (
                     <div
                       key={img.id}
-                      className="relative w-20 h-20 flex-shrink-0"
+                      className="relative w-20 h-20 shrink-0"
                     >
                       <Image
                         src={img.url}

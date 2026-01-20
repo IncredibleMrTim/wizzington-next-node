@@ -1,13 +1,20 @@
-import Navigation from "@/components/navigation/Navigation";
 import ProductList from "@/components/admin/productList/ProductList";
-import { USER_ROLE } from "@/lib/types";
+
+import adminComponents from "@/app/components/navigation/adminComponents";
+import Link from "next/link";
+import { Button } from "@/app/components/ui/button";
+import { FiPlus } from "react-icons/fi";
 
 const AdminPage = async () => {
   return (
     <div>
-      <div className="flex justify-start">
-        <Navigation type={USER_ROLE.ADMIN} />
-      </div>
+      {adminComponents.map((component) => (
+        <Link key={component.id} href={component.href} prefetch>
+          <Button className="px-2 py-2">
+            <FiPlus /> {component.title}
+          </Button>
+        </Link>
+      ))}
       <ProductList />
     </div>
   );

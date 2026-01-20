@@ -1,42 +1,29 @@
-import { NextRequest, NextResponse } from 'next/server';
-import prisma from '@/lib/prisma';
-import { CreateProductInput } from '@/lib/types';
+import { NextRequest, NextResponse } from "next/server";
+import prisma from "@/lib/prisma";
+import { CreateProductInput } from "@/lib/types";
+import { getProducts } from "../../actions/product.actions";
 
 // GET /api/products - Get all products
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    const isFeatured = searchParams.get('isFeatured') === 'true' ? true : searchParams.get('isFeatured') === 'false' ? false : undefined;
-    const category = searchParams.get('category') || undefined;
+    const isFeatured =
+      searchParams.get("isFeatured") === "true"
+        ? true
+        : searchParams.get("isFeatured") === "false"
+        ? false
+        : undefined;
+    const categoryId = searchParams.get("category") || undefined;
 
-    const where: any = {};
-
-    if (isFeatured !== undefined) {
-      where.isFeatured = isFeatured;
-    }
-
-    if (category) {
-      where.categoryId = category;
-    }
-
-    const products = await prisma.product.findMany({
-      where,
-      include: {
-        images: {
-          orderBy: {
-            orderPosition: 'asc',
-          },
-        },
-      },
-      orderBy: {
-        createdAt: 'desc',
-      },
-    });
+    const products = await getProducts(isFeatured, categoryId);
 
     return NextResponse.json(products);
   } catch (error) {
-    console.error('Error fetching products:', error);
-    return NextResponse.json({ error: 'Failed to fetch products' }, { status: 500 });
+    console.error("Error fetching products:", error);
+    return NextResponse.json(
+      { error: "Failed to fetch products" },
+      { status: 500 }
+    );
   }
 }
 
@@ -46,7 +33,7 @@ export async function POST(request: NextRequest) {
     const input: CreateProductInput = await request.json();
 
     if (!input.name) {
-      return NextResponse.json({ error: 'Name is required' }, { status: 400 });
+      return NextResponse.json({ error: "Name is required" }, { status: 400 });
     }
 
     const product = await prisma.product.create({
@@ -58,17 +45,20 @@ export async function POST(request: NextRequest) {
         isFeatured: input.isFeatured || false,
         isEnquiryOnly: input.isEnquiryOnly || false,
         categoryId: input.category || null,
-        images: input.images && input.images.length > 0 ? {
-          create: input.images.map(img => ({
-            url: img.url,
-            orderPosition: img.order,
-          })),
-        } : undefined,
+        images:
+          input.images && input.images.length > 0
+            ? {
+                create: input.images.map((img) => ({
+                  url: img.url,
+                  orderPosition: img.order,
+                })),
+              }
+            : undefined,
       },
       include: {
         images: {
           orderBy: {
-            orderPosition: 'asc',
+            orderPosition: "asc",
           },
         },
       },
@@ -76,7 +66,10 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(product, { status: 201 });
   } catch (error) {
-    console.error('Error creating product:', error);
-    return NextResponse.json({ error: 'Failed to create product' }, { status: 500 });
+    console.error("Error creating product:", error);
+    return NextResponse.json(
+      { error: "Failed to create product" },
+      { status: 500 }
+    );
   }
 }

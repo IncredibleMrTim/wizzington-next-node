@@ -8,13 +8,7 @@ import PayPalButton, {
   OrderResponseBody,
 } from "@/components/payPal/payPalButton/PayPalButton";
 import PayPalProvider from "@/components/payPal/payPalProvider/PayPalProvider";
-import { useAddOrderMutation } from "@/services/order/useAddOrderMutation";
-import {
-  STORE_KEYS,
-  useAppDispatch,
-  useAppSelector,
-  RootState,
-} from "@/stores/store";
+// import { useAddOrderMutation } from "@/services/order/useAddOrderMutation";
 import { sendEmail } from "@/utils/email";
 
 import { fields } from "./fields";
@@ -31,7 +25,7 @@ const requiredFieldNames = fields
   .map((f) => Object.keys(f)[0]);
 
 const SpecificationPage = () => {
-  const addOrderMutation = useAddOrderMutation();
+  // const addOrderMutation = useAddOrderMutation();
 
   // States
   const [fieldErrors, setFieldErrors] = useState<{
@@ -45,40 +39,40 @@ const SpecificationPage = () => {
   const setCurrentOrder = useOrderStore((state) => state.setCurrentOrder);
   const updateOrderProduct = useOrderStore((state) => state.updateOrderProduct);
 
-  const currentOrderProduct = currentOrder?.products.find(
-    (product: OrderProduct) => product.productId === currentProduct?.id
-  );
+  // const currentOrderProduct = currentOrder?.products.find(
+  //   (product: OrderProduct) => product.productId === currentProduct?.id
+  // );
 
   // check if the order is valid before we show the PayPal button
-  const isValidOrderProduct = useMemo(
-    () =>
-      Object.keys(omit(currentOrderProduct, "productId")).length >=
-        requiredFieldNames.length &&
-      Object.values(fieldErrors).every((error) => error === null),
-    [currentOrderProduct, fieldErrors]
-  );
+  // const isValidOrderProduct = useMemo(
+  //   () =>
+  //     Object.keys(omit(currentOrderProduct, "productId")).length >=
+  //       requiredFieldNames.length &&
+  //     Object.values(fieldErrors).every((error) => error === null),
+  //   [currentOrderProduct, fieldErrors]
+  // );
 
   /*
    * Handle successful PayPal payment
    * @param orderDetails - The details of the order response from PayPal
    */
-  const handleSuccess = async (orderDetails: OrderResponseBody) => {
-    if (isValidOrderProduct && currentOrder) {
-      addOrderMutation.mutateAsync({
-        customer_name: currentOrder.customer_name || undefined,
-        customer_email: currentOrder.customer_email || undefined,
-        customer_phone: currentOrder.customer_phone || undefined,
-        notes: currentOrder.notes || undefined,
-        products: currentOrder.products,
-      });
+  // const handleSuccess = async (orderDetails: OrderResponseBody) => {
+  //   if (isValidOrderProduct && currentOrder) {
+  //     addOrderMutation.mutateAsync({
+  //       customer_name: currentOrder.customer_name || undefined,
+  //       customer_email: currentOrder.customer_email || undefined,
+  //       customer_phone: currentOrder.customer_phone || undefined,
+  //       notes: currentOrder.notes || undefined,
+  //       products: currentOrder.products,
+  //     });
 
-      await sendEmail({
-        to: process.env.SMTP_EMAIL || "",
-        subject: "New Order Received",
-        html: OrderEmailTemplate(orderDetails, currentOrder),
-      });
-    }
-  };
+  //     await sendEmail({
+  //       to: process.env.SMTP_EMAIL || "",
+  //       subject: "New Order Received",
+  //       html: OrderEmailTemplate(orderDetails, currentOrder),
+  //     });
+  //   }
+  // };
 
   /*
    * Handle validation of product fields
@@ -87,40 +81,40 @@ const SpecificationPage = () => {
    * @param type - The type of validation field
    * @returns true if there is an error, false otherwise
    */
-  const handleValidation = ({ fieldName, value, type }: onValidationProps) => {
-    if (type === "error") {
-      setFieldErrors((prev) => ({
-        ...prev,
-        [fieldName]: value as ZodError,
-      }));
+  // const handleValidation = ({ fieldName, value, type }: onValidationProps) => {
+  //   if (type === "error") {
+  //     setFieldErrors((prev) => ({
+  //       ...prev,
+  //       [fieldName]: value as ZodError,
+  //     }));
 
-      return true;
-    }
+  //     return true;
+  //   }
 
-    // remove field errors if the field is valid
-    setFieldErrors((prev) => {
-      const updated = { ...prev };
-      delete updated[fieldName];
-      return updated;
-    });
+  //   // remove field errors if the field is valid
+  //   setFieldErrors((prev) => {
+  //     const updated = { ...prev };
+  //     delete updated[fieldName];
+  //     return updated;
+  //   });
 
-    // If there is no order, create a new one
-    if (!currentOrder) {
-      setCurrentOrder({ id: crypto.randomUUID(), products: [] });
-    }
+  //   // If there is no order, create a new one
+  //   if (!currentOrder) {
+  //     setCurrentOrder({ id: crypto.randomUUID(), products: [] });
+  //   }
 
-    // Add or update the product in the order
-    const parsedValue = parseInt(value.toString(), 10);
-    updateOrderProduct({
-      productId: currentProduct?.id || "",
-      name: currentProduct?.name || "",
-      uid: currentOrderProduct?.uid || crypto.randomUUID(),
-      price: currentProduct?.price || 0,
-      updates: { [fieldName]: isNaN(parsedValue) ? value : parsedValue },
-    });
+  //   // Add or update the product in the order
+  //   const parsedValue = parseInt(value.toString(), 10);
+  //   updateOrderProduct({
+  //     productId: currentProduct?.id || "",
+  //     name: currentProduct?.name || "",
+  //     uid: currentOrderProduct?.uid || crypto.randomUUID(),
+  //     price: currentProduct?.price || 0,
+  //     updates: { [fieldName]: isNaN(parsedValue) ? value : parsedValue },
+  //   });
 
-    return false;
-  };
+  //   return false;
+  // };
 
   return (
     <div className="flex flex-col gap-8">
@@ -151,20 +145,20 @@ const SpecificationPage = () => {
               <ProductField
                 {...props}
                 name={name}
-                onValidation={handleValidation}
+                // onValidation={handleValidation}
               />
             </div>
           );
         })}
       </div>
 
-      <PayPalProvider>
+      {/* <PayPalProvider>
         <PayPalButton
           amount={currentProduct?.price?.toString() || "0"}
           onSuccess={handleSuccess}
           disabled={!isValidOrderProduct || !currentOrderProduct}
         />
-      </PayPalProvider>
+      </PayPalProvider> */}
     </div>
   );
 };
