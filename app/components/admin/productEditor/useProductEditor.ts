@@ -12,7 +12,7 @@ interface UseProductEditorReturn {
   product: ProductDTO | null;
   isLoading: boolean;
   updateImages: (images: ProductImage[]) => void;
-  save: (values: ProductDTO) => Promise<void>;
+  save: (values: ProductDTO, skipRedirect?: boolean) => Promise<void>;
 }
 
 export const useProductEditor = (): UseProductEditorReturn => {
@@ -55,7 +55,7 @@ export const useProductEditor = (): UseProductEditorReturn => {
    * @returns A promise that resolves when the product is saved
    */
   const save = useCallback(
-    (values: ProductDTO): Promise<void> => {
+    (values: ProductDTO, skipRedirect?: boolean): Promise<void> => {
       return new Promise((resolve, reject) => {
         startTransition(async () => {
           try {
@@ -117,7 +117,11 @@ export const useProductEditor = (): UseProductEditorReturn => {
 
             useProductStore.getState().updateAllProducts(newProduct);
             useProductStore.getState().clearCurrentProduct();
-            router.push("/admin");
+
+            // Only redirect if skipRedirect is not true
+            if (!skipRedirect) {
+              router.push("/admin");
+            }
             resolve();
           } catch (error) {
             reject(error);
