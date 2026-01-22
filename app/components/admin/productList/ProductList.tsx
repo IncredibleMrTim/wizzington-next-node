@@ -20,7 +20,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { getProducts } from "@/app/actions/product.actions";
+import { getCachedProducts } from "@/app/actions/product.actions";
 import { useProductStore } from "@/stores";
 
 import {
@@ -35,7 +35,6 @@ import { ProductDTO } from "@/lib/types";
 
 const ProductList = () => {
   const router = useRouter();
-  const setCurrentProduct = useProductStore((state) => state.setCurrentProduct);
 
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
@@ -45,8 +44,7 @@ const ProductList = () => {
 
   useEffect(() => {
     const fetchProducts = async () => {
-      const products = await getProducts();
-      console.log("Fetched products:", products);
+      const products = await getCachedProducts();
       if (products) setData(products);
     };
     fetchProducts();
@@ -96,7 +94,7 @@ const ProductList = () => {
                     ? null
                     : flexRender(
                         header.column.columnDef.header,
-                        header.getContext()
+                        header.getContext(),
                       )}
                 </TableHead>
               );
@@ -105,7 +103,7 @@ const ProductList = () => {
         ))}
       </TableHeader>
     ),
-    [table]
+    [table],
   );
 
   const renderBody = useCallback(
@@ -136,22 +134,22 @@ const ProductList = () => {
                         viewProduct,
                         deleteProduct,
                       }: ProductListCustomCellContextProps) => {
-                        setCurrentProduct(
-                          cell.row.original as unknown as ProductDTO
-                        );
-
                         // TODO: Need to add confirmation modal for delete
                         if (deleteProduct) {
                           // TODO: Implement delete mutation
                           // For now, just remove from local state
                           const updatedProductList = data.filter(
-                            (product) => product.id !== cell.row.original.id
+                            (product) => product.id !== cell.row.original.id,
                           );
 
                           setData(updatedProductList);
                         }
 
-                        if (viewProduct && !deleteProduct && cell.row.original.id) {
+                        if (
+                          viewProduct &&
+                          !deleteProduct &&
+                          cell.row.original.id
+                        ) {
                           router.push(`/product/${cell.row.original.id}`);
                         }
                       },
@@ -170,7 +168,7 @@ const ProductList = () => {
         )}
       </TableBody>
     ),
-    [table, data, setCurrentProduct, router]
+    [table, data, router],
   );
 
   return (

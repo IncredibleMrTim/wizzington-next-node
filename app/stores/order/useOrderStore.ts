@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { devtools } from "zustand/middleware";
 import { Order, OrderProduct } from "@/lib/types";
+import { Prisma } from "@prisma/client";
 
 export interface OrderState {
   currentOrder: Order | null;
@@ -20,83 +21,92 @@ export interface OrderState {
 }
 
 export const useOrderStore = create<OrderState>()(
-  devtools((set) => ({
-    currentOrder: null,
-    totalCost: 0,
+  devtools(
+    (set) => ({
+      currentOrder: null,
+      totalCost: 0,
 
-  setCurrentOrder: (order) => set({ currentOrder: order }),
+      setCurrentOrder: (order) => set({ currentOrder: order }),
 
-  addProductToOrder: (product) =>
-    set((state) => {
-      if (!state.currentOrder) return state;
+      addProductToOrder: (product) =>
+        set((state) => {
+          if (!state.currentOrder) return state;
 
-      return {
-        currentOrder: {
-          ...state.currentOrder,
-          products: [...state.currentOrder.products, product],
-        },
-      };
+          return {
+            currentOrder: {
+              ...state.currentOrder,
+              orderProducts: [...state.currentOrder.orderProducts, product],
+            },
+          };
+        }),
+
+      updateOrderProduct: (payload) =>
+        set((state) => {
+          if (!state.currentOrder) return state;
+
+          let productIndex = state.currentOrder.orderProducts.findIndex(
+            (product) => product.id === payload.uid
+          );
+
+          const updatedProducts = [...state.currentOrder.orderProducts];
+
+          // If the product is not in the order then add it
+          if (productIndex === -1) {
+            updatedProducts.push({
+              id: payload.uid || crypto.randomUUID(),
+              productName: payload.name || "",
+              productId: payload.productId,
+              orderId: state.currentOrder.id,
+              price: new Prisma.Decimal(payload.price || 0),
+              quantity: 1,
+              createdAt: new Date(),
+            });
+
+            productIndex = updatedProducts.length - 1;
+          }
+
+          // Update the product with the new values
+          updatedProducts[productIndex] = {
+            ...updatedProducts[productIndex],
+            ...payload.updates,
+          };
+
+          const finalPrice =
+            payload.updates.price ??
+            payload.price ??
+            updatedProducts[productIndex].price ??
+            new Prisma.Decimal(0);
+          const newTotalCost =
+            (state.totalCost || 0) +
+            Number(finalPrice) * (payload.updates.quantity || 1);
+
+          return {
+            currentOrder: {
+              ...state.currentOrder,
+              orderProducts: updatedProducts,
+            },
+            totalCost: newTotalCost,
+          };
+        }),
+
+      removeProductFromOrder: (productId) =>
+        set((state) => {
+          if (!state.currentOrder) return state;
+
+          return {
+            currentOrder: {
+              ...state.currentOrder,
+              orderProducts: state.currentOrder.orderProducts.filter(
+                (product: OrderProduct) => product.productId !== productId
+              ),
+            },
+          };
+        }),
+
+      clearCurrentOrder: () => set({ currentOrder: null, totalCost: 0 }),
+
+      updateTotalCost: (cost) => set({ totalCost: cost }),
     }),
-
-  updateOrderProduct: (payload) =>
-    set((state) => {
-      if (!state.currentOrder) return state;
-
-      let productIndex = state.currentOrder.products.findIndex(
-        (product) => product.uid === payload.uid
-      );
-
-      const updatedProducts = [...state.currentOrder.products];
-
-      // If the product is not in the order then add it
-      if (productIndex === -1) {
-        updatedProducts.push({
-          id: payload.uid || crypto.randomUUID(),
-          uid: payload.uid || crypto.randomUUID(),
-          name: payload.name || "",
-          productId: payload.productId,
-          price: payload.price || 0,
-          quantity: 1,
-        });
-
-        productIndex = updatedProducts.length - 1;
-      }
-
-      // Update the product with the new values
-      updatedProducts[productIndex] = {
-        ...updatedProducts[productIndex],
-        ...payload.updates,
-      };
-
-      const newTotalCost =
-        (state.totalCost || 0) +
-        (payload.price || 0) * (payload.updates.quantity || 1);
-
-      return {
-        currentOrder: {
-          ...state.currentOrder,
-          products: updatedProducts,
-        },
-        totalCost: newTotalCost,
-      };
-    }),
-
-  removeProductFromOrder: (productId) =>
-    set((state) => {
-      if (!state.currentOrder) return state;
-
-      return {
-        currentOrder: {
-          ...state.currentOrder,
-          products: state.currentOrder.products.filter(
-            (product) => product.productId !== productId
-          ),
-        },
-      };
-    }),
-
-  clearCurrentOrder: () => set({ currentOrder: null, totalCost: 0 }),
-
-  updateTotalCost: (cost) => set({ totalCost: cost }),
-  }), { name: "OrderStore" })
+    { name: "OrderStore" }
+  )
 );

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { FiCalendar } from "react-icons/fi";
+import { IconType } from "react-icons";
 import z, { ZodError } from "zod";
 
 import { Calendar } from "@/components/ui/calendar";
@@ -12,7 +13,7 @@ import {
   PopoverTrigger,
 } from "@radix-ui/react-popover";
 
-import { fieldSchema } from "../../(pages)/product/[id]/productDetails/fields";
+import { fieldSchema } from "@/components/productSpecification/fields";
 import moment from "moment";
 import { offsetDate } from "@/utils/date";
 
@@ -33,7 +34,7 @@ export type Field = {
   label: string;
   placeholderText: string;
   variant: Variant;
-  icon?: any;
+  icon?: IconType;
   classes?: { formItem: string };
   span?: boolean;
   name?: string;
@@ -44,7 +45,6 @@ export type Field = {
 
 export const ProductField = ({
   onValidation,
-  value: _value,
   ...props
 }: Field & {
   onValidation?: (props: onValidationProps) => void;
@@ -78,7 +78,7 @@ export const ProductField = ({
                 />
               </div>
             </PopoverTrigger>
-            <PopoverContent className="w-auto p-0 !bg-white">
+            <PopoverContent className="w-auto p-0 bg-white!">
               <Calendar
                 defaultMonth={undefined}
                 startMonth={offsetDate(7)}

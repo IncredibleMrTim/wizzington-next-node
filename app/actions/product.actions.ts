@@ -1,11 +1,22 @@
 "use server";
 
 import prisma from "@/lib/prisma";
-import { ProductUpdateInput, ProductCreateInput, ProductDTO } from "@/lib/types";
+import {
+  ProductUpdateInput,
+  ProductCreateInput,
+  ProductDTO,
+} from "@/lib/types";
+import { unstable_cache } from "next/cache";
+
+export const getFeaturedProductCount = async (): Promise<number> => {
+  return await prisma.product.count({
+    where: { isFeatured: true },
+  });
+};
 
 export const getProducts = async (
   isFeatured?: boolean,
-  categoryId?: string
+  categoryId?: string,
 ): Promise<ProductDTO[]> => {
   const products = await prisma.product.findMany({
     where: { isFeatured, categoryId },
@@ -27,7 +38,16 @@ export const getProducts = async (
   }));
 };
 
-export const getProductById = async (id: string): Promise<ProductDTO | null> => {
+export const getCachedProducts = unstable_cache(
+  async (isFeatured?: boolean, categoryId?: string) =>
+    getProducts(isFeatured, categoryId),
+  ["products"],
+  { revalidate: 3600, tags: ["products"] },
+);
+
+export const getProductById = async (
+  id: string,
+): Promise<ProductDTO | null> => {
   const product = await prisma.product.findUnique({
     where: { id },
     include: {
@@ -49,7 +69,7 @@ export const getProductById = async (id: string): Promise<ProductDTO | null> => 
 
 export const updateProductById = async (
   id: string,
-  input: ProductUpdateInput
+  input: ProductUpdateInput,
 ): Promise<ProductDTO> => {
   const data: ProductUpdateInput = {};
 
@@ -81,7 +101,9 @@ export const updateProductById = async (
   };
 };
 
-export const createProduct = async (input: ProductCreateInput): Promise<ProductDTO> => {
+export const createProduct = async (
+  input: ProductCreateInput,
+): Promise<ProductDTO> => {
   const product = await prisma.product.create({
     data: input,
     include: {

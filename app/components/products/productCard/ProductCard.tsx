@@ -4,7 +4,7 @@ import Image from "next/image";
 import { ProductDTO, USER_ROLE } from "@/lib/types";
 import { useSession } from "next-auth/react";
 import { FiEdit } from "react-icons/fi";
-import { useRouter } from "next/navigation";
+import { useProductStore } from "@/app/stores";
 
 interface Props {
   product?: ProductDTO;
@@ -15,8 +15,6 @@ const ProductCard = ({ product, showDescription = true }: Props) => {
   const { data: session } = useSession();
   const isAdmin = session?.user?.role === USER_ROLE.ADMIN;
 
-  const router = useRouter();
-
   if (!product) return null;
 
   const price = product.price ? Number(product.price).toFixed(2) : null;
@@ -24,17 +22,13 @@ const ProductCard = ({ product, showDescription = true }: Props) => {
   return (
     <div className="relative">
       {isAdmin && (
-        <button
-          onClick={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            router.push(`/admin/product/${product.id}`);
-          }}
-          className="flex p-3 mb-1 ml-1 absolute top-2 right-2 rounded-full bg-pink-200 opacity-60 hover:opacity-90 hover:bg-pink-200 duration-300 transition-all cursor-pointer z-2"
+        <Link
+          href={`/admin/product/${product.id}`}
+          className="flex p-3 mb-1 ml-1 absolute top-2 right-2 rounded-full bg-pink-200 opacity-60 hover:opacity-90 hover:bg-pink-200 duration-300 transition-all z-2"
           aria-label="Edit Product"
         >
           <FiEdit />
-        </button>
+        </Link>
       )}
       <Link
         href={`/product/${product?.id}`}
@@ -48,7 +42,8 @@ const ProductCard = ({ product, showDescription = true }: Props) => {
                 alt={product.name}
                 fill
                 className="w-full h-full object-cover"
-                sizes="(max-width: 768px) 100vw, 176px"
+                sizes="(max-width: 768px) 100vw, 240px"
+                loading="lazy"
               />
             ) : (
               <div className="w-full h-full flex items-center justify-center text-gray-400">

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useState } from "react";
+import { useState, useCallback, memo } from "react";
 import { useRouter } from "next/navigation";
 import { AuthUserMenu } from "../auth/authUserMenu/AuthUserMenu";
 import userComponents from "./userComponents";
@@ -37,7 +37,6 @@ interface NavigationProps {
 }
 
 const Navigation = ({ type = USER_ROLE.USER }: NavigationProps) => {
-  console.log(type);
   const [selected, setSelected] = useState<NavComponent | null>(null);
   const [adminMenuOpen, setAdminMenuOpen] = useState(false);
   const components = userComponents;
@@ -45,7 +44,7 @@ const Navigation = ({ type = USER_ROLE.USER }: NavigationProps) => {
   const { data: userData } = useSession();
 
   // Get initials from firstName/lastName or fallback to name
-  const getInitials = () => {
+  const getInitials = useCallback(() => {
     if (userData?.user?.firstName && userData?.user?.lastName) {
       return `${userData.user.firstName[0]}${userData.user.lastName[0]}`.toUpperCase();
     }
@@ -57,20 +56,31 @@ const Navigation = ({ type = USER_ROLE.USER }: NavigationProps) => {
       return parts[0][0]?.toUpperCase() || "?";
     }
     return "?";
-  };
+  }, [userData]);
 
-  const handleAdminMenuItemClick = () => {
+  const handleAdminMenuItemClick = useCallback(() => {
     setAdminMenuOpen(false);
-  };
+  }, []);
+
+  const handleMouseLeave = useCallback(() => {
+    setSelected(null);
+  }, []);
+
+  const handleMouseEnter = useCallback((component: NavComponent) => {
+    setSelected(component);
+  }, []);
+
+  const handleClick = useCallback((e: React.MouseEvent<HTMLElement>, href: string) => {
+    e.preventDefault();
+    router.push(href);
+  }, [router]);
 
   return (
     <div>
       <div
         className={`w-full bg-white box-border z-1 absolute shadow-md
          ${selected && "h-auto"} `}
-        onMouseLeave={() => {
-          setSelected(null);
-        }}
+        onMouseLeave={handleMouseLeave}
       >
         <ul className="flex gap-4 bg-white">
           {components &&
@@ -88,15 +98,8 @@ const Navigation = ({ type = USER_ROLE.USER }: NavigationProps) => {
                 {component.type === "link" ? (
                   <div
                     className={`flex cursor-pointer py-2 h-11 min-w-[100px] justify-center items-center`}
-                    onMouseEnter={() => {
-                      setSelected(component);
-                    }}
-                    onClick={(e) => {
-                      if (component.href) {
-                        e.preventDefault();
-                        router.push(component.href);
-                      }
-                    }}
+                    onMouseEnter={() => handleMouseEnter(component)}
+                    onClick={(e) => component.href && handleClick(e, component.href)}
                   >
                     {component.title}
                   </div>
@@ -159,4 +162,5 @@ const Navigation = ({ type = USER_ROLE.USER }: NavigationProps) => {
     </div>
   );
 };
-export default Navigation;
+
+export default memo(Navigation);

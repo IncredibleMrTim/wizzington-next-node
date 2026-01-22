@@ -27,7 +27,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **Framework**: Next.js 16 (App Router)
 - **Styling**: Tailwind CSS 4 + Radix UI themes
 - **State Management**: Zustand (with Redux DevTools middleware)
-- **Data Fetching**: TanStack React Query (v5)
+- **Data Fetching**: Next.js Server Actions
 - **Forms**: React Hook Form + Zod validation
 - **Database**: PostgreSQL + Prisma ORM
 - **Authentication**: NextAuth.js v4 (Google OAuth)
@@ -52,10 +52,11 @@ export const useProductStore = create<ProductState>()(
 This enables Redux DevTools in browser for debugging state changes.
 
 ### Data Fetching Pattern
-Uses TanStack React Query with custom hooks in `app/services/`:
-- Hooks follow naming: `useGet*Query`, `use*Mutation`
-- Query keys defined in `keys.ts` files per service
-- Mutations automatically invalidate related queries
+Uses Next.js Server Actions for data fetching and mutations:
+- Server actions defined in `app/actions/` (organized by domain)
+- Actions use `'use server'` directive for security
+- Client components call actions via `useTransition()` or `useActionState()` hooks
+- Errors handled via try/catch in server actions
 
 ### Authentication & Authorization
 - Google OAuth via NextAuth.js
@@ -94,11 +95,10 @@ See `prisma/schema.prisma` for full schema.
 - Email: `app/utils/email.ts`
 - Auth helpers: `app/utils/auth.ts`
 - Date formatting: `app/utils/date.ts`
-- React Query services: `app/services/` (organized by domain)
+- Server actions: `app/actions/` (organized by domain)
 
 ### Providers
 - `SessionProvider.tsx` - NextAuth session wrapper
-- `reactQueryProvider.tsx` - React Query client setup
 
 ## Important Implementation Details
 
@@ -146,10 +146,12 @@ Custom field validation in `ProductField.tsx`:
 3. Export from `app/stores/index.ts`
 4. Use selector pattern in components: `useStore((state) => state.property)`
 
-### Creating a New React Query Hook
-1. Create service: `app/services/[domain]/use[Action]Query.ts` or `use[Action]Mutation.ts`
-2. Define query key in `keys.ts`
-3. Import and use in components
+### Creating a New Server Action
+1. Create file: `app/actions/[domain].ts`
+2. Add `'use server'` directive at top of file
+3. Define async function that handles the action logic
+4. Use `useTransition()` or `useActionState()` in client components to call the action
+5. Handle errors with try/catch in the server action
 
 ### Adding Authentication to a Route
 Admin routes are auto-protected by middleware if prefixed with `/admin`. For custom auth:
@@ -177,13 +179,14 @@ See `.env.example` for required variables:
 ## Development Patterns to Follow
 
 ### Error Handling
-- Server components: Use try/catch, return error states
-- Client components: Let mutations handle via `onError`
+- Server actions: Use try/catch, return error states or throw errors
+- Client components: Handle errors from server actions in `useTransition()` or `useActionState()`
 - API routes: Return appropriate HTTP status codes
 
 ### Loading States
-- Use React Query's `isPending`, `isLoading` from queries/mutations
-- Disable buttons/forms during mutations
+- Use `useTransition()` hook's `isPending` state from server actions
+- Use `useActionState()` for form submissions with loading states
+- Disable buttons/forms during pending actions
 
 ### Type Safety
 - Strict TypeScript enabled (`strict: true`)
@@ -193,4 +196,4 @@ See `.env.example` for required variables:
 ### Testing
 - Use `renderWithProviders` from `app/testing/utils.tsx` to wrap components with all providers
 - Mock Zustand stores via `jest.mock()` at module level
-- Mock React Query via `jest.mock()`
+- Mock server actions via `jest.mock()` at module level

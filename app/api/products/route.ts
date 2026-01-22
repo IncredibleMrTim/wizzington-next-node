@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { CreateProductInput } from "@/lib/types";
-import { getProducts } from "../../actions/product.actions";
+import { getCachedProducts } from "../../actions/product.actions";
 
 // GET /api/products - Get all products
 export async function GET(request: NextRequest) {
@@ -11,18 +11,18 @@ export async function GET(request: NextRequest) {
       searchParams.get("isFeatured") === "true"
         ? true
         : searchParams.get("isFeatured") === "false"
-        ? false
-        : undefined;
+          ? false
+          : undefined;
     const categoryId = searchParams.get("category") || undefined;
 
-    const products = await getProducts(isFeatured, categoryId);
+    const products = await getCachedProducts(isFeatured, categoryId);
 
     return NextResponse.json(products);
   } catch (error) {
     console.error("Error fetching products:", error);
     return NextResponse.json(
       { error: "Failed to fetch products" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -69,7 +69,7 @@ export async function POST(request: NextRequest) {
     console.error("Error creating product:", error);
     return NextResponse.json(
       { error: "Failed to create product" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
