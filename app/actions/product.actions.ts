@@ -1,6 +1,7 @@
 "use server";
 
 import prisma from "@/lib/prisma";
+import { revalidatePath, revalidateTag } from "next/cache";
 import {
   ProductUpdateInput,
   ProductCreateInput,
@@ -67,6 +68,15 @@ export const getProductById = async (
   };
 };
 
+export const getCachedProductById = unstable_cache(
+  async (id: string) => getProductById(id),
+  ["product-detail"],
+  {
+    revalidate: 3600,
+    tags: ["product-detail"],
+  },
+);
+
 export const updateProductById = async (
   id: string,
   input: ProductUpdateInput,
@@ -95,6 +105,13 @@ export const updateProductById = async (
     },
   });
 
+  // Revalidate only this specific product's cache
+  revalidateTag("product-detail", "max");
+  // Revalidate the product detail page
+  revalidatePath(`/product/${id}`);
+  // Revalidate home page (featured products) since featured status might have changed
+  revalidatePath("/");
+
   return {
     ...product,
     price: Number(product.price),
@@ -115,6 +132,11 @@ export const createProduct = async (
     },
   });
 
+  // Revalidate the cached products data
+  revalidateTag("products", "max");
+  // Revalidate home page (featured products)
+  revalidatePath("/");
+
   return {
     ...product,
     price: Number(product.price),
@@ -125,4 +147,11 @@ export const deleteProduct = async (id: string) => {
   await prisma.product.delete({
     where: { id },
   });
+
+  // Revalidate the cached products data
+  revalidateTag("products", "max");
+  // Revalidate the product detail page
+  revalidatePath(`/product/${id}`);
+  // Revalidate home page (featured products)
+  revalidatePath("/");
 };

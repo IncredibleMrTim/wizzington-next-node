@@ -3,6 +3,7 @@ import { useRef, useState, DragEvent, ChangeEvent } from "react";
 import { ProductDTO, ProductImage } from "@/lib/types";
 import { type PutBlobResult } from "@vercel/blob";
 import { upload } from "@vercel/blob/client";
+import NextImage from "next/image";
 import { FiUpload, FiX } from "react-icons/fi";
 
 interface FileUploaderProps {
@@ -10,23 +11,77 @@ interface FileUploaderProps {
   imagesRef?: React.RefObject<ProductImage[]>;
   updateProductImages: (product: ProductImage[]) => void;
   updateProductImageOrder: (key: string, orderPosition: number) => void;
+  onFilesSelected?: (files: File[]) => void;
+  selectedFiles?: File[];
 }
 
 const MAX_FILES = 10;
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+
+// Compress image on client before upload
+const compressImage = (file: File): Promise<File> => {
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = (event) => {
+      const image = new Image();
+      image.src = event.target?.result as string;
+      image.onload = () => {
+        const canvas = document.createElement("canvas");
+        let { width, height } = image;
+        const MAX_WIDTH = 600;
+        const MAX_HEIGHT = 600;
+
+        if (width > height) {
+          if (width > MAX_WIDTH) {
+            height *= MAX_WIDTH / width;
+            width = MAX_WIDTH;
+          }
+        } else {
+          if (height > MAX_HEIGHT) {
+            width *= MAX_HEIGHT / height;
+            height = MAX_HEIGHT;
+          }
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+
+        const ctx = canvas.getContext("2d");
+        ctx?.drawImage(image, 0, 0, width, height);
+
+        canvas.toBlob(
+          (blob) => {
+            if (blob) {
+              const webpFilename = file.name.replace(/\.[^.]+$/, ".webp");
+              resolve(new File([blob], webpFilename, { type: "image/webp" }));
+            } else {
+              resolve(file);
+            }
+          },
+          "image/webp",
+          0.75,
+        );
+      };
+    };
+  });
+};
 
 export const FileUploader = ({
   product,
   updateProductImages,
   updateProductImageOrder,
   imagesRef,
+  onFilesSelected,
+  selectedFiles,
 }: FileUploaderProps) => {
   const dragKey = useRef<string | undefined>(undefined);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [uploading, setUploading] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
+  const [compressing, setCompressing] = useState(false);
+  const [previewUrls, setPreviewUrls] = useState<string[]>([]);
 
-  const handleFileUpload = async (files: FileList | null) => {
+  const handleFileCompress = async (files: FileList | null) => {
     if (!files || files.length === 0) return;
 
     const currentImages = imagesRef?.current || product?.images || [];
@@ -57,36 +112,30 @@ export const FileUploader = ({
 
     if (validFiles.length === 0) return;
 
-    setUploading(true);
+    setCompressing(true);
 
     try {
-      // Upload files to Vercel Blob
-      const uploadPromises = validFiles.map(async (file, index) => {
-        const blob = await upload(file.name, file, {
-          access: "public",
-          handleUploadUrl: "/api/upload/blob",
-        });
+      // Compress files only, don't upload yet
+      const compressedFiles = await Promise.all(
+        validFiles.map((file) => compressImage(file))
+      );
 
-        return {
-          id: crypto.randomUUID(),
-          productId: product?.id || "",
-          url: blob.url,
-          orderPosition: currentImages.length + index,
-          createdAt: new Date(),
-        };
-      });
+      // Store compressed files in parent state via callback
+      if (onFilesSelected) {
+        const existingFiles = selectedFiles || [];
+        onFilesSelected([...existingFiles, ...compressedFiles]);
+      }
 
-      const newImages = await Promise.all(uploadPromises);
+      // Create preview URLs for display only (not saved to DB)
+      const newPreviewUrls = compressedFiles.map(file => URL.createObjectURL(file));
+      setPreviewUrls(prev => [...prev, ...newPreviewUrls]);
 
-      console.log(currentImages);
-      console.log(newImages);
 
-      updateProductImages([...currentImages, ...newImages]);
     } catch (error) {
-      console.error("Upload error:", error);
-      alert("Failed to upload files. Please try again.");
+      console.error("Compression error:", error);
+      alert("Failed to compress files. Please try again.");
     } finally {
-      setUploading(false);
+      setCompressing(false);
     }
   };
 
@@ -103,11 +152,11 @@ export const FileUploader = ({
   const handleDrop = (e: DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     setIsDragging(false);
-    handleFileUpload(e.dataTransfer.files);
+    handleFileCompress(e.dataTransfer.files);
   };
 
   const handleFileInputChange = (e: ChangeEvent<HTMLInputElement>) => {
-    handleFileUpload(e.target.files);
+    handleFileCompress(e.target.files);
     e.target.value = "";
   };
 
@@ -126,8 +175,8 @@ export const FileUploader = ({
         >
           <FiUpload className="text-4xl text-gray-400" />
           <p className="text-sm text-gray-500 text-center px-4">
-            {uploading
-              ? "Uploading..."
+            {compressing
+              ? "Compressing images..."
               : "Drag and drop files here, or click to select files"}
           </p>
           <p className="text-xs text-gray-400">
@@ -139,8 +188,8 @@ export const FileUploader = ({
             multiple
             accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
             onChange={handleFileInputChange}
-            // className="hidden"
-            // disabled={uploading}
+            className="hidden"
+            disabled={compressing}
           />
         </div>
       </div>
@@ -148,9 +197,11 @@ export const FileUploader = ({
       {/* Image Preview List */}
       <div className="flex flex-col gap-2 w-1/2">
         <div className="flex flex-wrap border border-gray-300 bg-white h-64 p-2 overflow-scroll w-full">
-          {product?.images &&
-            [...product.images]
-              ?.sort((a, b) => (a?.orderPosition ?? 0) - (b?.orderPosition ?? 0))
+          {(previewUrls.length > 0 || product?.images) &&
+            [...(previewUrls.map(url => ({ url, orderPosition: 0 })) || []), ...(product?.images || [])]
+              ?.sort(
+                (a, b) => (a?.orderPosition ?? 0) - (b?.orderPosition ?? 0),
+              )
               ?.map((file, index) => {
                 return (
                   <div
@@ -171,11 +222,11 @@ export const FileUploader = ({
                         updateProductImageOrder(dragKey.current!, index);
                       }}
                     >
-                      <img
+                      <NextImage
                         src={file?.url}
                         alt={`${product?.name} product image`}
-                        aria-label={`${product?.name} product image`}
-                        className="h-full cursor-move"
+                        fill
+                        className="h-full cursor-move object-cover"
                       />
 
                       <div
@@ -184,9 +235,9 @@ export const FileUploader = ({
                           updateProductImages(
                             Array.isArray(product?.images)
                               ? product?.images?.filter(
-                                  (img) => img?.url !== file?.url
+                                  (img) => img?.url !== file?.url,
                                 ) || []
-                              : ([] as ProductImage[])
+                              : ([] as ProductImage[]),
                           );
                         }}
                       >
