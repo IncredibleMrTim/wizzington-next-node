@@ -1,5 +1,5 @@
 import { ProductDetailsSection } from "@/components/productDetails/ProductDetailsServer";
-import { getProducts } from "@/app/actions";
+import { getCachedProducts } from "@/app/actions";
 
 export const revalidate = 3600;
 export const dynamicParams = true;
@@ -11,7 +11,7 @@ interface ProductPageProps {
 }
 
 export const generateStaticParams = async () => {
-  const products = await getProducts();
+  const products = await getCachedProducts();
   return products.map((p) => ({ id: p.id }));
 };
 

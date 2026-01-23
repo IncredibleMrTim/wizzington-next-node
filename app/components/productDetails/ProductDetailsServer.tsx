@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { getCachedProducts } from "@/app/actions";
+import { getCachedProductById } from "@/app/actions";
 import { ProductDetailsForm } from "./ProductDetails";
 // import { AdminTools } from "./AdminTools";
 
@@ -8,8 +8,7 @@ interface ProductDetailsServerProps {
 }
 
 export async function ProductDetailsSection({ id }: ProductDetailsServerProps) {
-  const products = await getCachedProducts();
-  const product = products.find((p) => p.id === id);
+  const product = await getCachedProductById(id);
 
   if (!product) {
     return <div className="p-4">Product not found</div>;
