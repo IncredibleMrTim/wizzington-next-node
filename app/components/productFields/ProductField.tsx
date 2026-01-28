@@ -13,7 +13,7 @@ import {
   PopoverTrigger,
 } from "@radix-ui/react-popover";
 
-import { fieldSchema } from "@/components/productSpecification/fields";
+import { fieldSchema } from "@/app/components/productFields/fields";
 import moment from "moment";
 import { offsetDate } from "@/utils/date";
 
@@ -70,7 +70,7 @@ export const ProductField = ({
                   value={
                     value
                       ? moment(formatDate({ date: new Date(value) })).format(
-                          "DD/MM/YYYY"
+                          "DD/MM/YYYY",
                         )
                       : moment(formatDate({ offset: 7 })).format("DD/MM/YYYY")
                   }

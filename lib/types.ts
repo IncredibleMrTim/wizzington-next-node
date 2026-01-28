@@ -1,4 +1,5 @@
 import { Prisma } from "@prisma/client";
+export * from "./email";
 
 // Product Types
 export type ProductImage = Prisma.ProductImageGetPayload<object>;
