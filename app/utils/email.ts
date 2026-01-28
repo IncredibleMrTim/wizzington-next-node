@@ -1,16 +1,4 @@
-export type EmailAttachments = {
-  filename: string;
-  path: string;
-  cid: string;
-};
-
-export interface SendEmailProps {
-  to: string;
-  from?: string;
-  subject: string;
-  html?: string;
-  attachments?: EmailAttachments[];
-}
+import { EmailEnquiry } from "@/lib/email";
 
 /*
  * This function sends an email using the /api/sendEmail endpoint.
@@ -19,19 +7,17 @@ export interface SendEmailProps {
  * @throws {Error} - Throws an error if the email sending fails.
  */
 export const sendEmail = async ({
-  to,
-  from,
+  user,
   subject,
   html,
   attachments,
-}: SendEmailProps) => {
+}: EmailEnquiry) => {
   try {
     const res = await fetch("/api/sendEmail", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        to,
-        from: from ?? process.env.SMTP_EMAIL,
+        user,
         subject,
         attachments,
         html,

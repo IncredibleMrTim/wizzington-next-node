@@ -31,7 +31,6 @@ jobs:
           NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET }}
           GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
           GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
-          ADMIN_WHITE_LIST: ${{ secrets.ADMIN_WHITE_LIST }}
 
       - name: Prepare deployment files
         run: |
@@ -72,7 +71,6 @@ jobs:
             NEXTAUTH_SECRET=${{ secrets.NEXTAUTH_SECRET }}
             GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}
             GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}
-            ADMIN_WHITE_LIST=${{ secrets.ADMIN_WHITE_LIST }}
             UPLOAD_DIR=./uploads
             MAX_FILE_SIZE=5242880
             MAX_FILES=10

@@ -49,17 +49,20 @@ This project uses a unified Next.js architecture:
 1. **Clone the repository**
 
 2. **Install dependencies:**
+
 ```bash
 yarn install
 ```
 
-3. **Set up environment variables:**
+1. **Set up environment variables:**
+
 ```bash
 cp .env.example .env
 # Edit .env with your configuration
 ```
 
-4. **Set up database:**
+1. **Set up database:**
+
 ```bash
 # Push Prisma schema to database
 npx prisma db push
@@ -68,7 +71,8 @@ npx prisma db push
 yarn seed
 ```
 
-5. **Run development server:**
+1. **Run development server:**
+
 ```bash
 yarn dev
 ```
@@ -113,6 +117,7 @@ wizz-next-node/
 All API endpoints are at `/api/*`
 
 ### Products
+
 - `GET /api/products` - Get all products (with query params)
 - `GET /api/products/:id` - Get single product
 - `GET /api/products/category/:categoryId` - Get products by category
@@ -121,6 +126,7 @@ All API endpoints are at `/api/*`
 - `DELETE /api/products/:id` - Delete product
 
 ### Categories
+
 - `GET /api/categories` - Get all categories
 - `GET /api/categories/:id` - Get single category
 - `POST /api/categories` - Create category
@@ -128,6 +134,7 @@ All API endpoints are at `/api/*`
 - `DELETE /api/categories/:id` - Delete category
 
 ### Orders
+
 - `GET /api/orders` - Get all orders
 - `GET /api/orders/:id` - Get single order
 - `POST /api/orders` - Create order
@@ -135,6 +142,7 @@ All API endpoints are at `/api/*`
 - `DELETE /api/orders/:id` - Delete order
 
 ### Users
+
 - `GET /api/users` - Get all users
 - `GET /api/users/:id` - Get single user
 - `POST /api/users` - Create user
@@ -142,6 +150,7 @@ All API endpoints are at `/api/*`
 - `DELETE /api/users/:id` - Delete user
 
 ### Posts
+
 - `GET /api/posts` - Get all posts
 - `GET /api/posts/:id` - Get single post
 - `POST /api/posts` - Create post
@@ -149,6 +158,7 @@ All API endpoints are at `/api/*`
 - `DELETE /api/posts/:id` - Delete post
 
 ### File Upload
+
 - `POST /api/upload/single` - Upload single file (max 5MB)
 - `POST /api/upload/multiple` - Upload multiple files (max 10 files, 5MB each)
 - `GET /api/uploads/:filename` - Serve uploaded file
@@ -166,6 +176,7 @@ All API endpoints are at `/api/*`
 See `prisma/schema.prisma` for complete schema.
 
 **Main models:**
+
 - `Category` - Product categories
 - `Product` - Product catalog
 - `ProductImage` - Product images
@@ -189,9 +200,6 @@ NEXTAUTH_SECRET=your-secret-here
 GOOGLE_CLIENT_ID=your-google-client-id
 GOOGLE_CLIENT_SECRET=your-google-client-secret
 
-# Admin
-ADMIN_WHITE_LIST=your-email@example.com
-
 # Upload Configuration
 UPLOAD_DIR=./uploads
 MAX_FILE_SIZE=5242880
@@ -207,6 +215,7 @@ MAX_FILES=10
 3. Automatic deployment triggers
 
 The CI/CD pipeline will:
+
 - Build Next.js application
 - Deploy to VPS via SSH
 - Install/update systemd service
@@ -250,6 +259,7 @@ See `systemd/README.md` for detailed setup instructions.
 The application includes a custom file uploader:
 
 **Features:**
+
 - Drag-and-drop interface
 - Multiple file uploads (max 10 files)
 - File validation (JPEG, PNG, GIF, WEBP)
@@ -258,6 +268,7 @@ The application includes a custom file uploader:
 - Direct upload to VPS storage
 
 **Storage:**
+
 - Files stored in `uploads/` directory
 - Served via `/api/uploads/:filename`
 - Unique filenames with timestamp
@@ -266,11 +277,13 @@ The application includes a custom file uploader:
 ## Monitoring
 
 ### Development
+
 ```bash
 yarn dev  # Watch console output
 ```
 
 ### Production (on VPS)
+
 ```bash
 sudo systemctl status wizz-next          # Check status
 sudo journalctl -u wizz-next -f          # Follow logs
@@ -289,6 +302,7 @@ sudo tail -f /var/log/wizz-next/output.log  # File-based logs
 ## Troubleshooting
 
 ### Application won't start
+
 ```bash
 # Check service status
 sudo systemctl status wizz-next
@@ -302,6 +316,7 @@ yarn start
 ```
 
 ### Database connection issues
+
 ```bash
 # Test Prisma connection
 npx prisma db push
@@ -314,6 +329,7 @@ sudo journalctl -u wizz-next | grep -i prisma
 ```
 
 ### Port already in use
+
 ```bash
 # Check what's using port 3000
 sudo lsof -i :3000
