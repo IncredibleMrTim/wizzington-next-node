@@ -1,4 +1,5 @@
 "use client";
+import Image from "next/image";
 import Navigation from "@/components/navigation/Navigation";
 import { useRouter } from "next/navigation";
 import { usePathname } from "next/navigation";
@@ -24,11 +25,14 @@ const Header = () => {
         <div className="flex absolute inset-0 w-full h-48 md:bg-linear-to-r from-transparent from-20% to-[#f8f8f8] to-100% pointer-events-none" />
         {/* Content */}
         <div className="relative w-full flex justify-center md:justify-end p-4 h-48">
-          <img
-            src="/wizz-logo-trans-v2-flare-stroke.webp"
-            alt="Wizzington Moos Boutique Logo"
-            onClick={() => router.push("/")}
-          />
+          <div className="relative w-40 h-40 cursor-pointer" onClick={() => router.push("/")}>
+            <Image
+              src="/logo.webp"
+              alt="Wizzington Moos Boutique Logo"
+              fill
+              style={{ objectFit: "contain" }}
+            />
+          </div>
         </div>
       </header>
       <div className="hidden w-full border-b border-gray-300 h-10 md:flex">
