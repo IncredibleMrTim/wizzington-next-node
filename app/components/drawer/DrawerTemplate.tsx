@@ -1,6 +1,7 @@
 "use client";
 import { useNavStore } from "@/stores";
 import Link from "next/link";
+import Image from "next/image";
 import { Avatar } from "radix-ui";
 import { Separator } from "../separator/Separator";
 import adminComponents from "../navigation/adminComponents";
@@ -21,7 +22,7 @@ export const DrawerTemplate = ({ type }: DrawerTemplateProps) => {
   return (
     <div className="bg-white h-full w-full rounded-md bg-gradient-to-tr from-gray-300 from-20% to-transparent to-100%">
       <div className="w-full flex justify-end p-2 mb-4 pt-6 pr-6">
-        <img src="/wizz-logo-trans-v2-flare-stroke.webp" className="w-3/8" />
+        <Image src="/logo.webp" alt="Logo" width={100} height={100} className="w-3/8 h-auto" />
         <div className="fixed top-0 left-0 p-2">
           <FiChevronsRight
             size={24}

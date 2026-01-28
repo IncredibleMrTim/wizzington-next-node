@@ -1,4 +1,5 @@
 "use client";
+import Image from "next/image";
 import JWTViewer from "@/components/JWTViewer";
 import { useSession, signOut } from "next-auth/react";
 
@@ -44,9 +45,11 @@ export default function ProfilePage() {
           <strong>ID:</strong> {(session.user as any)?.id}
         </p>
         {session.user?.image && (
-          <img
+          <Image
             src={session.user.image}
             alt="Profile"
+            width={80}
+            height={80}
             className="w-20 h-20 rounded-full mt-2"
           />
         )}
