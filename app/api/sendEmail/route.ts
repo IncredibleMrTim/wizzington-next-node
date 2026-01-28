@@ -43,20 +43,10 @@ export async function POST(request: NextRequest) {
       html,
     };
 
-    console.log("Sending email with options:", {
-      from: mailOptions.from,
-      to: mailOptions.to,
-      replyTo: mailOptions.replyTo,
-      subject: mailOptions.subject,
-    });
-
     const info = await transporter.sendMail(mailOptions);
-    console.log("Email sent successfully:", info.messageId);
-    console.log("email info", info);
 
     return NextResponse.json({ success: true, messageId: info.messageId });
   } catch (error) {
-    console.error("Email sending error:", error);
     return NextResponse.json(
       {
         success: false,
