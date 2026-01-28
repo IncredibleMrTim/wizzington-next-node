@@ -12,7 +12,7 @@ export const metadata: Metadata = {
   description:
     "Welcome to Wizzington Moo's UK, your one-stop shop for all things moo-tastic!",
   icons: {
-    icon: "/logo.webp",
+    icon: "/favicon.ico",
   },
 };
 
