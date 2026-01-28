@@ -38,7 +38,6 @@ export async function POST(request: NextRequest) {
     const mailOptions = {
       from: process.env.SMTP_EMAIL,
       to: process.env.SMTP_EMAIL,
-      replyTo: user.email,
       subject,
       html,
     };
@@ -46,7 +45,6 @@ export async function POST(request: NextRequest) {
     console.log("Sending email with options:", {
       from: mailOptions.from,
       to: mailOptions.to,
-      replyTo: mailOptions.replyTo,
       subject: mailOptions.subject,
     });
 
