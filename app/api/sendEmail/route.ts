@@ -38,30 +38,15 @@ export async function POST(request: NextRequest) {
     const mailOptions = {
       from: process.env.SMTP_EMAIL,
       to: process.env.SMTP_EMAIL,
+      replyTo: user.email,
       subject,
       html,
     };
 
-    console.log("Sending email with options:", {
-      from: mailOptions.from,
-      to: mailOptions.to,
-      subject: mailOptions.subject,
-    });
-
-    // Send email using promise-based API (nodemailer supports promises natively)
     const info = await transporter.sendMail(mailOptions);
 
-    console.log("Email sent successfully:", {
-      messageId: info.messageId,
-      response: info.response,
-    });
-
-    return NextResponse.json({
-      success: true,
-      messageId: info.messageId,
-    });
+    return NextResponse.json({ success: true, messageId: info.messageId });
   } catch (error) {
-    console.error("Email sending error:", error);
     return NextResponse.json(
       {
         success: false,
