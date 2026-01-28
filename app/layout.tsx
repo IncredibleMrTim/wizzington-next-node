@@ -11,6 +11,9 @@ export const metadata: Metadata = {
   title: "Wizzington Moo's UK",
   description:
     "Welcome to Wizzington Moo's UK, your one-stop shop for all things moo-tastic!",
+  icons: {
+    icon: "/logo.webp",
+  },
 };
 
 export default async function RootLayout({
