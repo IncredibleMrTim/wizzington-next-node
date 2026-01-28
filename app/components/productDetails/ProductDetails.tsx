@@ -1,50 +1,32 @@
 "use client";
 
 import omit from "lodash/omit";
-import { useRouter } from "next/navigation";
-import { useMemo, useState } from "react";
-import { PiBasket } from "react-icons/pi";
+// import { useRouter } from "next/navigation";
+import { useMemo, useState, useActionState } from "react";
+
+import { LuMail, LuUpload } from "react-icons/lu";
 import { ZodError } from "zod";
 import { Prisma } from "@prisma/client";
-import ReactDOMServer from "react-dom/server";
-import dynamic from "next/dynamic";
 
-// Lazy load heavy PayPal components
-const PayPalButton = dynamic(
-  () => import("@/components/payPal/payPalButton/PayPalButton"),
-  { ssr: false, loading: () => null }
-);
-
-const PayPalProvider = dynamic(
-  () => import("@/components/payPal/payPalProvider/PayPalProvider"),
-  { ssr: false, loading: () => null }
-);
+// import { useSession } from "next-auth/react";
 
 import {
   onValidationProps,
   ProductField,
 } from "@/components/productFields/ProductField";
 import { Button } from "@/components/ui/button";
-import { createOrder } from "@/actions/order.actions";
+// import { createOrder } from "@/actions/order.actions";
 import { useOrderStore } from "@/stores";
-import { sendEmail } from "@/utils/email";
 
 import { fields } from "./fields";
 import { OrderEmailTemplate } from "./orderEmailTemplate";
+import { handleEnquiryAction } from "@/actions/enquiry.actions";
 
-import { Input } from "../ui/input";
-import { EnquiryEmailTemplate } from "./EnquiryEmailTemplate";
 import z from "zod";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormMessage,
-} from "@/components/ui/form";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { OrderProduct, ProductDTO } from "@/lib/types";
+
+// import { useForm } from "react-hook-form";
+// import { zodResolver } from "@hookform/resolvers/zod";
+import { ProductDTO } from "@/lib/types";
 
 export const enquiryFieldSchema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -61,41 +43,30 @@ interface ProductDetailsFormProps {
 }
 
 export const ProductDetailsForm = ({ product }: ProductDetailsFormProps) => {
-  const router = useRouter();
   const currentProduct = product;
-
+  // const { status: authState } = useSession();
   const [fieldErrors, setFieldErrors] = useState<
     Record<string, ZodError | null>
   >({});
   const [productDetails, setProductDetails] = useState<Record<string, unknown>>(
-    {}
+    {},
   );
-  const [actionType, setActionType] = useState<"purchase" | "basket" | null>(
-    null
-  );
-  const [enquiryEmailSent, setEnquiryEmailSent] = useState(false);
-
-  const form = useForm({
-    resolver: zodResolver(enquiryFieldSchema),
-    mode: "onTouched",
-    defaultValues: {
-      name: "",
-      email: "",
-      phone: "",
-    },
-  });
 
   const currentOrder = useOrderStore((state) => state.currentOrder);
   const setCurrentOrder = useOrderStore((state) => state.setCurrentOrder);
   const updateOrderProduct = useOrderStore((state) => state.updateOrderProduct);
-  const clearCurrentOrder = useOrderStore((state) => state.clearCurrentOrder);
+
+  const [enquiryState, submitEnquiry, isPending] = useActionState(
+    handleEnquiryAction,
+    { success: false, message: "" },
+  );
 
   const isValidOrderProduct = useMemo(
     () =>
       Object.keys(omit(productDetails, "productId")).length >=
         requiredFieldNames.length &&
       Object.values(fieldErrors).every((error) => error === null),
-    [productDetails, fieldErrors]
+    [productDetails, fieldErrors],
   );
 
   const addProductToOrder = () => {
@@ -127,35 +98,6 @@ export const ProductDetailsForm = ({ product }: ProductDetailsFormProps) => {
     });
   };
 
-  const handleSuccess = async (orderDetails: any) => {
-    if (isValidOrderProduct && currentOrder) {
-      await createOrder({
-        customer_name: currentOrder.customerName || undefined,
-        customer_email: currentOrder.customerEmail || undefined,
-        customer_phone: currentOrder.customerPhone || undefined,
-        notes: currentOrder.notes || undefined,
-        products: currentOrder.orderProducts.map((product) => ({
-          productId: product.productId,
-          name: product.productName,
-          quantity: product.quantity,
-          price: Number(product.price),
-        })),
-      });
-
-      setActionType("purchase");
-
-      if (process.env.SMTP_EMAIL) {
-        await sendEmail({
-          to: process.env.SMTP_EMAIL,
-          subject: "New Order Received",
-          html: ReactDOMServer.renderToStaticMarkup(
-            OrderEmailTemplate(orderDetails, currentOrder)
-          ),
-        });
-      }
-    }
-  };
-
   const handleValidation = ({ fieldName, value, type }: onValidationProps) => {
     if (type === "error") {
       setFieldErrors((prev) => ({
@@ -182,7 +124,9 @@ export const ProductDetailsForm = ({ product }: ProductDetailsFormProps) => {
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-col gap-4">
-        <h1 className="text-2xl font-bold">Order Details</h1>
+        <h1 className="text-2xl font-bold">
+          {currentProduct.isEnquiryOnly ? "Enquiry Details" : "Order Details"}
+        </h1>
         <p>Please add product details below</p>
       </div>
 
@@ -203,70 +147,59 @@ export const ProductDetailsForm = ({ product }: ProductDetailsFormProps) => {
           );
         })}
       </div>
-      {!currentProduct?.isEnquiryOnly ? (
-        <div className="flex flex-row w-full items-center gap-4">
-          {actionType !== "purchase" && actionType !== "basket" ? (
-            <div className="flex gap-4 w-full h-full">
-              <Button
-                disabled={!isValidOrderProduct || !productDetails}
-                onClick={() => {
-                  if (!currentProduct) {
-                    alert("Product is not available");
-                  } else {
-                    setActionType("basket");
-                    addProductToOrder();
-                  }
-                }}
-                className="flex items-center-safe justify-center"
-              >
-                Add to Basket <PiBasket size={20} />
-              </Button>
 
-              <div className="flex flex-col justify-center items-center w-5 h-3/4">
-                <div className="bg-gray-200 w-px h-[40%]" />
-                <span
-                  className={
-                    !isValidOrderProduct || !productDetails
-                      ? "text-gray-400"
-                      : "text-black"
-                  }
-                >
-                  or
-                </span>
-                <div className="bg-gray-200 w-px h-[40%]" />
-              </div>
-              <PayPalProvider>
-                <PayPalButton
-                  amount="31.50"
-                  onSuccess={handleSuccess}
-                  disabled={!isValidOrderProduct || !productDetails}
-                />
-              </PayPalProvider>
+      <div className="flex flex-row w-full items-center gap-4">
+        <div className="flex gap-4 w-full h-full">
+          <Button
+            disabled={!isValidOrderProduct || !productDetails}
+            onClick={() => {
+              if (!currentProduct) {
+                alert("Product is not available");
+              } else {
+                addProductToOrder();
+              }
+            }}
+            className="flex items-center-safe justify-center"
+          >
+            <div className="flex justify-between gap-2">
+              Add to Collection
+              <LuUpload />
             </div>
-          ) : (
-            <div className="flex flex-col items-center gap-4 w-full">
-              {actionType === "basket" ? (
-                <>
-                  <div>Your item has been added to your basket</div>
-                  <Button onClick={() => router.push("/")}>View Basket</Button>
-                </>
-              ) : (
-                <div>Thanks for your purchase</div>
-              )}
-              <Button
-                onClick={() => {
-                  router.push("/");
-                  if (clearCurrentOrder) {
-                    clearCurrentOrder();
-                  }
-                }}
-              >
-                Continue Shopping
-              </Button>
-            </div>
-          )}
+          </Button>
+          {/* 
+          <div className="flex flex-col justify-center items-center w-5 h-3/4">
+            <div className="bg-gray-200 w-px h-[40%]" />
+            <span
+              className={
+                !isValidOrderProduct || !productDetails
+                  ? "text-gray-400"
+                  : "text-black"
+              }
+            >
+              or
+            </span>
+            <div className="bg-gray-200 w-px h-[40%]" />
+          </div>
+
+          <Button
+            disabled={!isValidOrderProduct || !productDetails || isPending}
+            onClick={() => {
+              addProductToOrder();
+
+              // const emailHtml = ReactDOMServer.renderToStaticMarkup(
+              //   OrderEmailTemplate(productDetails as any, currentOrder as any),
+              // );
+              // submitEnquiry({
+              //   emailHtml,
+              // });
+            }}
+            className="flex items-center-safe justify-center"
+          >
+            {isPending ? "Sending..." : "Enquire Now"}
+            <LuMail size={20} />
+          </Button> */}
         </div>
-      ) : null}
+      </div>
     </div>
   );
 };
