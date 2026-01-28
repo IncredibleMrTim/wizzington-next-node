@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import nodemailer from "nodemailer";
+import SMTPTransport from "nodemailer/lib/smtp-transport";
 
 export async function POST(request: NextRequest) {
   try {
@@ -50,11 +51,39 @@ export async function POST(request: NextRequest) {
       subject: mailOptions.subject,
     });
 
-    const info = await transporter.sendMail(mailOptions);
-    console.log("Email sent successfully:", info.messageId);
-    console.log("email info", info);
+    await new Promise((resolve, reject) => {
+      // verify connection configuration
+      transporter.verify(function (error, success) {
+        if (error) {
+          console.log(error);
+          reject(error);
+        } else {
+          console.log("Server is ready to take our messages");
+          resolve(success);
+        }
+      });
+    });
 
-    return NextResponse.json({ success: true, messageId: info.messageId });
+    let messageInfo: SMTPTransport.SentMessageInfo | undefined;
+
+    await new Promise((resolve, reject) => {
+      // send mail
+      transporter.sendMail(mailOptions, (err, info) => {
+        messageInfo = info;
+        if (err) {
+          console.error(err);
+          reject(err);
+        } else {
+          console.log(info);
+          resolve(info);
+        }
+      });
+    });
+
+    return NextResponse.json({
+      success: true,
+      messageId: messageInfo?.messageId,
+    });
   } catch (error) {
     console.error("Email sending error:", error);
     return NextResponse.json(
