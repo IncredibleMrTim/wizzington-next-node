@@ -16,6 +16,7 @@ import {
   useProductFieldValidation,
   onValidationProps,
 } from "@/app/hooks/useProductFieldValidation";
+import Decimal from "decimal.js";
 
 // Extract all required field names from the field definitions
 // Used to validate that all mandatory fields are populated
@@ -93,7 +94,7 @@ export const ProductEnquiryForm = ({ product }: ProductEnquiryFormProps) => {
         customerName: null,
         customerEmail: null,
         customerPhone: null,
-        totalAmount: 0,
+        totalAmount: new Decimal(0),
         notes: null,
         id: "",
         createdAt: new Date(),

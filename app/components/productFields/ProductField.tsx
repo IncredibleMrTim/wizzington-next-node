@@ -64,7 +64,7 @@ export const ProductField = ({
           onValidation?.({
             fieldName: props.name,
             value: error as ZodError,
-            type: "error",
+            type: Variant.ERROR,
           });
         }
       }
@@ -129,7 +129,7 @@ export const ProductField = ({
                         onValidation?.({
                           fieldName: props.name || "",
                           value: error as ZodError,
-                          type: "error",
+                          type: Variant.ERROR,
                         });
                       }
                     }

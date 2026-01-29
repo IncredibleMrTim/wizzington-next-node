@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { createJSONStorage, devtools, persist } from "zustand/middleware";
 import { Order, OrderProduct } from "@/lib/types";
-
+import Decimal from "decimal.js";
 export interface OrderState {
   currentOrder: Order | null;
   totalCost: number;
@@ -65,7 +65,7 @@ export const useOrderStore = create<OrderState>()(
                   productName: payload.name || "",
                   productId: payload.productId,
                   orderId: state.currentOrder.id,
-                  price: payload.price || 0,
+                  price: new Decimal(payload.price || 0),
                   quantity: 1,
                   createdAt: new Date(),
                 });

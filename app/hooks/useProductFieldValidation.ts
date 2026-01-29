@@ -1,13 +1,14 @@
 import { useState } from "react";
 import { ZodError } from "zod";
 
-export type Variant =
-  | "number"
-  | "textarea"
-  | "text"
-  | "date"
-  | "hidden"
-  | "error";
+export enum Variant {
+  NUMBER = "number",
+  TEXTAREA = "textarea",
+  TEXT = "text",
+  DATE = "date",
+  HIDDEN = "hidden",
+  ERROR = "error",
+}
 
 export interface onValidationProps {
   fieldName: string;
@@ -21,7 +22,7 @@ export const useProductFieldValidation = () => {
   >({});
 
   const handleValidation = ({ fieldName, type, value }: onValidationProps) => {
-    if (type === "error") {
+    if (type === Variant.ERROR) {
       setFieldErrors((prev) => ({
         ...prev,
         [fieldName]: value as ZodError,

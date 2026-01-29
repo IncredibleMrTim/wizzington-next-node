@@ -4,6 +4,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Quick Start Commands
 
+**IMPORTANT: This project uses Yarn, not npm. Always use `yarn` for package management.**
+
 ### Development
 - `yarn dev` - Start Next.js dev server (http://localhost:3000)
 - `yarn build` - Build for production
