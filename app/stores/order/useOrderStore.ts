@@ -1,8 +1,7 @@
 import { create } from "zustand";
 import { createJSONStorage, devtools, persist } from "zustand/middleware";
 import { Order, OrderProduct } from "@/lib/types";
-import { Prisma } from "@prisma/client";
-
+import Decimal from "decimal.js";
 export interface OrderState {
   currentOrder: Order | null;
   totalCost: number;
@@ -44,7 +43,7 @@ export const useOrderStore = create<OrderState>()(
               };
             },
             false,
-            "addProductToOrder"
+            "addProductToOrder",
           ),
 
         updateOrderProduct: (payload) =>
@@ -53,7 +52,8 @@ export const useOrderStore = create<OrderState>()(
               if (!state.currentOrder) return state;
 
               let productIndex = state.currentOrder.orderProducts.findIndex(
-                (product) => product.id === payload.productId,
+                (product: OrderProduct) =>
+                  product.productId === payload.productId,
               );
 
               const updatedProducts = [...state.currentOrder.orderProducts];
@@ -65,7 +65,7 @@ export const useOrderStore = create<OrderState>()(
                   productName: payload.name || "",
                   productId: payload.productId,
                   orderId: state.currentOrder.id,
-                  price: new Prisma.Decimal(payload.price || 0),
+                  price: new Decimal(payload.price || 0),
                   quantity: 1,
                   createdAt: new Date(),
                 });
@@ -83,7 +83,7 @@ export const useOrderStore = create<OrderState>()(
                 payload.updates.price ??
                 payload.price ??
                 updatedProducts[productIndex].price ??
-                new Prisma.Decimal(0);
+                0;
               const newTotalCost =
                 (state.totalCost || 0) +
                 Number(finalPrice) * (payload.updates.quantity || 1);
@@ -97,7 +97,7 @@ export const useOrderStore = create<OrderState>()(
               };
             },
             false,
-            "updateOrderProduct"
+            "updateOrderProduct",
           ),
 
         removeProductFromOrder: (productId) =>
@@ -115,7 +115,7 @@ export const useOrderStore = create<OrderState>()(
               };
             },
             false,
-            "removeProductFromOrder"
+            "removeProductFromOrder",
           ),
 
         clearCurrentOrder: () =>

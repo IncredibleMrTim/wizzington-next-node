@@ -2,10 +2,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useCallback, useEffect, useState, useTransition } from "react";
 
 import { ProductImage, ProductDTO } from "@/lib/types";
-import {
-  getProductById,
-  updateProductById,
-} from "@/app/actions/product.actions";
+import { getProductById, updateProductById } from "@/actions";
 import { useProductStore } from "@/stores";
 
 interface UseProductEditorReturn {
@@ -129,7 +126,7 @@ export const useProductEditor = (): UseProductEditorReturn => {
         });
       });
     },
-    [productId, product, router]
+    [productId, product, router],
   );
 
   return {

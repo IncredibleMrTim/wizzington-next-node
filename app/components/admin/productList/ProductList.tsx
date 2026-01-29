@@ -20,8 +20,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { getCachedProducts } from "@/app/actions/product.actions";
-import { useProductStore } from "@/stores";
+import { getCachedProducts } from "@/actions";
 
 import {
   columns,

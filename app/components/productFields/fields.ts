@@ -1,11 +1,8 @@
-import { FiCalendar } from "react-icons/fi";
 import { PiBasket } from "react-icons/pi";
 import { z } from "zod";
+import { Variant } from "@/app/hooks/useProductFieldValidation";
 
-import {
-  Field,
-  Variant,
-} from "@/components/productFields/ProductField";
+import { Field } from "@/components/productFields/ProductField";
 
 export const fieldSchema = z.object({
   waistSize: z.coerce.number().min(1),
@@ -34,7 +31,7 @@ export const fields: {
       label: "Chest Size (Circumference Around Chest)",
       placeholderText: "Enter chest size",
       required: true,
-      variant: "number",
+      variant: Variant.NUMBER,
       error: "Please enter a valid chest size",
     },
   },
@@ -43,7 +40,7 @@ export const fields: {
       label: "Waist Size (Circumference Around Waist)",
       placeholderText: "Enter waist size",
       required: true,
-      variant: "number",
+      variant: Variant.NUMBER,
       error: "Please enter a valid waist size",
     },
   },
@@ -52,7 +49,7 @@ export const fields: {
       label: "Hip Size (Circumference Around Hips)",
       placeholderText: "Enter hip size",
       required: true,
-      variant: "number",
+      variant: Variant.NUMBER,
       error: "Please enter a valid hip size",
     },
   },
@@ -61,7 +58,7 @@ export const fields: {
       label: "Girth Measurement (Around the Body)",
       placeholderText: "Girth measurement",
       required: true,
-      variant: "number",
+      variant: Variant.NUMBER,
       error: "Please enter a valid girth measurement",
     },
   },
@@ -70,7 +67,7 @@ export const fields: {
       label: "Head Size (Hat Size)",
       placeholderText: "Enter head size",
       required: true,
-      variant: "number",
+      variant: Variant.NUMBER,
       error: "Please enter a valid head size",
     },
   },
@@ -79,7 +76,7 @@ export const fields: {
       label: "Neck Size (Collar Size)",
       placeholderText: "Enter neck size",
       required: true,
-      variant: "number",
+      variant: Variant.NUMBER,
       error: "Please enter a valid neck size",
     },
   },
@@ -88,7 +85,7 @@ export const fields: {
       label: "Bicep Size (Upper Arm Circumference)",
       placeholderText: "Enter bicep size",
       required: true,
-      variant: "number",
+      variant: Variant.NUMBER,
       error: "Please enter a valid bicep size",
     },
   },
@@ -97,7 +94,7 @@ export const fields: {
       label: "Armpit to Wrist (Arm Length)",
       placeholderText: "Enter armpit to wrist",
       required: true,
-      variant: "number",
+      variant: Variant.NUMBER,
       error: "Please enter a valid armpit to wrist measurement",
     },
   },
@@ -106,7 +103,7 @@ export const fields: {
       label: "Wrist Size",
       placeholderText: "Enter wrist size",
       required: true,
-      variant: "number",
+      variant: Variant.NUMBER,
       error: "Please enter a valid wrist size",
     },
   },
@@ -115,7 +112,7 @@ export const fields: {
       label: "Inseam (Crotch to Ankle Length)",
       placeholderText: "Enter crotch to ankle",
       required: true,
-      variant: "number",
+      variant: Variant.NUMBER,
       error: "Please enter a valid inseam measurement",
     },
   },
@@ -124,7 +121,7 @@ export const fields: {
       label: "Waist to Ankle (Length of Pants)",
       placeholderText: "waist to ankle",
       required: true,
-      variant: "number",
+      variant: Variant.NUMBER,
       error: "Please enter a valid waist to ankle measurement",
     },
   },
@@ -133,7 +130,7 @@ export const fields: {
       label: "Waist to Floor (Length of Dress)",
       placeholderText: "Enter waist to floor",
       required: true,
-      variant: "number",
+      variant: Variant.NUMBER,
       error: "Please enter a valid waist to floor measurement",
     },
   },
@@ -143,7 +140,7 @@ export const fields: {
       placeholderText: "Enter your ankle size",
       required: true,
 
-      variant: "number",
+      variant: Variant.NUMBER,
       error: "Please enter a valid ankle size",
     },
   },
@@ -153,7 +150,7 @@ export const fields: {
       placeholderText: "Enter quantity",
       icon: PiBasket,
       required: true,
-      variant: "number",
+      variant: Variant.NUMBER,
       error: "Please enter a quantity (1-4)",
     },
   },
@@ -162,7 +159,7 @@ export const fields: {
       label: "Additional Information",
       placeholderText:
         "Describe any additional information you would like to provide",
-      variant: "textarea",
+      variant: Variant.TEXTAREA,
       classes: {
         formItem: "flex flex-col items-start w-full",
       },

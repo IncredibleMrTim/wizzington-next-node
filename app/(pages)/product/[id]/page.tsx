@@ -1,5 +1,5 @@
-import { ProductDetailsSection } from "@/components/productDetails/ProductDetailsServer";
-import { getCachedProducts } from "@/app/actions";
+import { ProductDetailsContainer } from "@/app/components/productDetails/ProductDetailsContainer";
+import { getCachedProducts } from "@/actions";
 
 export const revalidate = 3600;
 export const dynamicParams = true;
@@ -20,5 +20,5 @@ export default async function ProductPage({
 }: ProductPageProps) {
   const params = await paramsPromise;
 
-  return <ProductDetailsSection id={params.id} />;
+  return <ProductDetailsContainer id={params.id} />;
 }
