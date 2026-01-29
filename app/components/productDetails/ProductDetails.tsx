@@ -40,7 +40,7 @@ export const ProductDetails = ({ product }: { product: ProductDTO }) => {
                         ? "border-blue-500"
                         : "border-gray-200 hover:border-gray-300"
                     }`}
-                    aria-label={`Select image ${product.images?.indexOf(img) || 0 + 1}`}
+                    aria-label={`Select image ${(product.images?.indexOf(img) || 0) + 1}`}
                   >
                     <Image
                       src={img.url}
@@ -72,7 +72,9 @@ export const ProductDetails = ({ product }: { product: ProductDTO }) => {
         <div className="flex gap-8 items-center">
           {price && (
             <div>
-              <span className="text-3xl font-bold text-green-600">£{price}</span>
+              <span className="text-3xl font-bold text-green-600">
+                £{price}
+              </span>
             </div>
           )}
           {product.stock !== undefined && (
