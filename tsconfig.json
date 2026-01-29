@@ -20,6 +20,7 @@
     ],
     "paths": {
       "@/*": ["./*"],
+      "@/actions": ["./app/actions/index.ts"],
       "@/actions/*": ["./app/actions/*"],
       "@/stores/*": ["./app/stores/*"],
       "@/stores": ["./app/stores/index.ts"],

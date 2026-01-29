@@ -1,174 +1,101 @@
 "use client";
-
-// import { useRouter } from "next/navigation";
-import { useMemo, useState } from "react";
-
-import { LuUpload } from "react-icons/lu";
-
-// import { useSession } from "next-auth/react";
-
-import { ProductField } from "@/components/productFields/ProductField";
-import { Button } from "@/components/ui/button";
-import { useOrderStore } from "@/stores";
-import { fields } from "./fields";
 import { ProductDTO } from "@/lib/types";
-import {
-  useProductFieldValidation,
-  onValidationProps,
-} from "@/app/hooks/useProductFieldValidation";
+import Image from "next/image";
+import { useState } from "react";
 
-// Extract all required field names from the field definitions
-// Used to validate that all mandatory fields are populated
-const requiredFieldNames = fields
-  .filter((f) => Object.values(f)[0].required)
-  .map((f) => Object.keys(f)[0]);
-
-interface ProductDetailsFormProps {
-  product: ProductDTO;
-}
-
-export const ProductDetailsForm = ({ product }: ProductDetailsFormProps) => {
-  const currentProduct = product;
-
-  // State for storing user-provided product measurement/detail values
-  const [productDetails, setProductDetails] = useState<Record<string, unknown>>(
-    {},
+export const ProductDetails = ({ product }: { product: ProductDTO }) => {
+  const [selectedImage, setSelectedImage] = useState<string | null>(
+    product.images?.[0].url || null,
   );
 
-  // Get field validation state and handler from the custom hook
-  const { fieldErrors, handleValidation } =
-    useProductFieldValidation();
-
-  // Access order state from Zustand store
-  const currentOrder = useOrderStore((state) => state.currentOrder);
-  const setCurrentOrder = useOrderStore((state) => state.setCurrentOrder);
-  const updateOrderProduct = useOrderStore((state) => state.updateOrderProduct);
-
-  /**
-   * Handles field validation when user enters/changes values
-   * - Updates field error state via the hook
-   * - Stores valid values in productDetails state
-   */
-  const onFieldValidation = ({
-    fieldName,
-    value,
-    type,
-  }: onValidationProps) => {
-    handleValidation({ fieldName, value, type });
-
-    // Only store the value if validation passed (no error)
-    if (type !== "error") {
-      setProductDetails((prev) => ({
-        ...prev,
-        [fieldName]: value,
-      }));
-    }
-  };
-
-  /**
-   * Memoized validation check for the form
-   * The "Add to Collection" button is only enabled when:
-   * 1. All required fields are populated
-   * 2. All fields pass validation (no errors)
-   */
-  const isValidOrderProduct = useMemo(
-    () => {
-      // Check that every required field has a value in productDetails
-      const hasAllRequiredFields = requiredFieldNames.every(
-        (fieldName) => productDetails[fieldName] !== undefined,
-      );
-
-      // Check that there are no validation errors across all fields
-      const hasNoErrors = Object.values(fieldErrors).every(
-        (error) => error === null,
-      );
-
-      // Form is valid only if both conditions are met
-      return hasAllRequiredFields && hasNoErrors;
-    },
-    [productDetails, fieldErrors],
-  );
-
-  /**
-   * Adds the current product to the shopping order with user-provided details
-   */
-  const addProductToOrder = () => {
-    // Initialize a new order if one doesn't exist yet
-    if (!currentOrder) {
-      setCurrentOrder({
-        orderProducts: [],
-        status: "pending",
-        customerName: null,
-        customerEmail: null,
-        customerPhone: null,
-        totalAmount: 0,
-        notes: null,
-        id: "",
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      });
-    }
-
-    // Add the product to the order with all measurements and details
-    updateOrderProduct({
-      productId: currentProduct?.id || "",
-      name: currentProduct?.name || "",
-      uid: crypto.randomUUID(),
-      price: currentProduct?.price || 0,
-      updates: {
-        id: crypto.randomUUID(),
-        quantity: 1,
-        ...productDetails, // Spread all user-provided measurements
-      },
-    });
-  };
+  const price = product.price ? Number(product.price).toFixed(2) : null;
 
   return (
-    <div className="flex flex-col gap-4">
-      {/* Header section */}
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+      {/* Product Images */}
       <div className="flex flex-col gap-4">
-        <h1 className="text-2xl font-bold">
-          {currentProduct.isEnquiryOnly ? "Enquiry Details" : "Order Details"}
-        </h1>
-        <p>Please add product details below</p>
+        {product.images && product.images.length > 0 ? (
+          <>
+            <div className="relative w-full h-96">
+              {selectedImage ? (
+                <Image
+                  src={selectedImage}
+                  alt={product.name}
+                  fill
+                  className="object-cover rounded-lg"
+                  priority
+                />
+              ) : (
+                "No image available"
+              )}
+            </div>
+            {product.images.length > 1 && (
+              <div className="flex gap-2 overflow-x-auto">
+                {product.images.map((img) => (
+                  <button
+                    key={img.id}
+                    onClick={() => setSelectedImage(img.url)}
+                    className={`relative w-20 h-20 shrink-0 rounded border-2 transition-colors ${
+                      selectedImage === img.url
+                        ? "border-blue-500"
+                        : "border-gray-200 hover:border-gray-300"
+                    }`}
+                    aria-label={`Select image ${product.images?.indexOf(img) || 0 + 1}`}
+                  >
+                    <Image
+                      src={img.url}
+                      alt={`${product.name} thumbnail`}
+                      fill
+                      className="object-cover rounded"
+                      loading="lazy"
+                    />
+                  </button>
+                ))}
+              </div>
+            )}
+          </>
+        ) : (
+          <div className="w-full h-96 bg-gray-100 rounded-lg flex items-center justify-center text-gray-500">
+            No images available
+          </div>
+        )}
       </div>
 
-      {/* Form section */}
-      <div>
-        {/* Product measurement fields grid */}
-        <div className="flex flex-wrap flex-row gap-y-4 w-full justify-between">
-          {fields.map((field, index) => {
-            const [name, props] = Object.entries(field)[0];
-            return (
-              <div
-                className={props.span ? "w-full" : "w-[48%]"}
-                key={props.name || index}
-              >
-                <ProductField
-                  {...props}
-                  name={name}
-                  onValidation={onFieldValidation}
-                />
-              </div>
-            );
-          })}
+      {/* Product Details */}
+      <div className="flex flex-col gap-4">
+        <h1 className="text-4xl font-bold">{product.name}</h1>
+
+        {product.description && (
+          <p className="text-gray-600 text-lg">{product.description}</p>
+        )}
+
+        <div className="flex gap-8 items-center">
+          {price && (
+            <div>
+              <span className="text-3xl font-bold text-green-600">£{price}</span>
+            </div>
+          )}
+          {product.stock !== undefined && (
+            <div>
+              <p className="text-sm text-gray-600">
+                {product.stock > 0 ? (
+                  <span className="text-green-600 font-medium">
+                    {product.stock} in stock
+                  </span>
+                ) : (
+                  <span className="text-red-600 font-medium">Out of stock</span>
+                )}
+              </p>
+            </div>
+          )}
         </div>
 
-        {/* Submit button - enabled only when form is fully populated and valid */}
-        <Button
-          disabled={!isValidOrderProduct}
-          onClick={() => {
-            if (!currentProduct) {
-              alert("Product is not available");
-            } else {
-              addProductToOrder();
-            }
-          }}
-          className="flex items-center gap-2 justify-center mt-4"
-        >
-          Add to Collection
-          <LuUpload />
-        </Button>
+        {product.isEnquiryOnly && (
+          <div className="bg-yellow-50 border border-yellow-200 rounded p-3 text-yellow-800">
+            This item is available on enquiry only. Please contact us for more
+            information.
+          </div>
+        )}
       </div>
     </div>
   );
