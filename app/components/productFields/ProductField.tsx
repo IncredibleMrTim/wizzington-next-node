@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { FiCalendar } from "react-icons/fi";
 import { IconType } from "react-icons";
 import z, { ZodError } from "zod";
@@ -16,19 +16,7 @@ import {
 import { fieldSchema } from "@/app/components/productFields/fields";
 import moment from "moment";
 import { offsetDate } from "@/utils/date";
-
-export type Variant =
-  | "number"
-  | "textarea"
-  | "text"
-  | "date"
-  | "hidden"
-  | "error";
-export interface onValidationProps {
-  fieldName: string;
-  value: ZodError | string | number | Date;
-  type?: Variant;
-}
+import { Variant, onValidationProps } from "@/app/hooks/useProductFieldValidation";
 
 export type Field = {
   label: string;
@@ -51,6 +39,39 @@ export const ProductField = ({
 } & React.ComponentProps<"input">) => {
   const [value, setValue] = useState<Date | string | undefined | null>(null);
   const [error, setError] = useState<ZodError | null>(null);
+  const [pendingValidation, setPendingValidation] = useState<{
+    value: string | Date;
+    type: Variant;
+  } | null>(null);
+
+  // Debounced validation effect
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (pendingValidation && props.name) {
+        try {
+          z.object({
+            [props.name]:
+              fieldSchema.shape[props.name as keyof typeof fieldSchema.shape],
+          }).parse({ [props.name]: pendingValidation.value });
+          setError(null);
+          onValidation?.({
+            fieldName: props.name,
+            value: pendingValidation.value,
+            type: pendingValidation.type,
+          });
+        } catch (error) {
+          setError(error as ZodError);
+          onValidation?.({
+            fieldName: props.name,
+            value: error as ZodError,
+            type: "error",
+          });
+        }
+      }
+    }, 500); // 500ms debounce delay
+
+    return () => clearTimeout(timer);
+  }, [pendingValidation, props.name, onValidation]);
 
   /* Render the component based on the variant */
   const renderComponent = () => {
@@ -127,30 +148,12 @@ export const ProductField = ({
             className={`w-full h-32 border-gray-300 focus-visible:ring-transparent shadow-none ${
               props?.classes?.formItem || ""
             }`}
-            onBlur={(e) => {
-              if (props.name) {
-                try {
-                  z.object({
-                    [props.name]:
-                      fieldSchema.shape[
-                        props.name as keyof typeof fieldSchema.shape
-                      ],
-                  }).parse({ [props.name]: e.target.value });
-                  setError(null);
-                  onValidation?.({
-                    fieldName: props.name,
-                    value: e.target.value,
-                    type: props.variant,
-                  });
-                } catch (error) {
-                  setError(error as ZodError);
-                  onValidation?.({
-                    fieldName: props.name,
-                    value: error as ZodError,
-                    type: "error",
-                  });
-                }
-              }
+            onChange={(e) => {
+              setValue(e.target.value);
+              setPendingValidation({
+                value: e.target.value,
+                type: props.variant,
+              });
             }}
           />
         );
@@ -164,35 +167,11 @@ export const ProductField = ({
               type={props.variant}
               placeholder={`${props.placeholderText} (cm)`}
               onChange={(e) => {
-                if (e.target.value) {
-                  setValue(e.target.value);
-                }
-              }}
-              onBlur={(e) => {
-                if (props.name) {
-                  try {
-                    z.object({
-                      [props.name]:
-                        fieldSchema.shape[
-                          props.name as keyof typeof fieldSchema.shape
-                        ],
-                    }).parse({ [props.name]: e.target.value });
-                    setError(null);
-
-                    onValidation?.({
-                      fieldName: props.name,
-                      value: e.target.value,
-                      type: props.variant,
-                    });
-                  } catch (error) {
-                    setError(error as ZodError);
-                    onValidation?.({
-                      fieldName: props.name || "",
-                      value: error as ZodError,
-                      type: "error",
-                    });
-                  }
-                }
+                setValue(e.target.value);
+                setPendingValidation({
+                  value: e.target.value,
+                  type: props.variant,
+                });
               }}
             />
           </div>
