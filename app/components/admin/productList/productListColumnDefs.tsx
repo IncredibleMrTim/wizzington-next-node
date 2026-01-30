@@ -11,15 +11,12 @@ import {
 } from "react-icons/fi";
 
 export interface ProductListCustomCellContextProps {
-  viewProduct: boolean;
-  deleteProduct?: boolean;
+  view: boolean;
+  delete?: boolean;
 }
 
 export type CustomCellContext<TData, TValue> = CellContext<TData, TValue> & {
-  onClick?: ({
-    viewProduct,
-    deleteProduct,
-  }: ProductListCustomCellContextProps) => void; // Add the onClick handler type
+  onClick?: (props: { view: boolean; delete?: boolean }) => void;
 };
 
 export const columns: ColumnDef<ProductDTO>[] = [
@@ -124,7 +121,7 @@ export const columns: ColumnDef<ProductDTO>[] = [
         <div className="flex gap-4 items-center">
           <Link
             href={`/admin/product/${row.getValue("id")}`}
-            onClick={() => onClick?.({ viewProduct: false })}
+            onClick={() => onClick?.({ view: false })}
             prefetch
           >
             <FiEdit size={20} />
@@ -142,7 +139,7 @@ export const columns: ColumnDef<ProductDTO>[] = [
 
           <button
             onClick={() =>
-              onClick?.({ viewProduct: false, deleteProduct: true })
+              onClick?.({ view: false, delete: true })
             }
           >
             <FiTrash2 size={20} />
