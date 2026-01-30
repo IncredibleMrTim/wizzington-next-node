@@ -4,6 +4,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Quick Start Commands
 
+**IMPORTANT: This project uses Yarn, not npm. Always use `yarn` for package management.**
+
 ### Development
 - `yarn dev` - Start Next.js dev server (http://localhost:3000)
 - `yarn build` - Build for production
@@ -177,6 +179,35 @@ See `.env.example` for required variables:
 - Database connection string
 
 ## Development Patterns to Follow
+
+### Code Comments & Documentation
+**All new functions, hooks, components, and complex logic must include comments:**
+- **Functions & Hooks**: Add JSDoc-style comments explaining purpose, parameters, and return values
+- **Complex Logic**: Add inline comments explaining the "why" behind non-obvious logic
+- **State Management**: Document what state tracks and when it updates
+- **Validation Logic**: Clearly explain validation rules and error conditions
+- **Form Handlers**: Comment what happens on different validation outcomes
+
+Example:
+```typescript
+/**
+ * Validates form data when user enters/changes values
+ * - Updates field error state via the hook
+ * - Stores valid values in component state
+ * Only stores value if validation passes (no error)
+ */
+const onFieldValidation = ({ fieldName, value, type }: ValidationProps) => {
+  handleValidation({ fieldName, value, type });
+
+  // Only store the value if validation passed
+  if (type !== "error") {
+    setProductDetails((prev) => ({
+      ...prev,
+      [fieldName]: value,
+    }));
+  }
+};
+```
 
 ### Error Handling
 - Server actions: Use try/catch, return error states or throw errors

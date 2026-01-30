@@ -190,7 +190,7 @@ Create `.env` file:
 ```env
 # Prisma PostgreSQL Database
 DATABASE_URL="prisma+postgres://accelerate.prisma-data.net/?api_key=your_api_key"
-DIRECT_URL="postgres://user:password@host:5432/database?sslmode=require"
+DIRECT_URL="postgres://user:password@host:5432/database?sslmode=verify-full"
 
 # NextAuth
 NEXTAUTH_URL=http://localhost:3000

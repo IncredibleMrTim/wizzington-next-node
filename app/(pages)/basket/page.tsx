@@ -8,7 +8,7 @@ import { OrderEmailTemplate } from "@/app/components/productDetails/orderEmailTe
 import { sendEmail } from "@/utils/email";
 import { useOrderStore, useProductStore } from "@/stores";
 import { EmailEnquiryUser, Order, ProductDTO } from "@/lib/types";
-import { getCachedProducts } from "@/app/actions";
+import { getCachedProducts } from "@/actions";
 import { useEffect, useState } from "react";
 import { Button } from "@/app/components/ui/button";
 

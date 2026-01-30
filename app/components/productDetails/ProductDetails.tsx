@@ -1,204 +1,103 @@
 "use client";
-
-import omit from "lodash/omit";
-// import { useRouter } from "next/navigation";
-import { useMemo, useState, useActionState } from "react";
-
-import { LuMail, LuUpload } from "react-icons/lu";
-import { ZodError } from "zod";
-import { Prisma } from "@prisma/client";
-
-// import { useSession } from "next-auth/react";
-
-import {
-  onValidationProps,
-  ProductField,
-} from "@/components/productFields/ProductField";
-import { Button } from "@/components/ui/button";
-// import { createOrder } from "@/actions/order.actions";
-import { useOrderStore } from "@/stores";
-
-import { fields } from "./fields";
-import { OrderEmailTemplate } from "./orderEmailTemplate";
-import { handleEnquiryAction } from "@/actions/enquiry.actions";
-
-import z from "zod";
-
-// import { useForm } from "react-hook-form";
-// import { zodResolver } from "@hookform/resolvers/zod";
 import { ProductDTO } from "@/lib/types";
+import Image from "next/image";
+import { useState } from "react";
 
-export const enquiryFieldSchema = z.object({
-  name: z.string().min(1, "Name is required"),
-  email: z.string().email("Invalid email address").min(1, "Email is required"),
-  phone: z.string().optional(),
-});
-
-const requiredFieldNames = fields
-  .filter((f) => Object.values(f)[0].required)
-  .map((f) => Object.keys(f)[0]);
-
-interface ProductDetailsFormProps {
-  product: ProductDTO;
-}
-
-export const ProductDetailsForm = ({ product }: ProductDetailsFormProps) => {
-  const currentProduct = product;
-  // const { status: authState } = useSession();
-  const [fieldErrors, setFieldErrors] = useState<
-    Record<string, ZodError | null>
-  >({});
-  const [productDetails, setProductDetails] = useState<Record<string, unknown>>(
-    {},
+export const ProductDetails = ({ product }: { product: ProductDTO }) => {
+  const [selectedImage, setSelectedImage] = useState<string | null>(
+    product.images?.[0].url || null,
   );
 
-  const currentOrder = useOrderStore((state) => state.currentOrder);
-  const setCurrentOrder = useOrderStore((state) => state.setCurrentOrder);
-  const updateOrderProduct = useOrderStore((state) => state.updateOrderProduct);
-
-  const [enquiryState, submitEnquiry, isPending] = useActionState(
-    handleEnquiryAction,
-    { success: false, message: "" },
-  );
-
-  const isValidOrderProduct = useMemo(
-    () =>
-      Object.keys(omit(productDetails, "productId")).length >=
-        requiredFieldNames.length &&
-      Object.values(fieldErrors).every((error) => error === null),
-    [productDetails, fieldErrors],
-  );
-
-  const addProductToOrder = () => {
-    if (!currentOrder) {
-      setCurrentOrder({
-        orderProducts: [],
-        status: "pending",
-        customerName: null,
-        customerEmail: null,
-        customerPhone: null,
-        totalAmount: new Prisma.Decimal(0),
-        notes: null,
-        id: "",
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      });
-    }
-
-    updateOrderProduct({
-      productId: currentProduct?.id || "",
-      name: currentProduct?.name || "",
-      uid: crypto.randomUUID(),
-      price: currentProduct?.price || 0,
-      updates: {
-        id: crypto.randomUUID(),
-        quantity: 1,
-        ...productDetails,
-      },
-    });
-  };
-
-  const handleValidation = ({ fieldName, value, type }: onValidationProps) => {
-    if (type === "error") {
-      setFieldErrors((prev) => ({
-        ...prev,
-        [fieldName]: value as ZodError,
-      }));
-      return true;
-    }
-
-    setFieldErrors((prev) => {
-      const updated = { ...prev };
-      delete updated[fieldName];
-      return updated;
-    });
-
-    setProductDetails((prev) => ({
-      ...prev,
-      [fieldName]: value,
-    }));
-
-    return false;
-  };
+  const price = product.price ? Number(product.price).toFixed(2) : null;
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+      {/* Product Images */}
       <div className="flex flex-col gap-4">
-        <h1 className="text-2xl font-bold">
-          {currentProduct.isEnquiryOnly ? "Enquiry Details" : "Order Details"}
-        </h1>
-        <p>Please add product details below</p>
-      </div>
-
-      <div className="flex flex-wrap flex-row gap-y-4 w-full justify-between">
-        {fields.map((field, index) => {
-          const [name, props] = Object.entries(field)[0];
-          return (
-            <div
-              className={props.span ? "w-full" : "w-[48%]"}
-              key={props.name || index}
-            >
-              <ProductField
-                {...props}
-                name={name}
-                onValidation={handleValidation}
-              />
+        {product.images && product.images.length > 0 ? (
+          <>
+            <div className="relative w-full h-96">
+              {selectedImage ? (
+                <Image
+                  src={selectedImage}
+                  alt={product.name}
+                  fill
+                  className="object-cover rounded-lg"
+                  priority
+                />
+              ) : (
+                "No image available"
+              )}
             </div>
-          );
-        })}
-      </div>
-
-      <div className="flex flex-row w-full items-center gap-4">
-        <div className="flex gap-4 w-full h-full">
-          <Button
-            disabled={!isValidOrderProduct || !productDetails}
-            onClick={() => {
-              if (!currentProduct) {
-                alert("Product is not available");
-              } else {
-                addProductToOrder();
-              }
-            }}
-            className="flex items-center-safe justify-center"
-          >
-            <div className="flex justify-between gap-2">
-              Add to Collection
-              <LuUpload />
-            </div>
-          </Button>
-          {/* 
-          <div className="flex flex-col justify-center items-center w-5 h-3/4">
-            <div className="bg-gray-200 w-px h-[40%]" />
-            <span
-              className={
-                !isValidOrderProduct || !productDetails
-                  ? "text-gray-400"
-                  : "text-black"
-              }
-            >
-              or
-            </span>
-            <div className="bg-gray-200 w-px h-[40%]" />
+            {product.images.length > 1 && (
+              <div className="flex gap-2 overflow-x-auto">
+                {product.images.map((img) => (
+                  <button
+                    key={img.id}
+                    onClick={() => setSelectedImage(img.url)}
+                    className={`relative w-20 h-20 shrink-0 rounded border-2 transition-colors ${
+                      selectedImage === img.url
+                        ? "border-blue-500"
+                        : "border-gray-200 hover:border-gray-300"
+                    }`}
+                    aria-label={`Select image ${(product.images?.indexOf(img) || 0) + 1}`}
+                  >
+                    <Image
+                      src={img.url}
+                      alt={`${product.name} thumbnail`}
+                      fill
+                      className="object-cover rounded"
+                      loading="lazy"
+                    />
+                  </button>
+                ))}
+              </div>
+            )}
+          </>
+        ) : (
+          <div className="w-full h-96 bg-gray-100 rounded-lg flex items-center justify-center text-gray-500">
+            No images available
           </div>
+        )}
+      </div>
 
-          <Button
-            disabled={!isValidOrderProduct || !productDetails || isPending}
-            onClick={() => {
-              addProductToOrder();
+      {/* Product Details */}
+      <div className="flex flex-col gap-4">
+        <h1 className="text-4xl font-bold">{product.name}</h1>
 
-              // const emailHtml = ReactDOMServer.renderToStaticMarkup(
-              //   OrderEmailTemplate(productDetails as any, currentOrder as any),
-              // );
-              // submitEnquiry({
-              //   emailHtml,
-              // });
-            }}
-            className="flex items-center-safe justify-center"
-          >
-            {isPending ? "Sending..." : "Enquire Now"}
-            <LuMail size={20} />
-          </Button> */}
+        {product.description && (
+          <p className="text-gray-600 text-lg">{product.description}</p>
+        )}
+
+        <div className="flex gap-8 items-center">
+          {price && (
+            <div>
+              <span className="text-3xl font-bold text-green-600">
+                £{price}
+              </span>
+            </div>
+          )}
+          {product.stock !== undefined && (
+            <div>
+              <p className="text-sm text-gray-600">
+                {product.stock > 0 ? (
+                  <span className="text-green-600 font-medium">
+                    {product.stock} in stock
+                  </span>
+                ) : (
+                  <span className="text-red-600 font-medium">Out of stock</span>
+                )}
+              </p>
+            </div>
+          )}
         </div>
+
+        {product.isEnquiryOnly && (
+          <div className="bg-yellow-50 border border-yellow-200 rounded p-3 text-yellow-800">
+            This item is available on enquiry only. Please contact us for more
+            information.
+          </div>
+        )}
       </div>
     </div>
   );
