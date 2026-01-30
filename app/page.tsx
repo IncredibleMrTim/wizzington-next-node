@@ -8,7 +8,7 @@ async function ProductsSection() {
   const products = await getCachedProducts();
 
   return (
-    <div className="flex flex-row flex-wrap justify-between mt-2">
+    <div className="flex flex-row flex-wrap justify-center md:justify-between mt-2">
       {products?.some((p) => p.isFeatured) ? (
         <ProductsGrid products={products} />
       ) : (

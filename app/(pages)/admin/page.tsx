@@ -4,8 +4,11 @@ import adminComponents from "@/app/components/navigation/adminComponents";
 import Link from "next/link";
 import { Button } from "@/app/components/ui/button";
 import { FiPlus } from "react-icons/fi";
+import { getCachedProducts } from "@/app/actions";
 
 const AdminPage = async () => {
+  const products = await getCachedProducts();
+
   return (
     <div>
       {adminComponents.map((component) => (
@@ -15,7 +18,7 @@ const AdminPage = async () => {
           </Button>
         </Link>
       ))}
-      <ProductList />
+      <ProductList products={products} />
     </div>
   );
 };

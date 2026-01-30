@@ -34,6 +34,7 @@ model Product {
   category      Category?      @relation(fields: [categoryId], references: [id], onDelete: SetNull)
   images        ProductImage[]
   orderProducts OrderProduct[]
+  deleted       Boolean        @default(false)
 
   @@index([categoryId])
   @@index([isFeatured])
