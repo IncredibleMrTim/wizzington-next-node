@@ -70,10 +70,13 @@ const Navigation = ({ type = USER_ROLE.USER }: NavigationProps) => {
     setSelected(component);
   }, []);
 
-  const handleClick = useCallback((e: React.MouseEvent<HTMLElement>, href: string) => {
-    e.preventDefault();
-    router.push(href);
-  }, [router]);
+  const handleClick = useCallback(
+    (e: React.MouseEvent<HTMLElement>, href: string) => {
+      e.preventDefault();
+      router.push(href);
+    },
+    [router],
+  );
 
   return (
     <div>
@@ -99,7 +102,9 @@ const Navigation = ({ type = USER_ROLE.USER }: NavigationProps) => {
                   <div
                     className={`flex cursor-pointer py-2 h-11 min-w-[100px] justify-center items-center`}
                     onMouseEnter={() => handleMouseEnter(component)}
-                    onClick={(e) => component.href && handleClick(e, component.href)}
+                    onClick={(e) =>
+                      component.href && handleClick(e, component.href)
+                    }
                   >
                     {component.title}
                   </div>

@@ -8,6 +8,7 @@ import {
   ProductDTO,
 } from "@/lib/types";
 import { unstable_cache } from "next/cache";
+import { Prisma } from "@prisma/client";
 
 export const getFeaturedProductCount = async (): Promise<number> => {
   return await prisma.product.count({
@@ -20,7 +21,31 @@ export const getProducts = async (
   categoryId?: string,
 ): Promise<ProductDTO[]> => {
   const products = await prisma.product.findMany({
-    where: { isFeatured, categoryId },
+    where: { isFeatured, categoryId, deleted: false },
+    include: {
+      images: {
+        orderBy: {
+          orderPosition: "asc",
+        },
+      },
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+  });
+
+  return products.map((product) => ({
+    ...product,
+    price: Number(product.price),
+  }));
+};
+
+export const getDeletedProducts = async (
+  isFeatured?: boolean,
+  categoryId?: string,
+): Promise<ProductDTO[]> => {
+  const products = await prisma.product.findMany({
+    where: { isFeatured, categoryId, deleted: true },
     include: {
       images: {
         orderBy: {
@@ -107,10 +132,10 @@ export const updateProductById = async (
 
   // Revalidate only this specific product's cache
   revalidateTag("product-detail", "max");
-  // Revalidate the product detail page
-  revalidatePath(`/product/${id}`);
-  // Revalidate home page (featured products) since featured status might have changed
-  revalidatePath("/");
+  // Revalidate the products list cache
+  revalidateTag("products", "max");
+
+  revalidatePath("/admin");
 
   return {
     ...product,
@@ -134,8 +159,6 @@ export const createProduct = async (
 
   // Revalidate the cached products data
   revalidateTag("products", "max");
-  // Revalidate home page (featured products)
-  revalidatePath("/");
 
   return {
     ...product,
@@ -144,14 +167,12 @@ export const createProduct = async (
 };
 
 export const deleteProduct = async (id: string) => {
-  await prisma.product.delete({
+  await prisma.product.update({
     where: { id },
+    data: { deleted: true },
   });
 
   // Revalidate the cached products data
   revalidateTag("products", "max");
-  // Revalidate the product detail page
-  revalidatePath(`/product/${id}`);
-  // Revalidate home page (featured products)
-  revalidatePath("/");
+  revalidatePath("/admin/products");
 };

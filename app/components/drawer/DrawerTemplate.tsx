@@ -2,28 +2,35 @@
 import { useNavStore } from "@/stores";
 import Link from "next/link";
 import Image from "next/image";
-import { Avatar } from "radix-ui";
 import { Separator } from "../separator/Separator";
-import adminComponents from "../navigation/adminComponents";
 import userComponents from "../navigation/userComponents";
 import { FiChevronsRight } from "react-icons/fi";
-import { useSession } from "next-auth/react";
+import { signIn, signOut, useSession } from "next-auth/react";
 import { USER_ROLE } from "@/lib/types";
+import { useState } from "react";
 
-interface DrawerTemplateProps {
-  type?: USER_ROLE;
-}
-
-export const DrawerTemplate = ({ type }: DrawerTemplateProps) => {
+export const DrawerTemplate = () => {
   const { data: session } = useSession();
-  const components = type === USER_ROLE.USER ? adminComponents : userComponents;
+  const components = userComponents;
   const setIsDrawerOpen = useNavStore((state) => state.setIsDrawerOpen);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleGoogleSignIn = async () => {
+    try {
+      setIsLoading(true);
+      await signIn("google", {
+        redirect: true,
+      });
+    } catch (error) {
+      console.error("Sign in error:", error);
+      setIsLoading(false);
+    }
+  };
 
   return (
     <div className="bg-white h-full w-full rounded-md bg-gradient-to-tr from-gray-300 from-20% to-transparent to-100%">
-      <div className="w-full flex justify-end p-2 mb-4 pt-6 pr-6">
-        <Image src="/logo.webp" alt="Logo" width={100} height={100} className="w-3/8 h-auto" />
-        <div className="fixed top-0 left-0 p-2">
+      <div className="w-full flex justify-end  mb-4 ">
+        <div className="static w-full flex flex-col  gap-4 top-0 left-0 p-2 bg-gradient-to-r from-transparent/0 via-gray-300/100  to-transparent/0 ">
           <FiChevronsRight
             size={24}
             className="text-gray-500 cursor-pointer"
@@ -31,6 +38,14 @@ export const DrawerTemplate = ({ type }: DrawerTemplateProps) => {
               setIsDrawerOpen(false);
             }}
           />
+          <div>
+            <div className="pl-1 text-lg text-center">
+              {`Welcome to Wizzington Moo's UK`}
+            </div>
+            <p className="font-thin! text-center italic">
+              Costumes that transform every performance
+            </p>
+          </div>
         </div>
       </div>
 
@@ -55,46 +70,44 @@ export const DrawerTemplate = ({ type }: DrawerTemplateProps) => {
             ))}
         </ul>
       </div>
+      <div className="flex flex-col w-full fixed bottom-0 left-0 items-center gap-4">
+        <Image
+          src="/logo.webp"
+          alt="Logo"
+          width={150}
+          height={150}
+          className="w-4/8 h-auto "
+        />
 
-      {session?.user && (
-        <>
-          <div className="flex flex-col w-full fixed bottom-0 left-0 text-lg text-gray-100 p-4 items-center gap-2">
-            <Separator />
-            <div className="flex w-full items-center">
-              <Avatar.Root>
-                <Avatar.Image src={session.user.image || undefined} />
-                <Avatar.Fallback className="bg-blue-500 text-white p-2 rounded-full">
-                  {session.user.name
-                    ?.split(" ")
-                    .map((n: string) => n[0])
-                    .join("")
-                    .toUpperCase()
-                    .slice(0, 2) || "?"}
-                </Avatar.Fallback>
-              </Avatar.Root>
-              <div className="flex flex-col ml-2">
-                <span className="text-gray-800 text-sm font-semibold">
-                  {session.user.name}
-                </span>
-                <span className="text-gray-600 text-xs">
-                  {session.user.email}
-                </span>
-              </div>
-            </div>
-            {type === USER_ROLE.USER && (
+        {session?.user ? (
+          <div className="w-full p-4 bg-gradient-to-r from-transparent/0 via-gray-300/100  to-transparent/0 ">
+            <div className="flex flex-row w-full justify-between">
+              {session.user.role === USER_ROLE.ADMIN && (
+                <Link
+                  href="/admin"
+                  onClick={() => setIsDrawerOpen(false)}
+                  className="flex justify-center text-gray-800 text-sm w-full text-center mt-2"
+                >
+                  Admin Portal
+                </Link>
+              )}
               <Link
-                href="/admin"
-                onClick={() => {
-                  setIsDrawerOpen(false);
-                }}
-                className="text-gray-800 text-sm w-full text-center mt-2"
+                onClick={() => signOut()}
+                href=""
+                className="flex justify-center text-gray-800 text-sm w-full text-center mt-2 lg:hidden"
               >
-                Admin Portal
+                Logout
               </Link>
-            )}
+            </div>
           </div>
-        </>
-      )}
+        ) : (
+          <div className="flex justify-center w-full p-4 bg-gradient-to-r from-transparent via-gray-400/25  to-transparent ">
+            <Link href="" onClick={handleGoogleSignIn} className="font-normal!">
+              {isLoading ? "Signing in..." : "Sign in with Google"}
+            </Link>
+          </div>
+        )}
+      </div>
     </div>
   );
 };

@@ -1,5 +1,5 @@
 "use client";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import {
   ColumnFiltersState,
   SortingState,
@@ -20,7 +20,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { getCachedProducts } from "@/actions";
+import { deleteProduct } from "@/actions";
 
 import {
   columns,
@@ -31,26 +31,25 @@ import { ProductFilter } from "./ProductFilter";
 
 import { useRouter } from "next/navigation";
 import { ProductDTO } from "@/lib/types";
+import { DialogBox } from "../../dialogBox/DialogBox";
+import { Button } from "../../ui/button";
+import { LuOctagonAlert } from "react-icons/lu";
 
-const ProductList = () => {
+const ProductList = ({ products }: { products: ProductDTO[] }) => {
   const router = useRouter();
 
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = useState({});
-  const [data, setData] = useState<ProductDTO[]>([]);
-
-  useEffect(() => {
-    const fetchProducts = async () => {
-      const products = await getCachedProducts();
-      if (products) setData(products);
-    };
-    fetchProducts();
-  }, []);
+  const [showDeleteDialog, setShowDeleteDialog] = useState<{
+    show: boolean;
+    id: string;
+    name: string;
+  } | null>(null);
 
   const table = useReactTable({
-    data,
+    data: products,
     columns,
     defaultColumn: {
       minSize: 50,
@@ -129,27 +128,22 @@ const ProductList = () => {
                     {flexRender(cell.column.columnDef.cell, {
                       ...cell.getContext(),
 
-                      onClick: ({
-                        viewProduct,
-                        deleteProduct,
+                      onClick: async ({
+                        view,
+                        delete: shouldDelete,
                       }: ProductListCustomCellContextProps) => {
-                        // TODO: Need to add confirmation modal for delete
-                        if (deleteProduct) {
-                          // TODO: Implement delete mutation
-                          // For now, just remove from local state
-                          const updatedProductList = data.filter(
-                            (product) => product.id !== cell.row.original.id,
-                          );
-
-                          setData(updatedProductList);
+                        const productId = cell.row.original.id;
+                        console.log("shouldDelete", shouldDelete);
+                        if (shouldDelete && productId) {
+                          setShowDeleteDialog({
+                            show: true,
+                            id: productId,
+                            name: cell.row.original.name,
+                          });
                         }
 
-                        if (
-                          viewProduct &&
-                          !deleteProduct &&
-                          cell.row.original.id
-                        ) {
-                          router.push(`/product/${cell.row.original.id}`);
+                        if (view && productId) {
+                          router.push(`/product/${productId}`);
                         }
                       },
                     })}
@@ -167,7 +161,7 @@ const ProductList = () => {
         )}
       </TableBody>
     ),
-    [table, data, router],
+    [table, router],
   );
 
   return (
@@ -186,7 +180,47 @@ const ProductList = () => {
           </div>
         </div>
       </div>
-      <ProductTableFooter table={table} allRowCount={data.length} />
+      <ProductTableFooter table={table} allRowCount={products.length} />
+      {showDeleteDialog && (
+        <DialogBox
+          onOpenChange={(open) => !open && setShowDeleteDialog(null)}
+          open={showDeleteDialog?.show}
+          content={
+            <div className="flex items-center gap-4">
+              <LuOctagonAlert size={200} className="text-red-500" />
+
+              <div className="flex flex-col gap-2">
+                <div className="font-bold text-2xl">
+                  Are you sure you wish to delete:
+                </div>
+                <div className="text-xl">{showDeleteDialog.name}</div>
+                <div className="border border-red-300 p-4 rounded">
+                  Deleting this product will remove it from the product
+                  listings. If you wish to un-delete the product click on the
+                  Show Deleted button and chose the product to un-delete.
+                </div>
+              </div>
+            </div>
+          }
+          footer={
+            <div className="flex gap-2">
+              <Button
+                onClick={async () => {
+                  await deleteProduct(showDeleteDialog.id);
+                }}
+              >
+                Delete
+              </Button>
+              <Button
+                onClick={() => setShowDeleteDialog(null)}
+                className="bg-red-500 text-white"
+              >
+                Cancel
+              </Button>
+            </div>
+          }
+        />
+      )}
     </>
   );
 };
