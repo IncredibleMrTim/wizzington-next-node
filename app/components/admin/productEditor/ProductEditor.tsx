@@ -54,7 +54,8 @@ const formSchema = z.object({
 });
 
 export const ProductEditor = () => {
-  const { product, updateImages, save } = useProductEditor();
+  const { product, updateImages, save, uploadAndUpdateImages } =
+    useProductEditor();
   const router = useRouter();
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
 
@@ -67,8 +68,8 @@ export const ProductEditor = () => {
       description: product?.description || "",
       price: product?.price ?? 0,
       stock: product?.stock ?? 0,
-      isFeatured: product?.isFeatured ?? false,
-      isEnquiryOnly: product?.isEnquiryOnly ?? false,
+      isFeatured: product?.isFeatured ?? true,
+      isEnquiryOnly: product?.isEnquiryOnly ?? true,
       category: undefined,
     },
   });
@@ -126,65 +127,30 @@ export const ProductEditor = () => {
 
     // Skip redirect if we have files to upload
     const hasFilesToUpload = selectedFiles.length > 0;
-    await save(payload, hasFilesToUpload);
+
+    // Always save the product (create or update)
+    const savedProduct = await save(payload, hasFilesToUpload);
+    const productId = savedProduct.id;
 
     // Upload selected files after product is saved
-    const productId = values.id || product?.id;
     if (hasFilesToUpload && productId) {
-      await uploadFilesAndUpdateProduct(productId, selectedFiles);
-      setSelectedFiles([]);
-      // Navigate to admin after upload completes
-      router.replace("/admin");
-    }
-  };
-
-  const uploadFilesAndUpdateProduct = async (
-    productId: string,
-    files: File[],
-  ) => {
-    try {
-      const { upload } = await import("@vercel/blob/client");
-
-      const uploadPromises = files.map(async (file) => {
-        const blob = await upload(file.name, file, {
-          access: "public",
-          handleUploadUrl: "/api/upload/blob",
-        });
-
-        return {
-          id: crypto.randomUUID(),
-          productId: productId,
-          url: blob.url,
-          orderPosition: product?.images?.length ?? 0,
-          createdAt: new Date(),
-        };
-      });
-
-      const uploadedImages = await Promise.all(uploadPromises);
-
-      // Update product images with uploaded URLs
-      const allImages = [...(product?.images ?? []), ...uploadedImages];
-      updateImages(allImages);
-
-      // Save product with updated images to database
-      const updatedPayload: ProductDTO = {
-        id: productId || product?.id || crypto.randomUUID(),
-        name: product?.name || "",
-        description: product?.description ?? null,
-        price: product?.price ?? 0,
-        stock: product?.stock ?? 0,
-        isFeatured: product?.isFeatured ?? false,
-        isEnquiryOnly: product?.isEnquiryOnly ?? false,
-        categoryId: product?.categoryId ?? null,
-        images: allImages as ProductImage[],
-        createdAt: product?.createdAt ?? new Date(),
-        updatedAt: new Date(),
-      };
-
-      await save(updatedPayload);
-    } catch (error) {
-      console.error("File upload error:", error);
-      alert("Failed to upload images. Please try again.");
+      try {
+        const uploadedImages = await uploadAndUpdateImages(
+          productId,
+          selectedFiles,
+        );
+        updateImages([...(product?.images ?? []), ...uploadedImages]);
+        setSelectedFiles([]);
+        // Navigate to admin after upload completes
+        router.replace("/admin");
+      } catch (error) {
+        const errorMessage =
+          error instanceof Error ? error.message : String(error);
+        alert(errorMessage);
+      }
+    } else if (!hasFilesToUpload) {
+      // If no files to upload, navigate immediately
+      router.push("/admin");
     }
   };
 
@@ -418,7 +384,7 @@ export const ProductEditor = () => {
                                 : ""
                             }`}
                             id={field.name}
-                            checked={field.value}
+                            checked={field.value || true}
                             name={field.name}
                             ref={field.ref}
                             onBlur={field.onBlur}

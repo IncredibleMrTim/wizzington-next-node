@@ -136,6 +136,8 @@ export const updateProductById = async (
   revalidateTag("products", "max");
 
   revalidatePath("/admin");
+  // Revalidate the product details page (convert ID to URL slug format with dashes)
+  revalidatePath(`/product/${id.replace(/\s+/g, "-")}`);
 
   return {
     ...product,
