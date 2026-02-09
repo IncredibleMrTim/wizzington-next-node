@@ -66,7 +66,9 @@ export const ProductDetails = ({ product }: { product: ProductDTO }) => {
         <h1 className="text-4xl font-bold">{product.name}</h1>
 
         {product.description && (
-          <p className="text-gray-600 text-lg">{product.description}</p>
+          <p className="text-gray-600 text-lg whitespace-pre-wrap">
+            {product.description}
+          </p>
         )}
 
         <div className="flex gap-8 items-center">
@@ -94,8 +96,8 @@ export const ProductDetails = ({ product }: { product: ProductDTO }) => {
 
         {product.isEnquiryOnly && (
           <div className="bg-yellow-50 border border-yellow-200 rounded p-3 text-yellow-800">
-            This item is available on enquiry only. Please contact us for more
-            information.
+            This item is available on enquiry only. Please add sizing details to
+            make an enquiry.
           </div>
         )}
       </div>

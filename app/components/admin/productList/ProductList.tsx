@@ -123,7 +123,7 @@ const ProductList = ({ products }: { products: ProductDTO[] }) => {
                     style={{
                       width: `${cell.column.columnDef.size}px`, // Apply explicit size
                     }}
-                    className="overflow-hidden text-ellipsis whitespace-nowrap py-4"
+                    className="overflow-hidden text-ellipsis truncate whitespace-nowrap py-4"
                   >
                     {flexRender(cell.column.columnDef.cell, {
                       ...cell.getContext(),
@@ -133,7 +133,7 @@ const ProductList = ({ products }: { products: ProductDTO[] }) => {
                         delete: shouldDelete,
                       }: ProductListCustomCellContextProps) => {
                         const productId = cell.row.original.id;
-                        console.log("shouldDelete", shouldDelete);
+
                         if (shouldDelete && productId) {
                           setShowDeleteDialog({
                             show: true,
@@ -207,6 +207,7 @@ const ProductList = ({ products }: { products: ProductDTO[] }) => {
               <Button
                 onClick={async () => {
                   await deleteProduct(showDeleteDialog.id);
+                  setShowDeleteDialog(null);
                 }}
               >
                 Delete

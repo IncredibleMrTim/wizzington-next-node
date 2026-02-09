@@ -117,7 +117,7 @@ export const FileUploader = ({
     try {
       // Compress files only, don't upload yet
       const compressedFiles = await Promise.all(
-        validFiles.map((file) => compressImage(file))
+        validFiles.map((file) => compressImage(file)),
       );
 
       // Store compressed files in parent state via callback
@@ -127,10 +127,10 @@ export const FileUploader = ({
       }
 
       // Create preview URLs for display only (not saved to DB)
-      const newPreviewUrls = compressedFiles.map(file => URL.createObjectURL(file));
-      setPreviewUrls(prev => [...prev, ...newPreviewUrls]);
-
-
+      const newPreviewUrls = compressedFiles.map((file) =>
+        URL.createObjectURL(file),
+      );
+      setPreviewUrls((prev) => [...prev, ...newPreviewUrls]);
     } catch (error) {
       console.error("Compression error:", error);
       alert("Failed to compress files. Please try again.");
@@ -198,7 +198,10 @@ export const FileUploader = ({
       <div className="flex flex-col gap-2 w-1/2">
         <div className="flex flex-wrap border border-gray-300 bg-white h-64 p-2 overflow-scroll w-full">
           {(previewUrls.length > 0 || product?.images) &&
-            [...(previewUrls.map(url => ({ url, orderPosition: 0 })) || []), ...(product?.images || [])]
+            [
+              ...(previewUrls.map((url) => ({ url, orderPosition: 0 })) || []),
+              ...(product?.images || []),
+            ]
               ?.sort(
                 (a, b) => (a?.orderPosition ?? 0) - (b?.orderPosition ?? 0),
               )
@@ -209,7 +212,7 @@ export const FileUploader = ({
                     className="flex flex-col bg-white w-1/5 items-center p-2"
                   >
                     <div
-                      className="flex border border-gray-200 h-32 p-2 relative justify-center items-center"
+                      className="w-full flex border border-gray-200 h-32 p-2 relative justify-center items-center"
                       draggable
                       onDragStart={() => {
                         dragKey.current = file?.url;
