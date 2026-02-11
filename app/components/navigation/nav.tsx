@@ -1,6 +1,15 @@
-import { NavComponent } from "./NavUserButtons";
+import {
+  NavigationMenu,
+  NavigationMenuContent,
+  NavigationMenuItem,
+  NavigationMenuLink,
+  NavigationMenuList,
+  NavigationMenuTrigger,
+  navigationMenuTriggerStyle,
+} from "@/components/ui/navigation-menu";
+import { Separator } from "../separator/Separator";
 
-export interface MenuItem {
+interface MenuItem {
   id: string;
   type: "link" | "button";
   title: string;
@@ -18,7 +27,7 @@ const menuItems: MenuItem[] = [
   {
     id: "pageant-wear",
     type: "link",
-    title: "PAGEANT WEAR",
+    title: "Pageant Wear",
     href: "/docs/primitives/alert-dialog",
     items: [
       {
@@ -254,59 +263,75 @@ const menuItems: MenuItem[] = [
 ];
 
 /**
- * Recursively render menu items and their nested items
- * Level 1 items (direct children of main menu) create separate columns
+ * Recursively renders menu items with proper layout and nesting
+ *
+ * @param content - Array of menu items to render
+ * @param isTopLevel - Whether this is the top-level rendering (default: true)
+ *   - true: items displayed horizontally (flex-row) only if items have sub-categories/children
+ *   - false: items positioned vertically (flex-col) - used for nested sub-items
+ *   - When isTopLevel is true but items have no children, displays vertically (simple list)
+ *
+ * @returns Rendered menu structure with ULs and LIs, where:
+ *   - Each item displays its title (bold if it has children)
+ *   - Child items are rendered in a recursive call below the parent title
+ *   - Multiple sub-categories appear side-by-side horizontally (e.g., Figure Skating and Aerial)
+ *   - Simple item lists with no sub-categories appear vertically (e.g., Pageant Wear items)
+ *   - Nested items appear stacked vertically below their parent
  */
-const renderMenuItems = (
-  items: MenuItem[],
-  depth: number = 0,
-): React.ReactNode => {
-  // Check if any items have subitems - if so, we're rendering level-1 items
-  const hasNestedItems = items.some(
+const renderMenuContent = (content: MenuItem[], isTopLevel: boolean = true) => {
+  // Check if any items have children - determines if this should be horizontal or vertical
+  const hasSubcategories = content.some(
     (item) => item.items && item.items.length > 0,
   );
+  const shouldBeHorizontal = isTopLevel && hasSubcategories;
 
-  // Level 1 items with subitems should be in columns
-  if (depth === 0 && hasNestedItems) {
-    return (
-      <div className="flex gap-8">
-        {items.map((item) => (
-          <div key={item.id}>
-            <h3 className="font-semibold mb-2">{item.title}</h3>
-            {item.items &&
-              item.items.length > 0 &&
-              renderMenuItems(item.items, depth + 1)}
-          </div>
-        ))}
-      </div>
-    );
-  }
-
-  // Regular list for deeper levels
   return (
-    <ul>
-      {items.map((item) => (
-        <li key={item.id}>
-          {item.title}
-          {item.items &&
-            item.items.length > 0 &&
-            renderMenuItems(item.items, depth + 1)}
-        </li>
+    <div
+      className={`${shouldBeHorizontal ? "flex flex-row gap-8" : "flex flex-col gap-2"} w-max`}
+    >
+      {content.map((item) => (
+        <ul key={item.id} className="flex flex-col">
+          <li
+            className={`flex flex-col${item.items ? "text-lg uppercase pb-6" : ""} pr-8`}
+          >
+            {item.title}
+          </li>
+          {item?.items ? (
+            <li className="">{renderMenuContent(item?.items, false)}</li>
+          ) : null}
+        </ul>
       ))}
-    </ul>
+    </div>
   );
 };
 
-const components: NavComponent[] = menuItems.map((item) => ({
-  id: item.id,
-  type: item.type,
-  title: item.title,
-  href: item.href,
-  menuItems: item.items,
-  content: item.items ? (
-    <div className="p-4">{renderMenuItems(item.items)}</div>
-  ) : null,
-}));
-
-export default components;
-export { menuItems };
+export const Nav = () => {
+  return (
+    <NavigationMenu viewport={false}>
+      <NavigationMenuList>
+        {menuItems.map((n0) => (
+          <NavigationMenuItem key={n0.id}>
+            {n0.items?.length ? (
+              <>
+                <NavigationMenuTrigger className="font-normal">
+                  {n0.title.toUpperCase()}
+                </NavigationMenuTrigger>
+                <NavigationMenuContent className="z-10 bg-white border-0! border-t-2! rounded-none! shadow-lg! flex flex-row mt-0! p-6">
+                  <NavigationMenuLink className="font-normal">
+                    {renderMenuContent(n0.items)}
+                  </NavigationMenuLink>
+                </NavigationMenuContent>
+              </>
+            ) : (
+              <NavigationMenuLink
+                className={`${navigationMenuTriggerStyle()} font-normal`}
+              >
+                {n0.title.toLocaleUpperCase()}
+              </NavigationMenuLink>
+            )}
+          </NavigationMenuItem>
+        ))}
+      </NavigationMenuList>
+    </NavigationMenu>
+  );
+};

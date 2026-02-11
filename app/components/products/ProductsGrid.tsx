@@ -13,11 +13,13 @@ export const ProductsGrid = ({ products }: Props) => {
   return (
     <>
       {featuredProducts.map((product) => (
-        <ProductCard
-          showDescription={false}
-          key={product.id}
-          product={product}
-        />
+        <div key={product.id} className="w-full md:w-1/2 lg:w-1/4">
+          <ProductCard
+            showDescription={false}
+            key={product.id}
+            product={product}
+          />
+        </div>
       ))}
     </>
   );
