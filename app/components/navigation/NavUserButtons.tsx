@@ -3,17 +3,13 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useState, useCallback, memo } from "react";
-import { useRouter } from "next/navigation";
 import { AuthUserMenu } from "../auth/authUserMenu/AuthUserMenu";
-import userComponents from "./userComponents";
-import { Button } from "@/components/ui/button";
 import {
   Popover,
   PopoverTrigger,
   PopoverContent,
 } from "@/components/ui/popover";
 import { PopoverClose } from "@radix-ui/react-popover";
-import { FiPlus } from "react-icons/fi";
 import { CgShoppingCart } from "react-icons/cg";
 import { useSession } from "next-auth/react";
 import { USER_ROLE } from "@/lib/types";
@@ -34,16 +30,13 @@ export type NavComponent = {
 // it will render a list of components based on the type
 // if the type is "user", it will render the user components
 // if the type is "admin", it will render the admin components
-interface NavigationProps {
+interface NavUserButtonsProps {
   type?: USER_ROLE;
 }
 
-const Navigation = ({ type = USER_ROLE.USER }: NavigationProps) => {
-  const [selected, setSelected] = useState<NavComponent | null>(null);
-  const [hoveredPath, setHoveredPath] = useState<string[]>([]);
+const NavUserButtons = ({ type = USER_ROLE.USER }: NavUserButtonsProps) => {
   const [adminMenuOpen, setAdminMenuOpen] = useState(false);
-  const components = userComponents;
-  const router = useRouter();
+
   const { data: userData } = useSession();
 
   // Get initials from firstName/lastName or fallback to name
@@ -65,17 +58,8 @@ const Navigation = ({ type = USER_ROLE.USER }: NavigationProps) => {
     setAdminMenuOpen(false);
   }, []);
 
-  const handleMouseLeave = useCallback(() => {
-    setSelected(null);
-    setHoveredPath([]);
-  }, []);
-
   return (
-    <div
-      className={` bg-white box-border z-1 relative 
-         ${selected && "h-auto"} `}
-      onMouseLeave={handleMouseLeave}
-    >
+    <div className="bg-white box-border z-1 relative">
       <div className="flex absolute right-2 items-center gap-2 ">
         <Link
           href="/basket"
@@ -118,4 +102,4 @@ const Navigation = ({ type = USER_ROLE.USER }: NavigationProps) => {
   );
 };
 
-export default memo(Navigation);
+export default memo(NavUserButtons);

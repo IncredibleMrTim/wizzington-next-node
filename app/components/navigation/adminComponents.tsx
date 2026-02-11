@@ -1,4 +1,4 @@
-import { NavComponent } from "./Navigation";
+import { NavComponent } from "./NavUserButtons";
 import { FiPlus } from "react-icons/fi";
 
 const components: NavComponent[] = [

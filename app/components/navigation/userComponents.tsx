@@ -1,4 +1,4 @@
-import { NavComponent } from "./Navigation";
+import { NavComponent } from "./NavUserButtons";
 
 export interface MenuItem {
   id: string;
@@ -297,17 +297,16 @@ const renderMenuItems = (
   );
 };
 
-const components: NavComponent[] = menuItems
-  .map((item) => ({
-    id: item.id,
-    type: item.type,
-    title: item.title,
-    href: item.href,
-    menuItems: item.items,
-    content: item.items ? (
-      <div className="p-4">{renderMenuItems(item.items)}</div>
-    ) : null,
-  }));
+const components: NavComponent[] = menuItems.map((item) => ({
+  id: item.id,
+  type: item.type,
+  title: item.title,
+  href: item.href,
+  menuItems: item.items,
+  content: item.items ? (
+    <div className="p-4">{renderMenuItems(item.items)}</div>
+  ) : null,
+}));
 
 export default components;
 export { menuItems };

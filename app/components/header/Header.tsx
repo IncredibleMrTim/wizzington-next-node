@@ -1,6 +1,6 @@
 "use client";
 import Image from "next/image";
-import Navigation from "@/components/navigation/Navigation";
+import NavUserButtons from "@/components/navigation/NavUserButtons";
 import { useRouter } from "next/navigation";
 import { Drawer } from "../drawer/Drawer";
 import { useSession } from "next-auth/react";
@@ -41,7 +41,7 @@ const Header = () => {
       </header>
       <div className="relative hidden w-full  md:flex md:justify-center">
         <div className="absolute right-2">
-          <Navigation type={userData?.user.role} />
+          <NavUserButtons type={userData?.user.role} />
         </div>
         <Nav />
       </div>
