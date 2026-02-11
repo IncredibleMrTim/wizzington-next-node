@@ -28,8 +28,8 @@ export const DrawerTemplate = () => {
   };
 
   return (
-    <div className="bg-white h-full w-full rounded-md bg-gradient-to-tr from-gray-300 from-20% to-transparent to-100%">
-      <div className="w-full flex justify-end  mb-4 ">
+    <div className="bg-white h-full w-full rounded-md bg-gradient-to-tr from-gray-5- from-20% to-transparent to-100% text-black text-center">
+      <div className="w-full flex justify-end">
         <div className="static w-full flex flex-col  gap-4 top-0 left-0 p-2 bg-gradient-to-r from-transparent/0 via-gray-300/100  to-transparent/0 ">
           <FiChevronsRight
             size={24}
@@ -39,10 +39,10 @@ export const DrawerTemplate = () => {
             }}
           />
           <div>
-            <div className="pl-1 text-lg text-center">
+            <div className="pl-1 text-lg">
               {`Welcome to Wizzington Moo's UK`}
             </div>
-            <p className="font-thin! text-center italic">
+            <p className="font-thin! italic">
               Costumes that transform every performance
             </p>
           </div>
@@ -57,12 +57,12 @@ export const DrawerTemplate = () => {
                 <li key={component.id} className="py-4 w-full h-full">
                   <Link
                     href={component.href}
-                    className="flex text-lg text-gray-700 w-full place-items-center"
+                    className="flex text-sm text-gray-700 w-full place-items-center"
                     onClick={() => {
                       setIsDrawerOpen(false);
                     }}
                   >
-                    {component.title}
+                    {component.title.toUpperCase()}
                   </Link>
                 </li>
                 <Separator />

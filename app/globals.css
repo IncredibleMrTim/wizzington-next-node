@@ -1,5 +1,6 @@
 @import "tailwindcss";
 
+
 :root {
   --radius: 0.3rem;
   --background: oklch(1 0 0);
@@ -87,6 +88,54 @@
   src: url("./fonts/Allura-Regular.ttf");
 }
 
+@font-face {
+  font-family: "Comfortaa";
+  display: swap;
+  src: url("./fonts/Comfortaa-VariableFont_wght.ttf");
+}
+
+@font-face {
+  font-family: "EduNSWACT";
+  display: swap;
+  src: url("./fonts/EduNSWACTCursive-VariableFont_wght.ttf");
+}
+
+@font-face {
+  font-family: "jost";
+  display: swap;
+  src: url("./fonts/Jost-VariableFont_wght.ttf");
+}
+
+@keyframes nav-fade-in {
+  0% {
+    opacity: 0
+  }
+  100% {
+    opacity: 1
+  }
+}
+
+@keyframes nav-fade-out {
+  0% {
+    opacity: 1
+  }
+  100% {
+    opacity: 0
+  }
+}
+
+
+
+/* Apply custom fade animation to navigation menu content */
+[data-slot="navigation-menu-content"][data-state="open"] {
+  animation: nav-fade-in 0.4s cubic-bezier(0.4, 0, 0.2, 1) both !important;
+}
+
+[data-slot="navigation-menu-content"][data-state="closed"] {
+  animation: nav-fade-out 0.4s cubic-bezier(0.4, 0, 0.2, 1) both !important;
+  pointer-events: none !important;
+}
+
 @keyframes fade-in-scale {
   0% {
     max-height: 0;
@@ -125,6 +174,8 @@
   font-family: "PetitFormalScript", sans-serif !important;
 }
 
+
+
 p {
   font-family: "LeagueSpartan", sans-serif;
   font-size: 14px !important;
@@ -144,7 +195,7 @@ h3,
 h4,
 h5,
 h6 {
-  font-family: "LeagueSpartan", sans-serif;
+  font-family: "jost";
 }
 
 h1 {
@@ -169,4 +220,28 @@ h4 {
   font-size: 1.1rem !important;
   font-weight: 700;
   margin: 0;
+}
+
+.font-nunitoSans {
+  font-family: "NunitoSans";
+}
+
+.font-petitFormalScript{
+  font-family: "PetitFormalScript";
+}
+
+.font-leagueSpartan {
+  font-family: "LeagueSpartan";
+}
+
+.font-Comfortaa {
+  font-family: "Comfortaa"
+}
+
+.font-EduNSWACT {
+  font-family: "EduNSWACT";
+}
+
+.font-jost {
+  font-family: "jost";
 }

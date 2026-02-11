@@ -1,6 +1,5 @@
 import { Suspense } from "react";
 import { getCachedProducts, getFeaturedProductCount } from "./actions";
-import { Separator } from "./components/separator/Separator";
 import { ProductCardSkeleton } from "@/components/products/productCard/ProductCardSkeleton";
 import { ProductsGrid } from "@/components/products/ProductsGrid";
 
@@ -36,13 +35,7 @@ export default async function App() {
   return (
     <main>
       <div className="flex flex-col">
-        <Separator />
-        <p className="md:px-48 text-black opacity-80 w-full text-center p-6">
-          Costumes that transform every performance into an unforgettable
-          spectacle, embracing individuality and artistry.
-        </p>
-        <Separator />
-
+        <div className="flex flex-col items-center gap-6"></div>
         <Suspense fallback={<ProductsSkeleton count={productCount} />}>
           <ProductsSection />
         </Suspense>
