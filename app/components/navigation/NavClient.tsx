@@ -1,4 +1,5 @@
 "use client";
+import Link from "next/link";
 import {
   NavigationMenu,
   NavigationMenuContent,
@@ -61,8 +62,12 @@ const transformCategoriesToMenuItems = (
  *   - Simple item lists with no sub-categories appear vertically (e.g., Pageant Wear items)
  *   - Nested items appear stacked vertically below their parent
  */
-const renderMenuContent = (content: MenuItem[], isTopLevel: boolean = true) => {
+const renderMenuContent = (
+  content: MenuItem[],
+  isTopLevel: boolean = true,
+) => {
   // Check if any items have children - determines if this should be horizontal or vertical
+
   const hasSubcategories = content.some(
     (item) => item.items && item.items.length > 0,
   );
@@ -74,13 +79,15 @@ const renderMenuContent = (content: MenuItem[], isTopLevel: boolean = true) => {
     >
       {content.map((item) => (
         <ul key={item.id} className="flex flex-col">
-          <li
-            className={`flex flex-col${item.items ? "text-lg uppercase pb-6" : ""} pr-8`}
-          >
-            {item.title}
+          <li className={`flex flex-col${item.items ? "text-lg uppercase pb-6" : ""} pr-8`}>
+            <Link href={`/category/${item.id}`}>
+              {item.title}
+            </Link>
           </li>
           {item?.items ? (
-            <li className="">{renderMenuContent(item?.items, false)}</li>
+            <li className="">
+              {renderMenuContent(item?.items, false)}
+            </li>
           ) : null}
         </ul>
       ))}
@@ -94,35 +101,38 @@ export const NavClient = ({
   categories: CategoryWithChildren[];
 }) => {
   const menuItems = transformCategoriesToMenuItems(categories);
-
   return (
     <NavigationMenu viewport={false}>
       <NavigationMenuList>
+        <NavigationMenuItem>
+          <NavigationMenuLink
+            className={`${navigationMenuTriggerStyle()} font-normal`}
+            href={`/`}
+          >
+            HOME
+          </NavigationMenuLink>
+        </NavigationMenuItem>
         {menuItems.map((n0) => (
-            <NavigationMenuItem key={n0.id}>
-              {n0.items?.length ? (
-                <>
-                  <NavigationMenuTrigger className="font-normal">
-                    {n0.title.toUpperCase()}
-                  </NavigationMenuTrigger>
-                  <NavigationMenuContent className="z-10 bg-white border-0! border-t-2! rounded-none! shadow-lg! flex flex-row mt-0! p-6">
-                    <NavigationMenuLink className="font-normal" href={n0.href}>
-                      {renderMenuContent(
-                        n0.items.sort((item) => item.position),
-                      )}
-                    </NavigationMenuLink>
-                  </NavigationMenuContent>
-                </>
-              ) : (
-                <NavigationMenuLink
-                  className={`${navigationMenuTriggerStyle()} font-normal`}
-                  href={n0.href}
-                >
-                  {n0.title.toLocaleUpperCase()}
-                </NavigationMenuLink>
-              )}
-            </NavigationMenuItem>
-          ))}
+          <NavigationMenuItem key={n0.id}>
+            {n0.items?.length ? (
+              <>
+                <NavigationMenuTrigger className="font-normal">
+                  {n0.title.toUpperCase()}
+                </NavigationMenuTrigger>
+                <NavigationMenuContent className="z-10 bg-white border-0! border-t-2! rounded-none! shadow-lg! flex flex-row mt-0! p-6">
+                  {renderMenuContent(n0.items.sort((item) => item.position))}
+                </NavigationMenuContent>
+              </>
+            ) : (
+              <NavigationMenuLink
+                className={`${navigationMenuTriggerStyle()} font-normal`}
+                href={`/category/${n0.id}`}
+              >
+                {n0.title.toLocaleUpperCase()}
+              </NavigationMenuLink>
+            )}
+          </NavigationMenuItem>
+        ))}
       </NavigationMenuList>
     </NavigationMenu>
   );

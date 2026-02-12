@@ -177,3 +177,28 @@ export const deleteProduct = async (id: string) => {
   revalidateTag("products", "max");
   revalidatePath("/admin/products");
 };
+
+export const getProductsByCategoryId = async (
+  categoryId: string,
+): Promise<ProductDTO[]> => {
+  const products = await prisma.product.findMany({
+    where: {
+      categoryId,
+    },
+    include: {
+      images: {
+        orderBy: {
+          orderPosition: "asc",
+        },
+      },
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+  });
+
+  return products.map((product) => ({
+    ...product,
+    price: Number(product.price),
+  }));
+};

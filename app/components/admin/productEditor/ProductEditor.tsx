@@ -29,6 +29,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 
 import { useProductEditor, formSchema } from "./useProductEditor";
 import { useEffect } from "react";
+import { CategoryWithChildren } from "@/app/actions/categories.action";
 
 export const ProductEditor = () => {
   const {
@@ -38,6 +39,7 @@ export const ProductEditor = () => {
     setSelectedFiles,
     handleSubmit,
     updateProductImageOrder,
+    categories,
   } = useProductEditor();
   const router = useRouter();
 
@@ -52,7 +54,7 @@ export const ProductEditor = () => {
       stock: product?.stock ?? 0,
       isFeatured: product?.isFeatured ?? true,
       isEnquiryOnly: product?.isEnquiryOnly ?? true,
-      category: undefined,
+      category: product?.categoryId || undefined,
     },
   });
 
@@ -63,6 +65,45 @@ export const ProductEditor = () => {
     validateForm();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [product?.id]);
+
+  /**
+   * Recursively flattens categories with indentation for nested items
+   */
+  const flattenCategories = (
+    categories: CategoryWithChildren[],
+    level: number = 0,
+  ): Array<{ id: string; name: string; level: number }> => {
+    let flat: Array<{ id: string; name: string; level: number }> = [];
+    for (const cat of categories) {
+      flat.push({ id: cat.id, name: cat.name, level });
+      if (cat.children && cat.children.length > 0) {
+        flat = flat.concat(flattenCategories(cat.children, level + 1));
+      }
+    }
+    return flat;
+  };
+
+  const renderCategories = (
+    categories: CategoryWithChildren[],
+    onSelect: (catId: string) => void,
+  ) => {
+    const flatCats = flattenCategories(categories);
+    return (
+      <DropdownMenuContent className="bg-white w-(--radix-dropdown-menu-trigger-width) min-w-full">
+        {flatCats.map((cat) => (
+          <DropdownMenuItem
+            key={cat.id}
+            className="w-full cursor-pointer"
+            onClick={() => onSelect(cat.id)}
+          >
+            <span style={{ paddingLeft: `${cat.level * 16}px` }}>
+              {cat.name}
+            </span>
+          </DropdownMenuItem>
+        ))}
+      </DropdownMenuContent>
+    );
+  };
 
   return (
     <div className="-mt-8 bg-violet-50 p-4 shadow-sm shadow-gray-300 border-gray-200">
@@ -187,7 +228,6 @@ export const ProductEditor = () => {
             <div className="flex gap-4">
               <div className="w-[50%]">
                 <FormField
-                  disabled={true}
                   control={form.control}
                   name="category"
                   render={({ field }) => (
@@ -199,10 +239,9 @@ export const ProductEditor = () => {
                         Select product category.
                       </FormDescription>
                       <FormControl className="w-full">
-                        <div className="flex gap-2 w-container relative">
+                        <div className="flex gap-2 w-full">
                           <DropdownMenu>
                             <DropdownMenuTrigger
-                              disabled={field.disabled}
                               asChild
                               className="ring-0! bg-white w-full"
                             >
@@ -211,16 +250,16 @@ export const ProductEditor = () => {
                                 variant="outline"
                                 className="flex w-full justify-between"
                               >
-                                {field.value ?? "Category"}
+                                {flattenCategories(categories).find(
+                                  (cat) => cat.id === field.value,
+                                )?.name ?? "Category"}
                                 <ChevronDown className="ml-2 h-4 w-4" />
                               </Button>
                             </DropdownMenuTrigger>
-                            <DropdownMenuContent className="bg-white w-full">
-                              <DropdownMenuItem className="w-full">
-                                In Stock
-                              </DropdownMenuItem>
-                              <DropdownMenuItem>Out of Stock</DropdownMenuItem>
-                            </DropdownMenuContent>
+
+                            {renderCategories(categories, (catId) =>
+                              field.onChange(catId),
+                            )}
                           </DropdownMenu>
                         </div>
                       </FormControl>

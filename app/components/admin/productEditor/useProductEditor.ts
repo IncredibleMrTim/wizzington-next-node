@@ -1,11 +1,22 @@
 import { useParams, useRouter } from "next/navigation";
-import { useCallback, useEffect, useState, useTransition } from "react";
+import {
+  useCallback,
+  useEffect,
+  useState,
+  useTransition,
+  useActionState,
+} from "react";
 import { SubmitHandler } from "react-hook-form";
 import z from "zod";
 
 import { ProductImage, ProductDTO } from "@/lib/types";
 import { createProduct, getProductById, updateProductById } from "@/actions";
 import { useProductStore } from "@/stores";
+import { Category } from "@prisma/client";
+import {
+  CategoryWithChildren,
+  getCategories,
+} from "@/app/actions/categories.action";
 
 export const formSchema = z.object({
   name: z.string().min(1, { message: "Name is required" }),
@@ -30,8 +41,8 @@ export const formSchema = z.object({
 });
 
 interface UseProductEditorReturn {
-  // Product data
   product: ProductDTO | null;
+  categories: CategoryWithChildren[];
   isLoading: boolean;
   selectedFiles: File[];
 
@@ -66,6 +77,10 @@ export const useProductEditor = (): UseProductEditorReturn => {
   const [isPending, startTransition] = useTransition();
   const [isLoading, setIsLoading] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const [categories, getCategoriesAction] = useActionState(
+    async () => (await getCategories()).filter((c) => c.name !== "Home"),
+    [],
+  );
 
   const currentProduct = useProductStore((state) => state.currentProduct);
   const product = currentProduct;
@@ -86,6 +101,8 @@ export const useProductEditor = (): UseProductEditorReturn => {
       useProductStore.getState().clearCurrentProduct();
     }
   }, [productId]);
+
+  useEffect(() => getCategoriesAction(), []);
 
   /**
    * Updates the product images in the state
@@ -305,6 +322,7 @@ export const useProductEditor = (): UseProductEditorReturn => {
 
   return {
     product,
+    categories,
     isLoading: isLoading || isPending,
     selectedFiles,
     setSelectedFiles,
