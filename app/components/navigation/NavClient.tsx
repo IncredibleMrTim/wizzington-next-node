@@ -13,6 +13,7 @@ interface CategoryWithChildren {
   id: string;
   name: string;
   children: CategoryWithChildren[];
+  position: number;
 }
 
 interface MenuItem {
@@ -20,6 +21,7 @@ interface MenuItem {
   type: "link" | "button";
   title: string;
   href: string;
+  position: number;
   items?: MenuItem[];
 }
 
@@ -28,12 +30,13 @@ interface MenuItem {
  * Maps category id and name to MenuItem structure
  */
 const transformCategoriesToMenuItems = (
-  categories: CategoryWithChildren[]
+  categories: CategoryWithChildren[],
 ): MenuItem[] => {
   return categories.map((cat) => ({
     id: cat.id,
     type: "link" as const,
     title: cat.name,
+    position: cat.position,
     href: `/categories/${cat.id}`,
     items:
       cat.children && cat.children.length > 0
@@ -96,28 +99,30 @@ export const NavClient = ({
     <NavigationMenu viewport={false}>
       <NavigationMenuList>
         {menuItems.map((n0) => (
-          <NavigationMenuItem key={n0.id}>
-            {n0.items?.length ? (
-              <>
-                <NavigationMenuTrigger className="font-normal">
-                  {n0.title.toUpperCase()}
-                </NavigationMenuTrigger>
-                <NavigationMenuContent className="z-10 bg-white border-0! border-t-2! rounded-none! shadow-lg! flex flex-row mt-0! p-6">
-                  <NavigationMenuLink className="font-normal" href={n0.href}>
-                    {renderMenuContent(n0.items)}
-                  </NavigationMenuLink>
-                </NavigationMenuContent>
-              </>
-            ) : (
-              <NavigationMenuLink
-                className={`${navigationMenuTriggerStyle()} font-normal`}
-                href={n0.href}
-              >
-                {n0.title.toLocaleUpperCase()}
-              </NavigationMenuLink>
-            )}
-          </NavigationMenuItem>
-        ))}
+            <NavigationMenuItem key={n0.id}>
+              {n0.items?.length ? (
+                <>
+                  <NavigationMenuTrigger className="font-normal">
+                    {n0.title.toUpperCase()}
+                  </NavigationMenuTrigger>
+                  <NavigationMenuContent className="z-10 bg-white border-0! border-t-2! rounded-none! shadow-lg! flex flex-row mt-0! p-6">
+                    <NavigationMenuLink className="font-normal" href={n0.href}>
+                      {renderMenuContent(
+                        n0.items.sort((item) => item.position),
+                      )}
+                    </NavigationMenuLink>
+                  </NavigationMenuContent>
+                </>
+              ) : (
+                <NavigationMenuLink
+                  className={`${navigationMenuTriggerStyle()} font-normal`}
+                  href={n0.href}
+                >
+                  {n0.title.toLocaleUpperCase()}
+                </NavigationMenuLink>
+              )}
+            </NavigationMenuItem>
+          ))}
       </NavigationMenuList>
     </NavigationMenu>
   );
