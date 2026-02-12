@@ -1,16 +1,14 @@
-"use client";
-import Image from "next/image";
 import NavUserButtons from "@/components/navigation/NavUserButtons";
-import { useRouter } from "next/navigation";
-import { Drawer } from "../drawer/Drawer";
-import { useSession } from "next-auth/react";
-import { Nav } from "../navigation/nav";
+// import { Drawer } from "../drawer/Drawer";
+import { NavServer } from "../navigation/NavServer";
 import { Separator } from "../separator/Separator";
+import { HeaderClient } from "./HeaderClient";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 
-const Header = () => {
-  const router = useRouter();
+const Header = async () => {
+  const session = await getServerSession(authOptions);
 
-  const { data: userData } = useSession();
   return (
     <>
       <header className=" relative">
@@ -26,30 +24,18 @@ const Header = () => {
         ></div>
         {/* Content */}
         <div className="relative w-full flex justify-center md:justify-center p-4 h-48">
-          <div
-            className="relative w-40 h-40 cursor-pointer"
-            onClick={() => router.push("/")}
-          >
-            <Image
-              src="/logo.webp"
-              alt="Wizzington Moos Boutique Logo"
-              fill
-              style={{ objectFit: "contain" }}
-            />
-          </div>
+          <HeaderClient />
         </div>
       </header>
       <div className="relative hidden w-full  md:flex md:justify-center">
         <div className="absolute right-2">
-          <NavUserButtons type={userData?.user.role} />
+          <NavUserButtons type={session?.user.role} />
         </div>
-        <Nav />
+        <NavServer />
       </div>
       <Separator className="hidden md:flex" />
 
-      <div className="flex w-full visible md:hidden">
-        <Drawer />
-      </div>
+      <div className="flex w-full visible md:hidden">{/* <Drawer /> */}</div>
     </>
   );
 };

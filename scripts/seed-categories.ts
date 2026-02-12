@@ -1,12 +1,4 @@
-import {
-  NavigationMenu,
-  NavigationMenuContent,
-  NavigationMenuItem,
-  NavigationMenuLink,
-  NavigationMenuList,
-  NavigationMenuTrigger,
-  navigationMenuTriggerStyle,
-} from "@/components/ui/navigation-menu";
+import prisma from "../lib/prisma";
 
 interface MenuItem {
   id: string;
@@ -16,13 +8,11 @@ interface MenuItem {
   items?: MenuItem[];
 }
 
+/**
+ * Menu items from navigation - defines the category hierarchy
+ * Excludes "Home" as it's not a product category
+ */
 const menuItems: MenuItem[] = [
-  {
-    id: "home",
-    type: "link",
-    title: "Home",
-    href: "/",
-  },
   {
     id: "pageant-wear",
     type: "link",
@@ -262,76 +252,80 @@ const menuItems: MenuItem[] = [
 ];
 
 /**
- * Recursively renders menu items with proper layout and nesting
+ * Recursively creates categories from menuItems structure
+ * Maintains parent-child relationships via parentId
  *
- * @param content - Array of menu items to render
- * @param isTopLevel - Whether this is the top-level rendering (default: true)
- *   - true: items displayed horizontally (flex-row) only if items have sub-categories/children
- *   - false: items positioned vertically (flex-col) - used for nested sub-items
- *   - When isTopLevel is true but items have no children, displays vertically (simple list)
- *
- * @returns Rendered menu structure with ULs and LIs, where:
- *   - Each item displays its title (bold if it has children)
- *   - Child items are rendered in a recursive call below the parent title
- *   - Multiple sub-categories appear side-by-side horizontally (e.g., Figure Skating and Aerial)
- *   - Simple item lists with no sub-categories appear vertically (e.g., Pageant Wear items)
- *   - Nested items appear stacked vertically below their parent
+ * @param items - Array of menu items to create as categories
+ * @param parentId - ID of parent category (undefined for root-level items)
+ * @returns Map of created category IDs by their item ID
  */
-const renderMenuContent = (content: MenuItem[], isTopLevel: boolean = true) => {
-  // Check if any items have children - determines if this should be horizontal or vertical
-  const hasSubcategories = content.some(
-    (item) => item.items && item.items.length > 0,
-  );
-  const shouldBeHorizontal = isTopLevel && hasSubcategories;
+async function seedCategoriesRecursive(
+  items: MenuItem[],
+  parentId?: string
+): Promise<Map<string, string>> {
+  const categoryIdMap = new Map<string, string>();
 
-  return (
-    <div
-      className={`${shouldBeHorizontal ? "flex flex-row gap-8" : "flex flex-col gap-2"} w-max`}
-    >
-      {content.map((item) => (
-        <ul key={item.id} className="flex flex-col">
-          <li
-            className={`flex flex-col${item.items ? "text-lg uppercase pb-6" : ""} pr-8`}
-          >
-            {item.title}
-          </li>
-          {item?.items ? (
-            <li className="">{renderMenuContent(item?.items, false)}</li>
-          ) : null}
-        </ul>
-      ))}
-    </div>
-  );
-};
+  for (const item of items) {
+    // Check if category already exists by name and parentId
+    const existing = await prisma.category.findFirst({
+      where: { name: item.title, parentId },
+    });
 
-export const Nav = () => {
-  return (
-    <NavigationMenu viewport={false}>
-      <NavigationMenuList>
-        {menuItems.map((n0) => (
-          <NavigationMenuItem key={n0.id}>
-            {n0.items?.length ? (
-              <>
-                <NavigationMenuTrigger className="font-normal">
-                  {n0.title.toUpperCase()}
-                </NavigationMenuTrigger>
-                <NavigationMenuContent className="z-10 bg-white border-0! border-t-2! rounded-none! shadow-lg! flex flex-row mt-0! p-6">
-                  <NavigationMenuLink className="font-normal" href={n0.href}>
-                    {renderMenuContent(n0.items)}
-                  </NavigationMenuLink>
-                </NavigationMenuContent>
-              </>
-            ) : (
-              <NavigationMenuLink
-                className={`${navigationMenuTriggerStyle()} font-normal`}
-                href={n0.href}
-              >
-                {n0.title.toLocaleUpperCase()}
-              </NavigationMenuLink>
-            )}
-          </NavigationMenuItem>
-        ))}
-      </NavigationMenuList>
-    </NavigationMenu>
-  );
-};
+    let categoryId: string;
+
+    if (existing) {
+      categoryId = existing.id;
+      console.log(`ℹ Category already exists: ${item.title}`);
+
+      // Update parentId if different
+      if (existing.parentId !== parentId) {
+        await prisma.category.update({
+          where: { id: existing.id },
+          data: { parentId },
+        });
+        console.log(
+          `✓ Updated parentId for: ${item.title}${parentId ? ` (parent: ${parentId})` : " (root level)"}`
+        );
+      }
+    } else {
+      // Create new category
+      const category = await prisma.category.create({
+        data: {
+          name: item.title,
+          description: undefined,
+          parentId,
+        },
+      });
+      categoryId = category.id;
+      console.log(
+        `✓ Created category: ${item.title}${parentId ? ` (parent: ${parentId})` : " (root level)"}`
+      );
+    }
+
+    categoryIdMap.set(item.id, categoryId);
+
+    // Recursively process child items
+    if (item.items && item.items.length > 0) {
+      const childMap = await seedCategoriesRecursive(item.items, categoryId);
+      childMap.forEach((id, key) => categoryIdMap.set(key, id));
+    }
+  }
+
+  return categoryIdMap;
+}
+
+async function seed() {
+  console.log("🌱 Seeding categories from menuItems...\n");
+
+  try {
+    await seedCategoriesRecursive(menuItems);
+    console.log("\n✅ Categories seeded successfully!");
+  } catch (error) {
+    console.error("❌ Error seeding categories:", error);
+    throw error;
+  } finally {
+    await prisma.$disconnect();
+  }
+}
+
+seed();

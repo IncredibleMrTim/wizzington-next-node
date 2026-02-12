@@ -8,7 +8,6 @@ import {
   ProductDTO,
 } from "@/lib/types";
 import { unstable_cache } from "next/cache";
-import { Prisma } from "@prisma/client";
 
 export const getFeaturedProductCount = async (): Promise<number> => {
   return await prisma.product.count({
