@@ -10,6 +10,23 @@ interface CategoryWithChildren {
   children: CategoryWithChildren[];
 }
 
+/**
+ * Recursively sorts categories and their children by position
+ */
+const sortCategoriesByPosition = (
+  categories: CategoryWithChildren[]
+): CategoryWithChildren[] => {
+  return categories
+    .sort((a, b) => a.position - b.position)
+    .map((cat) => ({
+      ...cat,
+      children:
+        cat.children && cat.children.length > 0
+          ? sortCategoriesByPosition(cat.children)
+          : [],
+    }));
+};
+
 export const getCategories = async (): Promise<CategoryWithChildren[]> => {
   // Fetch all categories sorted by position
   const allCategories = await prisma.category.findMany({
@@ -41,15 +58,6 @@ export const getCategories = async (): Promise<CategoryWithChildren[]> => {
     }
   }
 
-  // Sort root categories by position
-  rootCategories.sort((a, b) => a.position - b.position);
-
-  // Sort children by position
-  rootCategories.forEach((cat) => {
-    if (cat.children && cat.children.length > 0) {
-      cat.children.sort((a, b) => a.position - b.position);
-    }
-  });
-
-  return rootCategories;
+  // Recursively sort all levels by position
+  return sortCategoriesByPosition(rootCategories);
 };

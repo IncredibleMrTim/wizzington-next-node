@@ -62,11 +62,8 @@ const transformCategoriesToMenuItems = (
  *   - Nested items appear stacked vertically below their parent
  */
 const renderMenuContent = (content: MenuItem[], isTopLevel: boolean = true) => {
-  // Sort by position
-  const sortedContent = [...content].sort((a, b) => a.position - b.position);
-
   // Check if any items have children - determines if this should be horizontal or vertical
-  const hasSubcategories = sortedContent.some(
+  const hasSubcategories = content.some(
     (item) => item.items && item.items.length > 0,
   );
   const shouldBeHorizontal = isTopLevel && hasSubcategories;
@@ -75,7 +72,7 @@ const renderMenuContent = (content: MenuItem[], isTopLevel: boolean = true) => {
     <div
       className={`${shouldBeHorizontal ? "flex flex-row gap-8" : "flex flex-col gap-2"} w-max`}
     >
-      {sortedContent.map((item) => (
+      {content.map((item) => (
         <ul key={item.id} className="flex flex-col">
           <li
             className={`flex flex-col${item.items ? "text-lg uppercase pb-6" : ""} pr-8`}
@@ -101,9 +98,7 @@ export const NavClient = ({
   return (
     <NavigationMenu viewport={false}>
       <NavigationMenuList>
-        {menuItems
-          .sort((a, b) => a.position - b.position)
-          .map((n0) => (
+        {menuItems.map((n0) => (
             <NavigationMenuItem key={n0.id}>
               {n0.items?.length ? (
                 <>
