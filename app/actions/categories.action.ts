@@ -1,7 +1,7 @@
 "use server";
 import prisma from "@/lib/prisma";
 
-interface CategoryWithChildren {
+export interface CategoryWithChildren {
   id: string;
   name: string;
   description: string | null;
@@ -14,7 +14,7 @@ interface CategoryWithChildren {
  * Recursively sorts categories and their children by position
  */
 const sortCategoriesByPosition = (
-  categories: CategoryWithChildren[]
+  categories: CategoryWithChildren[],
 ): CategoryWithChildren[] => {
   return categories
     .sort((a, b) => a.position - b.position)
@@ -42,7 +42,7 @@ export const getCategories = async (): Promise<CategoryWithChildren[]> => {
 
   // Build hierarchy by mapping parent-child relationships
   const categoryMap = new Map<string, CategoryWithChildren>(
-    allCategories.map((cat) => [cat.id, { ...cat, children: [] }])
+    allCategories.map((cat) => [cat.id, { ...cat, children: [] }]),
   );
 
   const rootCategories: CategoryWithChildren[] = [];
@@ -61,3 +61,15 @@ export const getCategories = async (): Promise<CategoryWithChildren[]> => {
   // Recursively sort all levels by position
   return sortCategoriesByPosition(rootCategories);
 };
+
+export const getCategoriesByParent = async (parentId: string) =>
+  await prisma.category.findMany({
+    where: { id: parentId },
+    include: { children: true },
+  });
+
+export const getCategoryById = async (id: string) =>
+  await prisma.category.findFirst({
+    where: { id },
+    include: { children: true },
+  });
