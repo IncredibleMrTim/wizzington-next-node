@@ -118,7 +118,13 @@ describe.skip("useProductEditor", () => {
     });
 
     const newImages = [
-      { url: "https://example.com/image1.jpg", altText: "Image 1" },
+      {
+        id: "img-1",
+        url: "https://example.com/image1.jpg",
+        productId: "123",
+        orderPosition: 0,
+        createdAt: new Date(),
+      },
     ];
 
     act(() => {

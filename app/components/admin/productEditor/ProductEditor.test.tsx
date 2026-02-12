@@ -29,12 +29,16 @@ const mockProduct = {
     {
       id: "image1",
       url: "https://example.com/image1.jpg",
-      altText: "Image 1",
+      productId: "1",
+      orderPosition: 0,
+      createdAt: new Date(),
     },
     {
       id: "image2",
       url: "https://example.com/image2.jpg",
-      altText: "Image 2",
+      productId: "1",
+      orderPosition: 1,
+      createdAt: new Date(),
     },
   ],
 } as unknown as Schema["Product"]["type"];

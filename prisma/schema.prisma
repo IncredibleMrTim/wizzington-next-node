@@ -11,12 +11,17 @@ datasource db {
 
 model Category {
   id          String    @id @default(uuid())
-  name        String    @unique
+  name        String
   description String?
+  parentId    String?
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
+  parent      Category? @relation("CategoryToParent", fields: [parentId], references: [id], onDelete: SetNull)
+  children    Category[] @relation("CategoryToParent")
   products    Product[]
 
+  @@unique([name, parentId])
+  @@index([parentId])
   @@map("categories")
 }
 
