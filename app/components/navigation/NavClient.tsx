@@ -13,6 +13,7 @@ interface CategoryWithChildren {
   id: string;
   name: string;
   children: CategoryWithChildren[];
+  position: number;
 }
 
 interface MenuItem {
@@ -20,6 +21,7 @@ interface MenuItem {
   type: "link" | "button";
   title: string;
   href: string;
+  position: number;
   items?: MenuItem[];
 }
 
@@ -28,12 +30,13 @@ interface MenuItem {
  * Maps category id and name to MenuItem structure
  */
 const transformCategoriesToMenuItems = (
-  categories: CategoryWithChildren[]
+  categories: CategoryWithChildren[],
 ): MenuItem[] => {
   return categories.map((cat) => ({
     id: cat.id,
     type: "link" as const,
     title: cat.name,
+    position: cat.position,
     href: `/categories/${cat.id}`,
     items:
       cat.children && cat.children.length > 0
@@ -59,8 +62,11 @@ const transformCategoriesToMenuItems = (
  *   - Nested items appear stacked vertically below their parent
  */
 const renderMenuContent = (content: MenuItem[], isTopLevel: boolean = true) => {
+  // Sort by position
+  const sortedContent = [...content].sort((a, b) => a.position - b.position);
+
   // Check if any items have children - determines if this should be horizontal or vertical
-  const hasSubcategories = content.some(
+  const hasSubcategories = sortedContent.some(
     (item) => item.items && item.items.length > 0,
   );
   const shouldBeHorizontal = isTopLevel && hasSubcategories;
@@ -69,7 +75,7 @@ const renderMenuContent = (content: MenuItem[], isTopLevel: boolean = true) => {
     <div
       className={`${shouldBeHorizontal ? "flex flex-row gap-8" : "flex flex-col gap-2"} w-max`}
     >
-      {content.map((item) => (
+      {sortedContent.map((item) => (
         <ul key={item.id} className="flex flex-col">
           <li
             className={`flex flex-col${item.items ? "text-lg uppercase pb-6" : ""} pr-8`}
@@ -95,29 +101,33 @@ export const NavClient = ({
   return (
     <NavigationMenu viewport={false}>
       <NavigationMenuList>
-        {menuItems.map((n0) => (
-          <NavigationMenuItem key={n0.id}>
-            {n0.items?.length ? (
-              <>
-                <NavigationMenuTrigger className="font-normal">
-                  {n0.title.toUpperCase()}
-                </NavigationMenuTrigger>
-                <NavigationMenuContent className="z-10 bg-white border-0! border-t-2! rounded-none! shadow-lg! flex flex-row mt-0! p-6">
-                  <NavigationMenuLink className="font-normal" href={n0.href}>
-                    {renderMenuContent(n0.items)}
-                  </NavigationMenuLink>
-                </NavigationMenuContent>
-              </>
-            ) : (
-              <NavigationMenuLink
-                className={`${navigationMenuTriggerStyle()} font-normal`}
-                href={n0.href}
-              >
-                {n0.title.toLocaleUpperCase()}
-              </NavigationMenuLink>
-            )}
-          </NavigationMenuItem>
-        ))}
+        {menuItems
+          .sort((a, b) => a.position - b.position)
+          .map((n0) => (
+            <NavigationMenuItem key={n0.id}>
+              {n0.items?.length ? (
+                <>
+                  <NavigationMenuTrigger className="font-normal">
+                    {n0.title.toUpperCase()}
+                  </NavigationMenuTrigger>
+                  <NavigationMenuContent className="z-10 bg-white border-0! border-t-2! rounded-none! shadow-lg! flex flex-row mt-0! p-6">
+                    <NavigationMenuLink className="font-normal" href={n0.href}>
+                      {renderMenuContent(
+                        n0.items.sort((item) => item.position),
+                      )}
+                    </NavigationMenuLink>
+                  </NavigationMenuContent>
+                </>
+              ) : (
+                <NavigationMenuLink
+                  className={`${navigationMenuTriggerStyle()} font-normal`}
+                  href={n0.href}
+                >
+                  {n0.title.toLocaleUpperCase()}
+                </NavigationMenuLink>
+              )}
+            </NavigationMenuItem>
+          ))}
       </NavigationMenuList>
     </NavigationMenu>
   );
