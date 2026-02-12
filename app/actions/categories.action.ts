@@ -5,19 +5,39 @@ interface CategoryWithChildren {
   id: string;
   name: string;
   description: string | null;
+  position: number;
   parentId: string | null;
   children: CategoryWithChildren[];
 }
 
+/**
+ * Recursively sorts categories and their children by position
+ */
+const sortCategoriesByPosition = (
+  categories: CategoryWithChildren[]
+): CategoryWithChildren[] => {
+  return categories
+    .sort((a, b) => a.position - b.position)
+    .map((cat) => ({
+      ...cat,
+      children:
+        cat.children && cat.children.length > 0
+          ? sortCategoriesByPosition(cat.children)
+          : [],
+    }));
+};
+
 export const getCategories = async (): Promise<CategoryWithChildren[]> => {
-  // Fetch all categories
+  // Fetch all categories sorted by position
   const allCategories = await prisma.category.findMany({
     select: {
       id: true,
       name: true,
       description: true,
+      position: true,
       parentId: true,
     },
+    orderBy: [{ parentId: "asc" }, { position: "asc" }],
   });
 
   // Build hierarchy by mapping parent-child relationships
@@ -38,5 +58,6 @@ export const getCategories = async (): Promise<CategoryWithChildren[]> => {
     }
   }
 
-  return rootCategories;
+  // Recursively sort all levels by position
+  return sortCategoriesByPosition(rootCategories);
 };

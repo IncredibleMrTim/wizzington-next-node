@@ -3,6 +3,7 @@ import prisma from "../lib/prisma";
 interface CategoryData {
   name: string;
   description: string | null;
+  position: number;
   children: CategoryData[];
 }
 
@@ -22,11 +23,19 @@ async function seedCategoriesRecursive(
 
     if (existing) {
       categoryId = existing.id;
+      // Update position if different
+      if (existing.position !== item.position) {
+        await prisma.category.update({
+          where: { id: existing.id },
+          data: { position: item.position },
+        });
+      }
     } else {
       const category = await prisma.category.create({
         data: {
           name: item.name,
           description: item.description,
+          position: item.position,
           parentId,
         },
       });
@@ -47,45 +56,54 @@ async function seed() {
     // Seed categories from menu structure
     const categories: CategoryData[] = [
       {
+        name: "Home",
+        description: null,
+        position: 0,
+        children: [],
+      },
+      {
         name: "Dance wear",
         description: null,
+        position: 1,
         children: [
           {
             name: "Aerial",
             description: null,
+            position: 0,
             children: [
-              { name: "Accessories", description: null, children: [] },
-              { name: "Acro", description: null, children: [] },
-              { name: "Airbrush", description: null, children: [] },
-              { name: "Character inspired", description: null, children: [] },
-              { name: "Gallery", description: null, children: [] },
-              { name: "Hand painted", description: null, children: [] },
-              { name: "Jazz", description: null, children: [] },
-              { name: "Lyrical", description: null, children: [] },
-              { name: "Modern", description: null, children: [] },
-              { name: "Other", description: null, children: [] },
-              { name: "Pancake tutus", description: null, children: [] },
-              { name: "Stretch", description: null, children: [] },
-              { name: "Tap", description: null, children: [] },
+              { name: "Accessories", description: null, position: 0, children: [] },
+              { name: "Acro", description: null, position: 1, children: [] },
+              { name: "Airbrush", description: null, position: 2, children: [] },
+              { name: "Character inspired", description: null, position: 3, children: [] },
+              { name: "Gallery", description: null, position: 4, children: [] },
+              { name: "Hand painted", description: null, position: 5, children: [] },
+              { name: "Jazz", description: null, position: 6, children: [] },
+              { name: "Lyrical", description: null, position: 7, children: [] },
+              { name: "Modern", description: null, position: 8, children: [] },
+              { name: "Other", description: null, position: 9, children: [] },
+              { name: "Pancake tutus", description: null, position: 10, children: [] },
+              { name: "Stretch", description: null, position: 11, children: [] },
+              { name: "Tap", description: null, position: 12, children: [] },
             ],
           },
           {
             name: "Figure Skating",
             description: null,
+            position: 1,
             children: [
-              { name: "Accessories", description: null, children: [] },
-              { name: "Acro", description: null, children: [] },
-              { name: "Airbrush", description: null, children: [] },
-              { name: "Character inspired", description: null, children: [] },
-              { name: "Gallery", description: null, children: [] },
-              { name: "Hand painted", description: null, children: [] },
-              { name: "Jazz", description: null, children: [] },
-              { name: "Lyrical", description: null, children: [] },
-              { name: "Modern", description: null, children: [] },
-              { name: "Other", description: null, children: [] },
-              { name: "Pancake tutus", description: null, children: [] },
-              { name: "Stretch", description: null, children: [] },
-              { name: "Tap", description: null, children: [] },
+              { name: "Accessories", description: null, position: 0, children: [] },
+              { name: "Acro", description: null, position: 1, children: [] },
+              { name: "Airbrush", description: null, position: 2, children: [] },
+              { name: "Character inspired", description: null, position: 3, children: [] },
+              { name: "Gallery", description: null, position: 4, children: [] },
+              { name: "Hand painted", description: null, position: 5, children: [] },
+              { name: "Jazz", description: null, position: 6, children: [] },
+              { name: "Lyrical", description: null, position: 7, children: [] },
+              { name: "Modern", description: null, position: 8, children: [] },
+              { name: "Other", description: null, position: 9, children: [] },
+              { name: "Pancake tutus", description: null, position: 10, children: [] },
+              { name: "Stretch", description: null, position: 11, children: [] },
+              { name: "Tap", description: null, position: 12, children: [] },
             ],
           },
         ],
@@ -93,12 +111,13 @@ async function seed() {
       {
         name: "Pageant Wear",
         description: null,
+        position: 2,
         children: [
-          { name: "Casual wear", description: null, children: [] },
-          { name: "Glitz dresses", description: null, children: [] },
-          { name: "Natural dresses", description: null, children: [] },
-          { name: "OOC/fun fashion", description: null, children: [] },
-          { name: "Swimwear", description: null, children: [] },
+          { name: "Casual wear", description: null, position: 0, children: [] },
+          { name: "Glitz dresses", description: null, position: 1, children: [] },
+          { name: "Natural dresses", description: null, position: 2, children: [] },
+          { name: "OOC/fun fashion", description: null, position: 3, children: [] },
+          { name: "Swimwear", description: null, position: 4, children: [] },
         ],
       },
     ];
