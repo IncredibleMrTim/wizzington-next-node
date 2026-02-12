@@ -54,7 +54,7 @@ export const columns: ColumnDef<ProductDTO>[] = [
     size: 80, // Explicit size
     cell: ({ row }) => {
       return (
-        <div className="overflow-hidden text-ellipsis whitespace-nowrap">
+        <div className="line-clamp-3 whitespace-pre-wrap break-all">
           {row.getValue("description")}
         </div>
       );
@@ -130,18 +130,14 @@ export const columns: ColumnDef<ProductDTO>[] = [
           <Link
             href={`/product/${(row.getValue("id") as string).replace(
               /\s+/g,
-              "-"
+              "-",
             )}`}
             prefetch
           >
             <FiArrowRightCircle size={20} />
           </Link>
 
-          <button
-            onClick={() =>
-              onClick?.({ view: false, delete: true })
-            }
-          >
+          <button onClick={() => onClick?.({ view: false, delete: true })}>
             <FiTrash2 size={20} />
           </button>
         </div>

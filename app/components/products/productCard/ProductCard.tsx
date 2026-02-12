@@ -4,7 +4,8 @@ import Image from "next/image";
 import { ProductDTO, USER_ROLE } from "@/lib/types";
 import { useSession } from "next-auth/react";
 import { FiEdit } from "react-icons/fi";
-import { useProductStore } from "@/app/stores";
+import { Button } from "../../ui/button";
+import { useRouter } from "next/navigation";
 
 interface Props {
   product?: ProductDTO;
@@ -14,35 +15,27 @@ interface Props {
 const ProductCard = ({ product, showDescription = true }: Props) => {
   const { data: session } = useSession();
   const isAdmin = session?.user?.role === USER_ROLE.ADMIN;
+  const router = useRouter();
 
   if (!product) return null;
 
   const price = product.price ? Number(product.price).toFixed(2) : null;
 
   return (
-    <div className="relative">
-      {isAdmin && (
-        <Link
-          href={`/admin/product/${product.id}`}
-          className="flex p-3 mb-1 ml-1 absolute top-2 right-2 rounded-full bg-pink-200 opacity-60 hover:opacity-90 hover:bg-pink-200 duration-300 transition-all z-2"
-          aria-label="Edit Product"
-        >
-          <FiEdit />
-        </Link>
-      )}
+    <div className="flex flex-col p-4">
       <Link
         href={`/product/${product?.id}`}
-        className="flex flex-col gap-2 text-black w-60 h-100 mb-8 hover:opacity-75 transition-opacity"
+        className="flex flex-col  text-black  mb-4 hover:opacity-75 transition-opacity"
       >
-        <div className="flex flex-col gap-4 h-full">
-          <div className="relative flex-1 rounded-sm bg-gray-100 overflow-hidden">
+        <div className="flex flex-col  h-full">
+          <div className="relative flex-1 rounded-sm overflow-hidden aspect-2/3">
             {product?.images && product.images.length > 0 ? (
               <Image
                 src={product.images[0]?.url}
                 alt={product.name}
                 fill
-                className="w-full h-full object-cover"
-                sizes="(max-width: 768px) 100vw, 240px"
+                className="w-full h-full object-cover object-top"
+                sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
                 loading="lazy"
               />
             ) : (
@@ -51,16 +44,25 @@ const ProductCard = ({ product, showDescription = true }: Props) => {
               </div>
             )}
           </div>
-
-          <div className="flex flex-col gap-2 px-4 justify-center w-full">
-            <p className="text-center">{product.name}</p>
-            {showDescription && product.description && (
-              <p className="text-gray-600 text-center">{product.description}</p>
-            )}
-            {price && <p className="text-green-600 text-center">£{price}</p>}
-          </div>
         </div>
       </Link>
+      <div className="relative flex flex-col gap-2 px-4 justify-center w-full">
+        <p className="text-center">{product.name}</p>
+        {showDescription && product.description && (
+          <p className="text-gray-600 text-center">{product.description}</p>
+        )}
+        {price && <p className="text-green-600 text-center">£{price}</p>}
+        {isAdmin && (
+          <Button
+            onClick={() => router.push(`/admin/product/${product.id}`)}
+            aria-label="Edit Product"
+            className="flex w-fit absolute top-0 right-2"
+          >
+            <FiEdit />
+            Edit
+          </Button>
+        )}
+      </div>
     </div>
   );
 };

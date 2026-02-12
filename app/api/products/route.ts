@@ -64,7 +64,14 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    return NextResponse.json(product, { status: 201 });
+    // Convert Decimal price to number for JSON serialization
+    return NextResponse.json(
+      {
+        ...product,
+        price: Number(product.price),
+      },
+      { status: 201 }
+    );
   } catch (error) {
     console.error("Error creating product:", error);
     return NextResponse.json(

@@ -1,7 +1,7 @@
 "use client";
 import { ChevronDown } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { SubmitHandler, useForm } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { FiArrowLeft, FiCheck } from "react-icons/fi";
 import z from "zod";
 
@@ -25,38 +25,21 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { ProductDTO, ProductImage } from "@/lib/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 
-import { useProductEditor } from "./useProductEditor";
-import { useEffect, useState } from "react";
-
-const formSchema = z.object({
-  name: z.string().min(1, { message: "Name is required" }),
-  description: z
-    .string()
-    .min(1, { message: "Description is required" })
-    .optional(),
-  price: z
-    .number()
-    .min(0, { message: "Price must be a positive number" })
-    .max(10000, { message: "Price must be less than 10000" })
-    .optional(),
-  stock: z
-    .number()
-    .min(0, { message: "Stock must be a positive number" })
-    .max(10000, { message: "Stock must be less than 10000" })
-    .optional(),
-  isFeatured: z.boolean().optional(),
-  isEnquiryOnly: z.boolean().optional(),
-  id: z.string().optional(),
-  category: z.string().optional(),
-});
+import { useProductEditor, formSchema } from "./useProductEditor";
+import { useEffect } from "react";
 
 export const ProductEditor = () => {
-  const { product, updateImages, save } = useProductEditor();
+  const {
+    product,
+    updateImages,
+    selectedFiles,
+    setSelectedFiles,
+    handleSubmit,
+    updateProductImageOrder,
+  } = useProductEditor();
   const router = useRouter();
-  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -67,8 +50,8 @@ export const ProductEditor = () => {
       description: product?.description || "",
       price: product?.price ?? 0,
       stock: product?.stock ?? 0,
-      isFeatured: product?.isFeatured ?? false,
-      isEnquiryOnly: product?.isEnquiryOnly ?? false,
+      isFeatured: product?.isFeatured ?? true,
+      isEnquiryOnly: product?.isEnquiryOnly ?? true,
       category: undefined,
     },
   });
@@ -80,113 +63,6 @@ export const ProductEditor = () => {
     validateForm();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [product?.id]);
-
-  const updateProductImageOrder = (key: string, newPosition: number) => {
-    if (!product?.images || product.images.length === 0) {
-      return;
-    }
-
-    const currentImages = product.images as ProductImage[];
-    const imagesCopy = [...currentImages];
-
-    const currentIndex = imagesCopy.findIndex((img) => img.url === key);
-    if (currentIndex === -1) return;
-
-    // Remove image from current position
-    const [movedImage] = imagesCopy.splice(currentIndex, 1);
-
-    // Insert at new position
-    imagesCopy.splice(newPosition, 0, movedImage);
-
-    // Update order positions for all images
-    const reorderedImages = imagesCopy.map((img, index) => ({
-      ...img,
-      orderPosition: index,
-    })) as ProductImage[];
-
-    updateImages(reorderedImages);
-  };
-
-  const handleSubmit: SubmitHandler<z.infer<typeof formSchema>> = async (
-    values,
-  ) => {
-    const payload: ProductDTO = {
-      id: values.id || product?.id || crypto.randomUUID(),
-      name: values.name,
-      description: values.description ?? null,
-      price: values.price ?? 0,
-      stock: values.stock ?? 0,
-      isFeatured: !!values.isFeatured,
-      isEnquiryOnly: !!values.isEnquiryOnly,
-      categoryId: values.category ?? null,
-      images: (product?.images ?? []) as ProductImage[],
-      createdAt: product?.createdAt ?? new Date(),
-      updatedAt: new Date(),
-    };
-
-    // Skip redirect if we have files to upload
-    const hasFilesToUpload = selectedFiles.length > 0;
-    await save(payload, hasFilesToUpload);
-
-    // Upload selected files after product is saved
-    const productId = values.id || product?.id;
-    if (hasFilesToUpload && productId) {
-      await uploadFilesAndUpdateProduct(productId, selectedFiles);
-      setSelectedFiles([]);
-      // Navigate to admin after upload completes
-      router.replace("/admin");
-    }
-  };
-
-  const uploadFilesAndUpdateProduct = async (
-    productId: string,
-    files: File[],
-  ) => {
-    try {
-      const { upload } = await import("@vercel/blob/client");
-
-      const uploadPromises = files.map(async (file) => {
-        const blob = await upload(file.name, file, {
-          access: "public",
-          handleUploadUrl: "/api/upload/blob",
-        });
-
-        return {
-          id: crypto.randomUUID(),
-          productId: productId,
-          url: blob.url,
-          orderPosition: product?.images?.length ?? 0,
-          createdAt: new Date(),
-        };
-      });
-
-      const uploadedImages = await Promise.all(uploadPromises);
-
-      // Update product images with uploaded URLs
-      const allImages = [...(product?.images ?? []), ...uploadedImages];
-      updateImages(allImages);
-
-      // Save product with updated images to database
-      const updatedPayload: ProductDTO = {
-        id: productId || product?.id || crypto.randomUUID(),
-        name: product?.name || "",
-        description: product?.description ?? null,
-        price: product?.price ?? 0,
-        stock: product?.stock ?? 0,
-        isFeatured: product?.isFeatured ?? false,
-        isEnquiryOnly: product?.isEnquiryOnly ?? false,
-        categoryId: product?.categoryId ?? null,
-        images: allImages as ProductImage[],
-        createdAt: product?.createdAt ?? new Date(),
-        updatedAt: new Date(),
-      };
-
-      await save(updatedPayload);
-    } catch (error) {
-      console.error("File upload error:", error);
-      alert("Failed to upload images. Please try again.");
-    }
-  };
 
   return (
     <div className="-mt-8 bg-violet-50 p-4 shadow-sm shadow-gray-300 border-gray-200">
@@ -418,7 +294,7 @@ export const ProductEditor = () => {
                                 : ""
                             }`}
                             id={field.name}
-                            checked={field.value}
+                            checked={field.value || true}
                             name={field.name}
                             ref={field.ref}
                             onBlur={field.onBlur}
