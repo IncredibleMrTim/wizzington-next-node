@@ -2,7 +2,7 @@ import SignIn from "@/app/(pages)/auth/signin/page";
 import { USER_ROLE } from "@/lib/types";
 import Link from "next/link";
 import { signOut, useSession } from "next-auth/react";
-import { Avatar } from "radix-ui";
+import * as Avatar from "@radix-ui/react-avatar";
 import { Separator } from "../separator/Separator";
 
 export const AuthAvatar = ({ onClick }: { onClick: () => void }) => {

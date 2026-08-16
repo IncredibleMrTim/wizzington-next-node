@@ -41,7 +41,7 @@ This project uses a unified Next.js architecture:
 
 ### Prerequisites
 
-- Node.js 20+ and Yarn
+- Node.js 20+ and pnpm
 - Prisma PostgreSQL database (or any PostgreSQL database)
 
 ### Installation
@@ -51,7 +51,7 @@ This project uses a unified Next.js architecture:
 2. **Install dependencies:**
 
 ```bash
-yarn install
+pnpm install
 ```
 
 1. **Set up environment variables:**
@@ -68,13 +68,13 @@ cp .env.example .env
 npx prisma db push
 
 # Seed database with sample data
-yarn seed
+pnpm seed
 ```
 
 1. **Run development server:**
 
 ```bash
-yarn dev
+pnpm dev
 ```
 
 Visit [http://localhost:3000](http://localhost:3000)
@@ -165,11 +165,11 @@ All API endpoints are at `/api/*`
 
 ## Scripts
 
-- `yarn dev` - Start development server
-- `yarn build` - Build for production
-- `yarn start` - Start production server
-- `yarn lint` - Run ESLint
-- `yarn seed` - Seed database with example data
+- `pnpm dev` - Start development server
+- `pnpm build` - Build for production
+- `pnpm start` - Start production server
+- `pnpm lint` - Run ESLint
+- `pnpm seed` - Seed database with example data
 
 ## Database Schema
 
@@ -279,7 +279,7 @@ The application includes a custom file uploader:
 ### Development
 
 ```bash
-yarn dev  # Watch console output
+pnpm dev  # Watch console output
 ```
 
 ### Production (on VPS)
@@ -312,7 +312,7 @@ sudo journalctl -u wizz-next -n 50
 
 # Test manually
 cd /var/www/wizz-app
-yarn start
+pnpm start
 ```
 
 ### Database connection issues

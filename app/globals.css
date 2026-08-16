@@ -1,7 +1,22 @@
 @import "tailwindcss";
 
+body {
+  background-color: var(--wm-plum);
+}
 
 :root {
+  /* Storefront design tokens (new visual identity) — additive only, does not
+     replace the shadcn tokens below, which admin/shared UI still rely on. */
+  --wm-plum: #1a0f1e;
+  --wm-plum-mid: #2d1a35;
+  --wm-plum-light: #3f2550;
+  --wm-plum-footer: #120b15;
+  --wm-rose: #c9849a;
+  --wm-rose-light: #e8b4c4;
+  --wm-cream: #f5ede8;
+  --wm-gold: #c8a96e;
+  --wm-gold-light: #e8cfa0;
+
   --radius: 0.3rem;
   --background: oklch(1 0 0);
   --foreground: oklch(0.141 0.005 285.823);
@@ -244,4 +259,38 @@ h4 {
 
 .font-jost {
   font-family: "jost";
+}
+
+/* Storefront-only heading overrides. Scoped under .wm-scope so the global
+   h1-h4/p rules above (relied on elsewhere, e.g. admin) are left untouched. */
+.wm-scope {
+  scrollbar-width: thin;
+  scrollbar-color: var(--wm-plum-light) transparent;
+}
+
+.wm-scope h1,
+.wm-scope h2,
+.wm-scope h3,
+.wm-scope h4 {
+  margin: 0 !important;
+}
+
+.wm-scope .wm-h-hero {
+  font-size: clamp(2.4rem, 6vw, 4.5rem) !important;
+  font-weight: 600 !important;
+}
+
+.wm-scope .wm-h-section {
+  font-size: 1.6rem !important;
+  font-weight: 400 !important;
+}
+
+.wm-scope .wm-h-card {
+  font-size: 1.1rem !important;
+  font-weight: 600 !important;
+}
+
+.wm-scope .wm-h-page {
+  font-size: 2.25rem !important;
+  font-weight: 600 !important;
 }
