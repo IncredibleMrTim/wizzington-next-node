@@ -8,13 +8,16 @@ export const ProductsSection = async ({
 }) => {
   console.log(products);
   return (
-    <div className="flex flex-row flex-wrap justify-center md:justify-between mt-2">
+    <div className="wm-scope flex flex-row flex-wrap justify-center md:justify-between gap-4 mt-2">
       {products?.some((p) => p.isFeatured) ? (
         <ProductsGrid products={products} />
       ) : (
-        <p className="flex justify-center w-full mt-12">
+        <div
+          className="flex justify-center w-full mt-12 text-sm"
+          style={{ color: "rgba(245,237,232,0.5)", fontFamily: "var(--font-wm-body)" }}
+        >
           No products are available at the moment. Please check back soon!
-        </p>
+        </div>
       )}
     </div>
   );

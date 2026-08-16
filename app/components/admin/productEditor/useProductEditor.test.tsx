@@ -2,7 +2,7 @@ import { act } from "react";
 import { renderHook } from "@testing-library/react";
 import { QueryClient } from "@tanstack/react-query";
 
-import { Schema } from "amplify/data/resource";
+import { ProductDTO } from "@/lib/types";
 import { useProductEditor } from "./useProductEditor";
 import { useProductStore } from "@/stores";
 
@@ -151,7 +151,7 @@ describe.skip("useProductEditor", () => {
       isFeatured: true,
       isEnquiryOnly: false,
       images: [],
-    } as unknown as Schema["Product"]["type"];
+    } as unknown as ProductDTO;
 
     result.current.save(updatedProduct);
 
@@ -188,7 +188,7 @@ describe.skip("useProductEditor", () => {
         isFeatured: false,
         isEnquiryOnly: false,
         images: [],
-      } as unknown as Schema["Product"]["type"];
+      } as unknown as ProductDTO;
 
       result.current.save(newProduct);
 

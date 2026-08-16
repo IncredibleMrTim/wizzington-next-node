@@ -11,6 +11,7 @@ import { EmailEnquiryUser, Order, ProductDTO } from "@/lib/types";
 import { getCachedProducts } from "@/actions";
 import { useEffect, useState } from "react";
 import { Button } from "@/app/components/ui/button";
+import { Footer } from "@/app/components/footer/Footer";
 
 const BasketPage = () => {
   const currentOrder = useOrderStore((state) => state.currentOrder);
@@ -48,14 +49,19 @@ const BasketPage = () => {
   };
 
   return (
-    <div className="flex flex-col min-h-screen">
-      <main className="flex flex-col grow p-4 gap-4">
-        <h1 className="text-2xl font-bold mb-4">Basket</h1>
-        <p>
+    <div className="wm-scope -m-4 md:-mx-16 md:-my-8 p-4 md:px-16 md:py-8 flex flex-col min-h-screen bg-[color:var(--wm-plum)]">
+      <main className="flex flex-col grow gap-4 max-w-3xl mx-auto w-full py-8">
+        <h1
+          className="wm-h-page mb-4"
+          style={{ fontFamily: "var(--font-wm-display)", color: "var(--wm-cream)" }}
+        >
+          Basket
+        </h1>
+        <div style={{ color: "rgba(245,237,232,0.65)", fontFamily: "var(--font-wm-body)" }}>
           {`Review your order below. If you are happy with your order, click the
           "Checkout" button to proceed.`}
-        </p>
-        <p>
+        </div>
+        <div style={{ color: "rgba(245,237,232,0.45)", fontFamily: "var(--font-wm-body)" }}>
           Vivamus eu turpis luctus, rutrum ex non, ultrices dolor. Nullam sem
           nunc, convallis in risus at, iaculis pretium leo. Proin ornare libero
           vitae nisl mollis, ac facilisis nibh auctor. Sed non eros hendrerit,
@@ -65,11 +71,22 @@ const BasketPage = () => {
           tincidunt. Nullam maximus ex a tempus hendrerit. Sed feugiat leo quis
           lorem fringilla, ut volutpat dolor blandit. Suspendisse potenti. Donec
           iaculis tincidunt justo id sollicitudin.
-        </p>
+        </div>
         {currentOrder && currentOrder.orderProducts.length > 0 ? (
-          <div className="flex flex-col gap-4 border border-gray-200 rounded-sm p-4 shadow-sm">
-            <h2 className="text-xl font-semibold mb-2">Your Order</h2>
-            <ul className="list-none">
+          <div
+            className="flex flex-col gap-4 rounded p-4 border"
+            style={{
+              backgroundColor: "var(--wm-plum-mid)",
+              borderColor: "rgba(201,132,154,0.15)",
+            }}
+          >
+            <h2
+              className="wm-h-section mb-2"
+              style={{ fontFamily: "var(--font-wm-display)", color: "var(--wm-cream)" }}
+            >
+              Your Order
+            </h2>
+            <ul className="list-none flex flex-col gap-3">
               {allProducts &&
                 currentOrder.orderProducts.map((product) => {
                   const productDetails = allProducts.find(
@@ -77,13 +94,17 @@ const BasketPage = () => {
                   );
                   console.log("Product.", productDetails);
                   return (
-                    <li key={product.id} className="flex gap-4">
+                    <li
+                      key={product.id}
+                      className="flex gap-4 items-center"
+                      style={{ color: "var(--wm-cream)", fontFamily: "var(--font-wm-body)" }}
+                    >
                       <Image
                         src={`${productDetails?.images?.[0]?.url}`}
                         alt={productDetails?.name || "Product image"}
                         width={128}
                         height={128}
-                        className="h-32 inline-block mr-2"
+                        className="h-32 inline-block mr-2 rounded object-cover"
                       />
                       {productDetails?.name} - Quantity: {product.quantity}
                     </li>
@@ -97,13 +118,23 @@ const BasketPage = () => {
                 onSuccess={handleSuccess}
               />
             </PayPalProvider> */}
-            {totalCost}
-            <Button onClick={handleSuccess}>Send Enquiry</Button>
+            <div style={{ color: "var(--wm-gold-light)", fontFamily: "var(--font-wm-body)" }}>
+              {totalCost}
+            </div>
+            <Button
+              onClick={handleSuccess}
+              className="w-fit rounded-full bg-[color:var(--wm-gold)]! text-[color:var(--wm-plum)]! hover:bg-[color:var(--wm-gold-light)]! font-medium"
+            >
+              Send Enquiry
+            </Button>
           </div>
         ) : (
-          <p>Your basket is empty.</p>
+          <div style={{ color: "rgba(245,237,232,0.5)", fontFamily: "var(--font-wm-body)" }}>
+            Your basket is empty.
+          </div>
         )}
       </main>
+      <Footer />
     </div>
   );
 };

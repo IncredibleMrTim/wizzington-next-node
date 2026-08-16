@@ -120,14 +120,22 @@ export const ProductEnquiryForm = ({ product }: ProductEnquiryFormProps) => {
     <div className="flex flex-col gap-4">
       {/* Header section */}
       <div className="flex flex-col gap-4">
-        <h1 className="text-2xl font-bold">
+        <h2
+          className="wm-h-section"
+          style={{ fontFamily: "var(--font-wm-display)", color: "var(--wm-cream)" }}
+        >
           {currentProduct.isEnquiryOnly ? "Enquiry Details" : "Order Details"}
-        </h1>
-        <p>Please add product details below</p>
+        </h2>
+        <div style={{ color: "rgba(245,237,232,0.6)", fontFamily: "var(--font-wm-body)" }}>
+          Please add product details below
+        </div>
       </div>
 
       {/* Form section */}
-      <div>
+      <div
+        className="rounded-lg p-4 md:p-6"
+        style={{ backgroundColor: "var(--wm-cream)" }}
+      >
         {/* Product measurement fields grid */}
         <div className="flex flex-wrap flex-row gap-y-4 w-full justify-between">
           {fields.map((field, index) => {
@@ -157,7 +165,7 @@ export const ProductEnquiryForm = ({ product }: ProductEnquiryFormProps) => {
               addProductToOrder();
             }
           }}
-          className="flex items-center gap-2 justify-center mt-4"
+          className="flex items-center gap-2 justify-center mt-4 rounded-full bg-[color:var(--wm-gold)]! text-[color:var(--wm-plum)]! hover:bg-[color:var(--wm-gold-light)]! font-medium"
         >
           Add to Collection
           <LuUpload />

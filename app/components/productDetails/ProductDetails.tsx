@@ -37,8 +37,8 @@ export const ProductDetails = ({ product }: { product: ProductDTO }) => {
                     onClick={() => setSelectedImage(img.url)}
                     className={`relative w-20 h-20 shrink-0 rounded border-2 transition-colors ${
                       selectedImage === img.url
-                        ? "border-blue-500"
-                        : "border-gray-200 hover:border-gray-300"
+                        ? "border-[color:var(--wm-gold)]"
+                        : "border-[color:rgba(201,132,154,0.25)] hover:border-[color:var(--wm-rose)]"
                     }`}
                     aria-label={`Select image ${(product.images?.indexOf(img) || 0) + 1}`}
                   >
@@ -55,7 +55,7 @@ export const ProductDetails = ({ product }: { product: ProductDTO }) => {
             )}
           </>
         ) : (
-          <div className="w-full h-96 bg-gray-100 rounded-lg flex items-center justify-center text-gray-500">
+          <div className="w-full h-96 bg-[color:var(--wm-plum-light)] rounded-lg flex items-center justify-center text-[color:var(--wm-rose)]">
             No images available
           </div>
         )}
@@ -63,39 +63,58 @@ export const ProductDetails = ({ product }: { product: ProductDTO }) => {
 
       {/* Product Details */}
       <div className="flex flex-col gap-4">
-        <h1 className="text-4xl font-bold">{product.name}</h1>
+        <h1
+          className="wm-h-page"
+          style={{ fontFamily: "var(--font-wm-display)", color: "var(--wm-cream)" }}
+        >
+          {product.name}
+        </h1>
 
         {product.description && (
-          <p className="text-gray-600 text-lg whitespace-pre-wrap">
+          <div
+            className="text-lg whitespace-pre-wrap"
+            style={{ color: "rgba(245,237,232,0.65)", fontFamily: "var(--font-wm-body)" }}
+          >
             {product.description}
-          </p>
+          </div>
         )}
 
         <div className="flex gap-8 items-center">
           {price && (
             <div>
-              <span className="text-3xl font-bold text-green-600">
+              <span
+                className="text-3xl font-medium"
+                style={{ color: "var(--wm-gold-light)", fontFamily: "var(--font-wm-body)" }}
+              >
                 £{price}
               </span>
             </div>
           )}
           {product.stock !== undefined && (
             <div>
-              <p className="text-sm text-gray-600">
+              <div className="text-sm" style={{ fontFamily: "var(--font-wm-body)" }}>
                 {product.stock > 0 ? (
-                  <span className="text-green-600 font-medium">
+                  <span className="font-medium" style={{ color: "var(--wm-rose-light)" }}>
                     {product.stock} in stock
                   </span>
                 ) : (
-                  <span className="text-red-600 font-medium">Out of stock</span>
+                  <span className="font-medium text-red-400">Out of stock</span>
                 )}
-              </p>
+              </div>
             </div>
           )}
         </div>
 
         {product.isEnquiryOnly && (
-          <div className="bg-yellow-50 border border-yellow-200 rounded p-3 text-yellow-800">
+          <div
+            className="rounded p-3 text-sm border"
+            style={{
+              backgroundColor: "rgba(200,169,110,0.08)",
+              borderColor: "rgba(200,169,110,0.3)",
+              color: "var(--wm-gold-light)",
+              fontFamily: "var(--font-wm-body)",
+            }}
+          >
             This item is available on enquiry only. Please add sizing details to
             make an enquiry.
           </div>

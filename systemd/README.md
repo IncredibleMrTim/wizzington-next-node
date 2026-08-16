@@ -131,5 +131,5 @@ sudo -u www-data ls -la /var/www/wizz-app
 ### Test application manually
 ```bash
 cd /var/www/wizz-app
-sudo -u www-data yarn start
+sudo -u www-data pnpm start
 ```

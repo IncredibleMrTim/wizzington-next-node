@@ -26,7 +26,10 @@ export const BreadCrumb = ({
   }
 
   return (
-    <div className="items-center justify-between text-black p-4 hidden md:flex">
+    <div
+      className="wm-scope items-center justify-between -mx-4 md:-mx-16 px-4 md:px-16 py-4 hidden md:flex"
+      style={{ backgroundColor: "var(--wm-plum)" }}
+    >
       <Breadcrumb>
         <BreadcrumbList>
           {segments.map((segment, index) => {
@@ -41,12 +44,23 @@ export const BreadCrumb = ({
             return (
               <div key={index} className="flex place-items-center gap-2">
                 <BreadcrumbItem key={index}>
-                  <Link href={`/${href}`}>{label}</Link>
+                  <Link
+                    href={`/${href}`}
+                    className="text-xs tracking-[0.08em] uppercase"
+                    style={{
+                      color: isLastSegment
+                        ? "var(--wm-gold)"
+                        : "var(--wm-rose)",
+                      fontFamily: "var(--font-wm-body)",
+                    }}
+                  >
+                    {label}
+                  </Link>
                 </BreadcrumbItem>
 
                 {!isLastSegment && (
                   <BreadcrumbSeparator>
-                    <p>/</p>
+                    <span style={{ color: "var(--wm-rose)" }}>/</span>
                   </BreadcrumbSeparator>
                 )}
               </div>

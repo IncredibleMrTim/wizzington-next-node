@@ -5,7 +5,7 @@ import { renderWithProviders, StoreProps } from "@/testing/utils";
 import { screen, render } from "@testing-library/react";
 
 import { ProductEditor } from "./ProductEditor";
-import { Schema } from "amplify/data/resource";
+import { ProductDTO } from "@/lib/types";
 import { useGetProductById } from "@/app/services/product/useGetProductById";
 
 import { FileUploader } from "@/components/fileUploader/FileUploader";
@@ -41,7 +41,7 @@ const mockProduct = {
       createdAt: new Date(),
     },
   ],
-} as unknown as Schema["Product"]["type"];
+} as unknown as ProductDTO;
 
 const mockStore: StoreProps = {
   preloadedState: { products: { currentProduct: mockProduct } },
@@ -342,7 +342,7 @@ describe("ProductEditor", () => {
           product,
         }: {
           updateProductImageOrder: jest.Mock;
-          product: Schema["Product"]["type"];
+          product: ProductDTO;
         }) => {
           return (
             <div
@@ -383,7 +383,7 @@ describe("ProductEditor", () => {
 
       // Re-mock the FileUploader so we can check that all images are added to the component
       (FileUploader as jest.Mock).mockImplementation(
-        ({ product }: { product: Schema["Product"]["type"] }) => (
+        ({ product }: { product: ProductDTO }) => (
           <div data-testid="file-uploader" onClick={mockUpdateProductImages}>
             {product.images.map((p) => (
               <div data-testid={p.url} />
@@ -449,7 +449,7 @@ describe("ProductEditor", () => {
           product,
         }: {
           updateProductImageOrder: jest.Mock;
-          product: Schema["Product"]["type"];
+          product: ProductDTO;
         }) => {
           return (
             <div
