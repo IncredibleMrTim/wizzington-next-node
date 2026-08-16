@@ -1,12 +1,14 @@
 import NavUserButtons from "@/components/navigation/NavUserButtons"
-// import { Drawer } from "../drawer/Drawer";
+import { Drawer } from "../drawer/Drawer"
 import { NavServer } from "../navigation/NavServer"
 import { HeaderClient } from "./HeaderClient"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/app/api/auth/[...nextauth]/route"
+import { getCategories } from "@/app/actions/categories.action"
 
 const Header = async () => {
   const session = await getServerSession(authOptions)
+  const categories = await getCategories()
 
   return (
     <header className="wm-scope sticky z-50 top-0 backdrop-blur-md">
@@ -21,6 +23,9 @@ const Header = async () => {
       {/* Content */}
       <div className="relative w-full flex justify-center md:justify-center p-4 h-48 md:h-auto md:py-4 bg-(--wm-plum-mid) opacity-85 backdrop-blur-md">
         <HeaderClient />
+        <div className="absolute right-2 top-2 md:hidden">
+          <Drawer categories={categories} type={session?.user.role} />
+        </div>
       </div>
 
       {/* Navigation + login/basket */}
@@ -29,10 +34,6 @@ const Header = async () => {
           <NavUserButtons type={session?.user.role} />
         </div>
         <NavServer />
-      </div>
-
-      <div className="flex w-full visible md:hidden bg-(--wm-plum)">
-        {/* <Drawer /> */}
       </div>
     </header>
   )
