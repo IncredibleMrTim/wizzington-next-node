@@ -1,3 +1,5 @@
+"use client";
+
 import {
   Drawer as ShDrawer,
   DrawerTrigger,
@@ -8,13 +10,20 @@ import {
 import { useNavStore } from "@/stores";
 import { FiMenu } from "react-icons/fi";
 import { DrawerTemplate } from "./DrawerTemplate";
+import { CategoryWithChildren } from "@/app/actions/categories.action";
+import { USER_ROLE } from "@/lib/types";
 
-export const Drawer = () => {
+interface DrawerProps {
+  categories: CategoryWithChildren[];
+  type?: USER_ROLE;
+}
+
+export const Drawer = ({ categories, type }: DrawerProps) => {
   const isOpen = useNavStore((state) => state.isDrawerOpen);
   const setIsDrawerOpen = useNavStore((state) => state.setIsDrawerOpen);
 
   return (
-    <div>
+    <div className="wm-scope">
       <ShDrawer
         aria-label="Open navigation"
         aria-controls="NavigationMenu"
@@ -24,14 +33,17 @@ export const Drawer = () => {
           setIsDrawerOpen(open);
         }}
       >
-        <DrawerTrigger className="flex justify-self-end p-4">
-          <FiMenu size={24} className="" />
+        <DrawerTrigger
+          className="flex justify-self-end p-2 rounded-full border border-[color:rgba(201,132,154,0.35)]"
+          style={{ color: "var(--wm-gold)" }}
+        >
+          <FiMenu size={22} />
         </DrawerTrigger>
         <DrawerHeader className="hidden">
           <DrawerTitle className="hidden">Navigation</DrawerTitle>
         </DrawerHeader>
-        <DrawerContent className="border-none">
-          <DrawerTemplate />
+        <DrawerContent className="border-none bg-(--wm-plum)!">
+          <DrawerTemplate categories={categories} type={type} />
         </DrawerContent>
       </ShDrawer>
     </div>

@@ -22,41 +22,58 @@ const ProductCard = ({ product, showDescription = true }: Props) => {
   const price = product.price ? Number(product.price).toFixed(2) : null;
 
   return (
-    <div className="flex flex-col p-4">
+    <div className="wm-scope flex flex-col overflow-hidden rounded m-2 border border-[color:rgba(201,132,154,0.12)] bg-[color:var(--wm-plum-mid)] transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-black/40">
       <Link
         href={`/product/${product?.id}`}
-        className="flex flex-col  text-black  mb-4 hover:opacity-75 transition-opacity"
+        className="flex flex-col transition-opacity"
       >
-        <div className="flex flex-col  h-full">
-          <div className="relative flex-1 rounded-sm overflow-hidden aspect-2/3">
+        <div className="flex flex-col h-full">
+          <div className="relative flex-1 overflow-hidden aspect-2/3 bg-[color:var(--wm-plum-light)]">
             {product?.images && product.images.length > 0 ? (
               <Image
                 src={product.images[0]?.url}
                 alt={product.name}
                 fill
-                className="w-full h-full object-cover object-top"
+                className="w-full h-full object-cover object-top transition-transform duration-500 hover:scale-105"
                 sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
                 loading="lazy"
               />
             ) : (
-              <div className="w-full h-full flex items-center justify-center text-gray-400">
+              <div className="w-full h-full flex items-center justify-center text-[color:var(--wm-rose)]">
                 No image
               </div>
             )}
           </div>
         </div>
       </Link>
-      <div className="relative flex flex-col gap-2 px-4 justify-center w-full">
-        <p className="text-center">{product.name}</p>
+      <div className="relative flex flex-col gap-2 px-4 py-4 justify-center w-full">
+        <div
+          className="wm-h-card text-center"
+          style={{ fontFamily: "var(--font-wm-display)", color: "var(--wm-cream)" }}
+        >
+          {product.name}
+        </div>
         {showDescription && product.description && (
-          <p className="text-gray-600 text-center">{product.description}</p>
+          <div
+            className="text-center text-sm"
+            style={{ color: "rgba(245,237,232,0.6)", fontFamily: "var(--font-wm-body)" }}
+          >
+            {product.description}
+          </div>
         )}
-        {price && <p className="text-green-600 text-center">£{price}</p>}
+        {price && (
+          <div
+            className="text-center text-lg font-medium"
+            style={{ color: "var(--wm-gold-light)", fontFamily: "var(--font-wm-body)" }}
+          >
+            £{price}
+          </div>
+        )}
         {isAdmin && (
           <Button
             onClick={() => router.push(`/admin/product/${product.id}`)}
             aria-label="Edit Product"
-            className="flex w-fit absolute top-0 right-2"
+            className="flex w-fit absolute top-2 right-2"
           >
             <FiEdit />
             Edit

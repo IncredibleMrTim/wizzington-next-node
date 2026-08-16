@@ -8,16 +8,6 @@ jest.mock("next/navigation", () => ({
 }));
 
 // Mock dependencies
-jest.mock("@aws-amplify/ui-react", () => ({
-  Authenticator: ({ children, components }: any) => (
-    <div>
-      {components?.Footer && (
-        <div data-testid="footer">{components.Footer()}</div>
-      )}
-      {children}
-    </div>
-  ),
-}));
 jest.mock("@/components/auth/Auth", () => () => <div>CheckAuth</div>);
 jest.mock("@/components/ui/button", () => ({
   Button: ({ children, ...props }: any) => (

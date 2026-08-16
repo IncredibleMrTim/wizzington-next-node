@@ -8,7 +8,7 @@ export const HeaderClient = () => {
 
   return (
     <div
-      className="relative w-40 h-40 cursor-pointer"
+      className="relative w-40 h-40 md:w-28 md:h-28 cursor-pointer"
       onClick={() => router.push("/")}
     >
       <Image

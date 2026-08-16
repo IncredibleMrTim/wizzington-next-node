@@ -165,8 +165,8 @@ async function seed() {
         categoryId: danceWear?.id,
         images: {
           create: [
-            { url: "/images/lyrical-1.jpg", orderPosition: 0 },
-            { url: "/images/lyrical-2.jpg", orderPosition: 1 },
+            { url: "/header-model.jpg", orderPosition: 0 },
+            { url: "/header-model.jpg", orderPosition: 1 },
           ],
         },
       },
@@ -182,7 +182,7 @@ async function seed() {
         isFeatured: true,
         categoryId: pageantWear?.id,
         images: {
-          create: [{ url: "/images/glitz-1.jpg", orderPosition: 0 }],
+          create: [{ url: "/header-model.jpg", orderPosition: 0 }],
         },
       },
     });
@@ -197,7 +197,7 @@ async function seed() {
         isFeatured: false,
         categoryId: danceWear?.id,
         images: {
-          create: [{ url: "/images/shoes-1.jpg", orderPosition: 0 }],
+          create: [{ url: "/header-model.jpg", orderPosition: 0 }],
         },
       },
     });

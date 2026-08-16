@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **You are an autonomous debugging and development agent** for this Next.js + Prisma 7 + PostgreSQL application. Your workflow:
 
-1. Run `yarn test` and `yarn build` to collect all current errors
+1. Run `pnpm test` and `pnpm build` to collect all current errors
 2. Read each failing test and build error carefully
 3. For each failure, read the relevant source files, identify the **root cause**, and apply a minimal fix
 4. Re-run tests after each fix to verify it passes without introducing regressions
@@ -14,7 +14,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **IMPORTANT RULES:**
 
-- **Never use npm** - This project uses Yarn 4.12.0 exclusively. Running npm will corrupt the lockfile.
+- **Never use npm or yarn** - This project uses pnpm exclusively. Running npm/yarn will corrupt the lockfile.
 - **After every code edit**, run `npx tsc --noEmit` and fix any errors before moving on. Do not ask to test — verify it yourself.
 - **Before making ANY code changes**, explain what you think the root cause is and which file(s) need to change. Wait for confirmation before editing.
 - **Never use `any` type** - use proper types, interfaces, or `unknown` if the type is truly unknown.
@@ -27,21 +27,21 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ### Development
 
 ```bash
-yarn dev              # Start Next.js dev server (http://localhost:3000)
-yarn build            # Build for production
-yarn start            # Start production server
-yarn lint             # Run ESLint
+pnpm dev              # Start Next.js dev server (http://localhost:3000)
+pnpm build            # Build for production
+pnpm start            # Start production server
+pnpm lint             # Run ESLint
 ```
 
 ### Database (Prisma 7 + PostgreSQL)
 
 ```bash
-yarn db:migrate       # Run migrations in development
-yarn db:migrate:prod  # Deploy migrations to production
-yarn db:generate      # Generate Prisma client
-yarn db:seed          # Seed development database
-yarn db:seed:prod     # Seed production database
-yarn db:reset         # Reset database (dev only)
+pnpm db:migrate       # Run migrations in development
+pnpm db:migrate:prod  # Deploy migrations to production
+pnpm db:generate      # Generate Prisma client
+pnpm db:seed          # Seed development database
+pnpm db:seed:prod     # Seed production database
+pnpm db:reset         # Reset database (dev only)
 ```
 
 **Note**: `postinstall` script automatically runs `prisma migrate deploy && prisma generate` on deployment.
@@ -49,7 +49,7 @@ yarn db:reset         # Reset database (dev only)
 ### Testing
 
 ```bash
-yarn test             # Run Jest test suite (no script defined yet - many tests skipped)
+pnpm test             # Run Jest test suite (no script defined yet - many tests skipped)
 npx tsc --noEmit      # Type-check without emitting files
 ```
 
@@ -70,7 +70,7 @@ npx tsc --noEmit      # Type-check without emitting files
 - **File Storage**: Vercel Blob
 - **Payments**: PayPal (server SDK + React integration)
 - **Testing**: Jest + React Testing Library
-- **Package Manager**: Yarn 4.12.0
+- **Package Manager**: pnpm
 
 ### Folder Structure
 
@@ -321,7 +321,7 @@ test("renders component", () => {
 **Always run full test suite after changes:**
 
 ```bash
-yarn test
+pnpm test
 ```
 
 **Type-check after every change:**
@@ -336,16 +336,18 @@ npx tsc --noEmit
 
 ### Package Management
 
-❌ **DO NOT use npm** - use `yarn` only. Running npm will corrupt `yarn.lock`.
+❌ **DO NOT use npm or yarn** - use `pnpm` only. Running npm/yarn will corrupt `pnpm-lock.yaml`.
 
 ```bash
 # WRONG
 npm install
 npm add package-name
-
-# CORRECT
 yarn install
 yarn add package-name
+
+# CORRECT
+pnpm install
+pnpm add package-name
 ```
 
 ### Prisma & Database
@@ -521,7 +523,7 @@ If you're familiar with other stacks, note these key differences:
 1. **Zustand, not Redux** - use store methods directly, no dispatch/actions
 2. **Prisma 7, not v6** - read schema before assuming patterns
 3. **Server Actions, not API routes** - for mutations and data fetching
-4. **Yarn 4, not npm** - strict package manager requirement
+4. **pnpm, not npm or yarn** - strict package manager requirement
 5. **Decimal.js in client** - never import Decimal from Prisma client
 6. **NextAuth v4** - not v5 (different API)
 7. **App Router** - not Pages Router
@@ -532,17 +534,17 @@ If you're familiar with other stacks, note these key differences:
 
 ```bash
 # Development
-yarn dev
+pnpm dev
 npx tsc --noEmit
 
 # Testing
-yarn test
-yarn build
+pnpm test
+pnpm build
 
 # Database
-yarn db:migrate
-yarn db:generate
-yarn db:seed
+pnpm db:migrate
+pnpm db:generate
+pnpm db:seed
 
 # Deployment
 git push origin main  # Auto-deploys to Vercel
@@ -551,3 +553,13 @@ git push origin main  # Auto-deploys to Vercel
 ---
 
 **When in doubt**: Read the actual code, run type-checking, and make minimal changes. Always verify your changes with `npx tsc --noEmit` before moving on.
+
+<!-- BEGIN:nextjs-agent-rules -->
+
+# This is NOT the Next.js you know
+
+This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` (resolved from this file's directory; in monorepos the `next` package may not be visible from the repo root) before writing any code. Heed deprecation notices.
+
+This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
+
+<!-- END:nextjs-agent-rules -->
