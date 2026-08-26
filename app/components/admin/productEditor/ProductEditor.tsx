@@ -1,19 +1,19 @@
-"use client";
-import { ChevronDown } from "lucide-react";
-import { useRouter } from "next/navigation";
-import { useForm } from "react-hook-form";
-import { FiArrowLeft, FiCheck } from "react-icons/fi";
-import z from "zod";
+"use client"
+import { ChevronDown } from "lucide-react"
+import { useRouter } from "next/navigation"
+import { useForm } from "react-hook-form"
+import { FiArrowLeft, FiCheck } from "react-icons/fi"
+import z from "zod"
 
-import { FileUploader } from "@/components/fileUploader/FileUploader";
-import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
+import { FileUploader } from "@/components/fileUploader/FileUploader"
+import { Button } from "@/components/ui/button"
+import { Checkbox } from "@/components/ui/checkbox"
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+} from "@/components/ui/dropdown-menu"
 import {
   Form,
   FormControl,
@@ -22,14 +22,14 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { zodResolver } from "@hookform/resolvers/zod";
+} from "@/components/ui/form"
+import { Input } from "@/components/ui/input"
+import { Textarea } from "@/components/ui/textarea"
+import { zodResolver } from "@hookform/resolvers/zod"
 
-import { useProductEditor, formSchema } from "./useProductEditor";
-import { useEffect } from "react";
-import { CategoryWithChildren } from "@/app/actions/categories.action";
+import { useProductEditor, formSchema } from "./useProductEditor"
+import { useEffect } from "react"
+import { CategoryWithChildren } from "@/app/actions/categories.action"
 
 export const ProductEditor = () => {
   const {
@@ -40,8 +40,8 @@ export const ProductEditor = () => {
     handleSubmit,
     updateProductImageOrder,
     categories,
-  } = useProductEditor();
-  const router = useRouter();
+  } = useProductEditor()
+  const router = useRouter()
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -56,15 +56,15 @@ export const ProductEditor = () => {
       isEnquiryOnly: product?.isEnquiryOnly ?? true,
       category: product?.categoryId || undefined,
     },
-  });
+  })
 
   useEffect(() => {
     const validateForm = async () => {
-      await form.trigger(); // Validates all fields immediately
-    };
-    validateForm();
+      await form.trigger() // Validates all fields immediately
+    }
+    validateForm()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [product?.id]);
+  }, [product?.id])
 
   /**
    * Recursively flattens categories with indentation for nested items
@@ -73,21 +73,21 @@ export const ProductEditor = () => {
     categories: CategoryWithChildren[],
     level: number = 0,
   ): Array<{ id: string; name: string; level: number }> => {
-    let flat: Array<{ id: string; name: string; level: number }> = [];
+    let flat: Array<{ id: string; name: string; level: number }> = []
     for (const cat of categories) {
-      flat.push({ id: cat.id, name: cat.name, level });
+      flat.push({ id: cat.id, name: cat.name, level })
       if (cat.children && cat.children.length > 0) {
-        flat = flat.concat(flattenCategories(cat.children, level + 1));
+        flat = flat.concat(flattenCategories(cat.children, level + 1))
       }
     }
-    return flat;
-  };
+    return flat
+  }
 
   const renderCategories = (
     categories: CategoryWithChildren[],
     onSelect: (catId: string) => void,
   ) => {
-    const flatCats = flattenCategories(categories);
+    const flatCats = flattenCategories(categories)
     return (
       <DropdownMenuContent className="bg-white w-(--radix-dropdown-menu-trigger-width) min-w-full">
         {flatCats.map((cat) => (
@@ -102,8 +102,8 @@ export const ProductEditor = () => {
           </DropdownMenuItem>
         ))}
       </DropdownMenuContent>
-    );
-  };
+    )
+  }
 
   return (
     <div className="-mt-8 bg-violet-50 p-4 shadow-sm shadow-gray-300 border-gray-200">
@@ -292,7 +292,7 @@ export const ProductEditor = () => {
                             ref={field.ref}
                             onBlur={field.onBlur}
                             onCheckedChange={(checked) => {
-                              field.onChange(checked === true);
+                              field.onChange(checked === true)
                             }}
                             disabled={field.disabled}
                             className={`h-4 w-4 bg-white border-gray-500 ${
@@ -333,12 +333,12 @@ export const ProductEditor = () => {
                                 : ""
                             }`}
                             id={field.name}
-                            checked={field.value || true}
+                            checked={field.value}
                             name={field.name}
                             ref={field.ref}
                             onBlur={field.onBlur}
                             onCheckedChange={(checked) => {
-                              field.onChange(checked === true);
+                              field.onChange(checked === true)
                             }}
                             disabled={field.disabled}
                           />
@@ -389,5 +389,5 @@ export const ProductEditor = () => {
         </form>
       </Form>
     </div>
-  );
-};
+  )
+}

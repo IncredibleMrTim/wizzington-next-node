@@ -23,7 +23,7 @@ export const Drawer = ({ categories, type }: DrawerProps) => {
   const setIsDrawerOpen = useNavStore((state) => state.setIsDrawerOpen);
 
   return (
-    <div className="wm-scope">
+    <div>
       <ShDrawer
         aria-label="Open navigation"
         aria-controls="NavigationMenu"
@@ -35,14 +35,14 @@ export const Drawer = ({ categories, type }: DrawerProps) => {
       >
         <DrawerTrigger
           className="flex justify-self-end p-2 rounded-full border border-[color:rgba(201,132,154,0.35)]"
-          style={{ color: "var(--wm-gold)" }}
+          style={{ color: "var(--color-brand-gold)" }}
         >
           <FiMenu size={22} />
         </DrawerTrigger>
         <DrawerHeader className="hidden">
           <DrawerTitle className="hidden">Navigation</DrawerTitle>
         </DrawerHeader>
-        <DrawerContent className="border-none bg-(--wm-plum)!">
+        <DrawerContent className="border-none bg-brand-plum!">
           <DrawerTemplate categories={categories} type={type} />
         </DrawerContent>
       </ShDrawer>

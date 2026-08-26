@@ -9,7 +9,7 @@ export default async function App() {
   const productCount = await getFeaturedProductCount();
 
   return (
-    <main className="wm-scope -m-4 md:-mx-16 md:-my-8 p-4 md:px-16 md:py-8 min-h-screen flex flex-col bg-[color:var(--wm-plum)]">
+    <main className="-m-4 md:-mx-16 md:-my-8 p-4 md:px-16 md:py-8 min-h-screen flex flex-col bg-brand-plum">
       <div className="flex flex-col grow">
         <div className="flex flex-col items-center gap-6"></div>
         <Suspense fallback={<ProductsSkeleton count={productCount} />}>

@@ -63,7 +63,7 @@ const NavUserButtons = ({ type = USER_ROLE.USER }: NavUserButtonsProps) => {
       <div className="flex absolute right-2 items-center gap-2 ">
         <Link
           href="/basket"
-          className="flex items-center rounded-full p-2 -mt-1 border border-[rgba(201,132,154,0.35)] text-(--wm-gold) hover:border-(--wm-gold) transition-colors"
+          className="flex items-center rounded-full p-2 -mt-1 border border-[rgba(201,132,154,0.35)] text-brand-gold hover:border-brand-gold transition-colors"
         >
           <CgShoppingCart size={18} />
         </Link>
@@ -71,7 +71,7 @@ const NavUserButtons = ({ type = USER_ROLE.USER }: NavUserButtonsProps) => {
         {userData?.user ? (
           <Popover onOpenChange={setAdminMenuOpen} open={adminMenuOpen}>
             <PopoverTrigger className="cursor-pointer">
-              <div className="flex justify-center items-center relative -mt-1 w-9 h-9 rounded-full overflow-hidden border-2 border-(--wm-gold) bg-(--wm-plum-light) text-(--wm-cream)">
+              <div className="flex justify-center items-center relative -mt-1 w-9 h-9 rounded-full overflow-hidden border-2 border-brand-gold bg-brand-plum-light text-brand-cream">
                 {userData?.user?.image ? (
                   <Image
                     src={userData.user.image}
@@ -85,7 +85,7 @@ const NavUserButtons = ({ type = USER_ROLE.USER }: NavUserButtonsProps) => {
                 )}
               </div>
             </PopoverTrigger>
-            <PopoverContent className="mr-4 mt-1 bg-(--wm-plum-mid) text-(--wm-cream) rounded-sm border-[rgba(201,132,154,0.25)]!">
+            <PopoverContent className="mr-4 mt-1 bg-brand-plum-mid text-brand-cream rounded-sm border-[rgba(201,132,154,0.25)]!">
               <PopoverClose asChild>
                 <AuthUserMenu
                   onMenuItemClick={handleAdminMenuItemClick}
@@ -97,7 +97,7 @@ const NavUserButtons = ({ type = USER_ROLE.USER }: NavUserButtonsProps) => {
         ) : (
           <Link
             href="/auth/signin"
-            className="text-(--wm-cream) text-sm hover:text-(--wm-gold) transition-colors"
+            className="text-brand-cream text-sm hover:text-brand-gold transition-colors"
           >
             Login
           </Link>

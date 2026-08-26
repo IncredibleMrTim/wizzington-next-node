@@ -27,8 +27,8 @@ export const BreadCrumb = ({
 
   return (
     <div
-      className="wm-scope items-center justify-between -mx-4 md:-mx-16 px-4 md:px-16 py-4 hidden md:flex"
-      style={{ backgroundColor: "var(--wm-plum)" }}
+      className="items-center justify-between -mx-4 md:-mx-16 px-4 md:px-16 py-4 hidden md:flex"
+      style={{ backgroundColor: "var(--color-brand-plum)" }}
     >
       <Breadcrumb>
         <BreadcrumbList>
@@ -49,9 +49,8 @@ export const BreadCrumb = ({
                     className="text-xs tracking-[0.08em] uppercase"
                     style={{
                       color: isLastSegment
-                        ? "var(--wm-gold)"
-                        : "var(--wm-rose)",
-                      fontFamily: "var(--font-wm-body)",
+                        ? "var(--color-brand-gold)"
+                        : "var(--color-brand-rose)",
                     }}
                   >
                     {label}
@@ -60,7 +59,7 @@ export const BreadCrumb = ({
 
                 {!isLastSegment && (
                   <BreadcrumbSeparator>
-                    <span style={{ color: "var(--wm-rose)" }}>/</span>
+                    <span style={{ color: "var(--color-brand-rose)" }}>/</span>
                   </BreadcrumbSeparator>
                 )}
               </div>

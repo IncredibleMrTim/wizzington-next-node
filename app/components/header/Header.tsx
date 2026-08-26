@@ -11,17 +11,17 @@ const Header = async () => {
   const categories = await getCategories()
 
   return (
-    <header className="wm-scope sticky z-50 top-0 backdrop-blur-md">
+    <header className="sticky z-50 top-0 backdrop-blur-md">
       {/* Background image (mobile only) */}
       <div
-        className="flex md:hidden absolute items-end w-full h-50 md:h-auto bg-cover bg-no-repeat bg-blend-multiply bg-[color:rgba(26,15,30,0.75)] md:bg-(--wm-plum-mid)"
+        className="flex md:hidden absolute items-end w-full h-50 md:h-auto bg-cover bg-no-repeat bg-blend-multiply bg-[color:rgba(26,15,30,0.75)] md:bg-brand-plum-mid"
         style={{
           backgroundImage: "url('/header-model.jpg')",
           backgroundPosition: "30%",
         }}
       ></div>
       {/* Content */}
-      <div className="relative w-full flex justify-center md:justify-center p-4 h-48 md:h-auto md:py-4 bg-(--wm-plum-mid) opacity-85 backdrop-blur-md">
+      <div className="relative w-full flex justify-center md:justify-center p-4 h-48 md:h-auto md:py-4 bg-brand-plum-mid opacity-85 backdrop-blur-md">
         <HeaderClient />
         <div className="absolute right-2 top-2 md:hidden">
           <Drawer categories={categories} type={session?.user.role} />
@@ -29,7 +29,7 @@ const Header = async () => {
       </div>
 
       {/* Navigation + login/basket */}
-      <div className="relative hidden w-full md:flex md:items-center md:justify-center bg-(--wm-plum) min-h-14">
+      <div className="relative hidden w-full md:flex md:items-center md:justify-center bg-brand-plum min-h-14">
         <div className="absolute right-4 top-1/4 -translate-y-1/2">
           <NavUserButtons type={session?.user.role} />
         </div>
