@@ -122,11 +122,11 @@ export const ProductEnquiryForm = ({ product }: ProductEnquiryFormProps) => {
       <div className="flex flex-col gap-4">
         <h2
           className="wm-h-section"
-          style={{ fontFamily: "var(--font-wm-display)", color: "var(--wm-cream)" }}
+          style={{ color: "var(--color-brand-cream)" }}
         >
           {currentProduct.isEnquiryOnly ? "Enquiry Details" : "Order Details"}
         </h2>
-        <div style={{ color: "rgba(245,237,232,0.6)", fontFamily: "var(--font-wm-body)" }}>
+        <div style={{ color: "rgba(245,237,232,0.6)" }}>
           Please add product details below
         </div>
       </div>
@@ -134,7 +134,7 @@ export const ProductEnquiryForm = ({ product }: ProductEnquiryFormProps) => {
       {/* Form section */}
       <div
         className="rounded-lg p-4 md:p-6"
-        style={{ backgroundColor: "var(--wm-cream)" }}
+        style={{ backgroundColor: "var(--color-brand-cream)" }}
       >
         {/* Product measurement fields grid */}
         <div className="flex flex-wrap flex-row gap-y-4 w-full justify-between">
@@ -165,7 +165,7 @@ export const ProductEnquiryForm = ({ product }: ProductEnquiryFormProps) => {
               addProductToOrder();
             }
           }}
-          className="flex items-center gap-2 justify-center mt-4 rounded-full bg-[color:var(--wm-gold)]! text-[color:var(--wm-plum)]! hover:bg-[color:var(--wm-gold-light)]! font-medium"
+          className="flex items-center gap-2 justify-center mt-4 rounded-full bg-brand-gold! text-brand-plum! hover:bg-brand-gold-light! font-medium"
         >
           Add to Collection
           <LuUpload />

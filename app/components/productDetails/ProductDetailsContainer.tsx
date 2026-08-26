@@ -14,14 +14,14 @@ export async function ProductDetailsContainer({
 
   if (!product) {
     return (
-      <div className="wm-scope -m-4 md:-mx-16 md:-my-8 p-4 md:px-16 md:py-8 min-h-screen bg-[color:var(--wm-plum)] text-[color:var(--wm-cream)]">
+      <div className="-m-4 md:-mx-16 md:-my-8 p-4 md:px-16 md:py-8 min-h-screen bg-brand-plum text-brand-cream">
         Product not found
       </div>
     );
   }
 
   return (
-    <div className="wm-scope -m-4 md:-mx-16 md:-my-8 p-4 md:px-16 md:py-8 min-h-screen bg-[color:var(--wm-plum)]">
+    <div className="-m-4 md:-mx-16 md:-my-8 p-4 md:px-16 md:py-8 min-h-screen bg-brand-plum">
       <div className="container mx-auto">
         <ProductDetails product={product} />
 

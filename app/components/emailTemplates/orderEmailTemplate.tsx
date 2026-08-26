@@ -1,5 +1,3 @@
-import { OrderResponseBody } from "@/components/payPal/payPalButton/PayPalButton";
-
 import ReactDOMServer from "react-dom/server";
 import {
   Table,
@@ -12,7 +10,17 @@ import {
 } from "@/components/ui/table";
 import { Order } from "@/lib/types";
 
-export const OrderEmailTemplate = (props: OrderResponseBody, order: Order) => {
+type OrderEmailPayer = {
+  payer?: {
+    name?: {
+      given_name?: string;
+      surname?: string;
+    };
+    email_address?: string;
+  };
+};
+
+export const OrderEmailTemplate = (props: OrderEmailPayer, order: Order) => {
   const name = props.payer?.name;
   const from = props.payer?.email_address;
   const temp = document.createElement("div");

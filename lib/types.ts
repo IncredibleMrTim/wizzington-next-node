@@ -75,6 +75,7 @@ export interface CreateOrderInput {
   customer_email?: string;
   customer_phone?: string;
   notes?: string;
+  status?: string;
   products: Array<{
     productId: string;
     name: string;

@@ -21,7 +21,7 @@ export const HomeHero = ({
 
   return (
     <>
-      <div className="wm-scope relative w-full overflow-hidden bg-[color:var(--wm-plum)]">
+      <div className="relative w-full overflow-hidden bg-brand-plum">
         <div
           className="absolute inset-0 bg-cover bg-no-repeat opacity-30"
           style={{
@@ -33,38 +33,35 @@ export const HomeHero = ({
           className="absolute inset-0"
           style={{
             background:
-              "radial-gradient(ellipse 80% 100% at 50% 50%, transparent 30%, var(--wm-plum) 100%)",
+              "radial-gradient(ellipse 80% 100% at 50% 50%, transparent 30%, var(--color-brand-plum) 100%)",
           }}
         />
         <div className="relative flex flex-col items-center gap-6 px-4 py-20 md:py-28 text-center">
           <span
             className="text-xs md:text-[0.72rem] tracking-[0.3em] uppercase"
             style={{
-              color: "var(--wm-gold)",
-              fontFamily: "var(--font-wm-body)",
+              color: "var(--color-brand-gold)",
             }}
           >
             Dancewear &amp; Pageant Couture
           </span>
-          <h2
+          <h1
             className="wm-h-hero max-w-4xl leading-[1.1]"
             style={{
-              fontFamily: "var(--font-wm-display)",
-              color: "var(--wm-cream)",
+              color: "var(--color-brand-cream)",
               fontWeight: 700,
             }}
           >
             Costumes that transform every{" "}
-            <em style={{ color: "var(--wm-rose-light)", fontStyle: "italic" }}>
+            <em style={{ color: "var(--color-brand-rose-light)", fontStyle: "italic" }}>
               performance
             </em>{" "}
             into an unforgettable spectacle
-          </h2>
+          </h1>
           <div
             className="max-w-xl text-base md:text-lg leading-relaxed"
             style={{
               color: "rgba(245,237,232,0.65)",
-              fontFamily: "var(--font-wm-body)",
             }}
           >
             Embracing individuality and artistry — each piece is crafted to make
@@ -75,8 +72,8 @@ export const HomeHero = ({
               href={danceWearHref}
               className="rounded-full px-8 py-3 text-xs font-semibold uppercase tracking-[0.1em] transition-colors"
               style={{
-                backgroundColor: "var(--wm-gold)",
-                color: "var(--wm-plum)",
+                backgroundColor: "var(--color-brand-gold)",
+                color: "var(--color-brand-plum)",
               }}
             >
               Shop Dance Wear
@@ -86,7 +83,7 @@ export const HomeHero = ({
               className="rounded-full px-8 py-3 text-xs font-normal uppercase tracking-[0.1em] border transition-colors"
               style={{
                 borderColor: "rgba(232,180,196,0.4)",
-                color: "var(--wm-rose-light)",
+                color: "var(--color-brand-rose-light)",
               }}
             >
               Pageant Wear

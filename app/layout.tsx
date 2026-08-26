@@ -8,6 +8,7 @@ import Header from "./components/header/Header";
 import SessionProvider from "./providers/SessionProvider";
 import { HomeHero } from "./components/HomeHero";
 import { getCategories } from "./actions/categories.action";
+import { SITE_URL, SITE_NAME, organizationJsonLd } from "@/lib/seo";
 
 const playfairDisplay = Playfair_Display({
   subsets: ["latin"],
@@ -22,13 +23,43 @@ const outfit = Outfit({
   variable: "--font-wm-body",
 });
 
+const DEFAULT_DESCRIPTION =
+  "Handcrafted dancewear & pageant couture from Wizzington Moo's Boutique, based in Park Gate (SO31), UK — shipping worldwide.";
+
 export const metadata: Metadata = {
-  title: "Wizzington Moo's UK",
-  description:
-    "Welcome to Wizzington Moo's UK, your one-stop shop for all things moo-tastic!",
+  metadataBase: new URL(SITE_URL),
+  title: {
+    default: `${SITE_NAME} | Dancewear & Pageant Couture`,
+    template: `%s | ${SITE_NAME}`,
+  },
+  description: DEFAULT_DESCRIPTION,
+  alternates: {
+    canonical: "/",
+  },
+  openGraph: {
+    type: "website",
+    siteName: SITE_NAME,
+    title: `${SITE_NAME} | Dancewear & Pageant Couture`,
+    description: DEFAULT_DESCRIPTION,
+    url: SITE_URL,
+    locale: "en_GB",
+    images: [{ url: "/logo.webp", width: 300, height: 297, alt: SITE_NAME }],
+  },
+  twitter: {
+    card: "summary",
+    title: `${SITE_NAME} | Dancewear & Pageant Couture`,
+    description: DEFAULT_DESCRIPTION,
+    images: ["/logo.webp"],
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
   icons: {
     icon: "/favicon.ico",
+    apple: "/apple-touch-icon.png",
   },
+  manifest: "/site.webmanifest",
 };
 
 export default async function RootLayout({
@@ -45,9 +76,13 @@ export default async function RootLayout({
   );
 
   return (
-    <html lang="en">
+    <html lang="en-GB">
       <body className={`${playfairDisplay.variable} ${outfit.variable}`}>
-        <Theme className="bg-(--wm-plum)!">
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd()) }}
+        />
+        <Theme className="bg-brand-plum!">
           <SessionProvider>
             <Header />
             <HomeHero

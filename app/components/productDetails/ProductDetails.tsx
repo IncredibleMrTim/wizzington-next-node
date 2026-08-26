@@ -37,8 +37,8 @@ export const ProductDetails = ({ product }: { product: ProductDTO }) => {
                     onClick={() => setSelectedImage(img.url)}
                     className={`relative w-20 h-20 shrink-0 rounded border-2 transition-colors ${
                       selectedImage === img.url
-                        ? "border-[color:var(--wm-gold)]"
-                        : "border-[color:rgba(201,132,154,0.25)] hover:border-[color:var(--wm-rose)]"
+                        ? "border-brand-gold"
+                        : "border-[color:rgba(201,132,154,0.25)] hover:border-brand-rose"
                     }`}
                     aria-label={`Select image ${(product.images?.indexOf(img) || 0) + 1}`}
                   >
@@ -55,7 +55,7 @@ export const ProductDetails = ({ product }: { product: ProductDTO }) => {
             )}
           </>
         ) : (
-          <div className="w-full h-96 bg-[color:var(--wm-plum-light)] rounded-lg flex items-center justify-center text-[color:var(--wm-rose)]">
+          <div className="w-full h-96 bg-brand-plum-light rounded-lg flex items-center justify-center text-brand-rose">
             No images available
           </div>
         )}
@@ -65,7 +65,7 @@ export const ProductDetails = ({ product }: { product: ProductDTO }) => {
       <div className="flex flex-col gap-4">
         <h1
           className="wm-h-page"
-          style={{ fontFamily: "var(--font-wm-display)", color: "var(--wm-cream)" }}
+          style={{ color: "var(--color-brand-cream)" }}
         >
           {product.name}
         </h1>
@@ -73,7 +73,7 @@ export const ProductDetails = ({ product }: { product: ProductDTO }) => {
         {product.description && (
           <div
             className="text-lg whitespace-pre-wrap"
-            style={{ color: "rgba(245,237,232,0.65)", fontFamily: "var(--font-wm-body)" }}
+            style={{ color: "rgba(245,237,232,0.65)" }}
           >
             {product.description}
           </div>
@@ -84,7 +84,7 @@ export const ProductDetails = ({ product }: { product: ProductDTO }) => {
             <div>
               <span
                 className="text-3xl font-medium"
-                style={{ color: "var(--wm-gold-light)", fontFamily: "var(--font-wm-body)" }}
+                style={{ color: "var(--color-brand-gold-light)" }}
               >
                 £{price}
               </span>
@@ -92,9 +92,9 @@ export const ProductDetails = ({ product }: { product: ProductDTO }) => {
           )}
           {product.stock !== undefined && (
             <div>
-              <div className="text-sm" style={{ fontFamily: "var(--font-wm-body)" }}>
+              <div className="text-sm">
                 {product.stock > 0 ? (
-                  <span className="font-medium" style={{ color: "var(--wm-rose-light)" }}>
+                  <span className="font-medium" style={{ color: "var(--color-brand-rose-light)" }}>
                     {product.stock} in stock
                   </span>
                 ) : (
@@ -111,8 +111,7 @@ export const ProductDetails = ({ product }: { product: ProductDTO }) => {
             style={{
               backgroundColor: "rgba(200,169,110,0.08)",
               borderColor: "rgba(200,169,110,0.3)",
-              color: "var(--wm-gold-light)",
-              fontFamily: "var(--font-wm-body)",
+              color: "var(--color-brand-gold-light)",
             }}
           >
             This item is available on enquiry only. Please add sizing details to

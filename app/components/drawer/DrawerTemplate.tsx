@@ -41,8 +41,8 @@ export const DrawerTemplate = ({ categories }: DrawerTemplateProps) => {
 
   return (
     <div
-      className="wm-scope h-full w-full text-center flex flex-col"
-      style={{ backgroundColor: "var(--wm-plum)" }}
+      className="h-full w-full text-center flex flex-col"
+      style={{ backgroundColor: "var(--color-brand-plum)" }}
     >
       <div className="w-full flex justify-end">
         <div
@@ -52,7 +52,7 @@ export const DrawerTemplate = ({ categories }: DrawerTemplateProps) => {
           <FiChevronsRight
             size={24}
             className="cursor-pointer self-end"
-            style={{ color: "var(--wm-gold)" }}
+            style={{ color: "var(--color-brand-gold)" }}
             onClick={() => {
               setIsDrawerOpen(false);
             }}
@@ -60,13 +60,13 @@ export const DrawerTemplate = ({ categories }: DrawerTemplateProps) => {
           <div>
             <div
               className="pl-1 text-lg"
-              style={{ fontFamily: "var(--font-wm-display)", color: "var(--wm-cream)" }}
+              style={{ color: "var(--color-brand-cream)" }}
             >
               {`Welcome to Wizzington Moo's UK`}
             </div>
             <div
               className="font-thin! italic text-sm"
-              style={{ color: "rgba(245,237,232,0.6)", fontFamily: "var(--font-wm-body)" }}
+              style={{ color: "rgba(245,237,232,0.6)" }}
             >
               Costumes that transform every performance
             </div>
@@ -84,8 +84,8 @@ export const DrawerTemplate = ({ categories }: DrawerTemplateProps) => {
             >
               <Link
                 href={link.href}
-                className="flex text-sm w-full place-items-center justify-center uppercase tracking-[0.08em] hover:text-[color:var(--wm-gold)] transition-colors"
-                style={{ color: "var(--wm-rose)", fontFamily: "var(--font-wm-body)" }}
+                className="flex text-sm w-full place-items-center justify-center uppercase tracking-[0.08em] hover:text-brand-gold transition-colors"
+                style={{ color: "var(--color-brand-rose)" }}
                 onClick={() => {
                   setIsDrawerOpen(false);
                 }}
@@ -100,8 +100,8 @@ export const DrawerTemplate = ({ categories }: DrawerTemplateProps) => {
           >
             <Link
               href="/basket"
-              className="flex items-center gap-2 text-sm w-full place-items-center justify-center uppercase tracking-[0.08em] hover:text-[color:var(--wm-gold)] transition-colors"
-              style={{ color: "var(--wm-gold)", fontFamily: "var(--font-wm-body)" }}
+              className="flex items-center gap-2 text-sm w-full place-items-center justify-center uppercase tracking-[0.08em] hover:text-brand-gold transition-colors"
+              style={{ color: "var(--color-brand-gold)" }}
               onClick={() => {
                 setIsDrawerOpen(false);
               }}
@@ -131,8 +131,8 @@ export const DrawerTemplate = ({ categories }: DrawerTemplateProps) => {
                 <Link
                   href="/admin"
                   onClick={() => setIsDrawerOpen(false)}
-                  className="flex justify-center text-sm w-full text-center mt-2 hover:text-[color:var(--wm-gold)] transition-colors"
-                  style={{ color: "var(--wm-cream)", fontFamily: "var(--font-wm-body)" }}
+                  className="flex justify-center text-sm w-full text-center mt-2 hover:text-brand-gold transition-colors"
+                  style={{ color: "var(--color-brand-cream)" }}
                 >
                   Admin Portal
                 </Link>
@@ -140,8 +140,8 @@ export const DrawerTemplate = ({ categories }: DrawerTemplateProps) => {
               <Link
                 onClick={() => signOut()}
                 href=""
-                className="flex justify-center text-sm w-full text-center mt-2 lg:hidden hover:text-[color:var(--wm-gold)] transition-colors"
-                style={{ color: "var(--wm-cream)", fontFamily: "var(--font-wm-body)" }}
+                className="flex justify-center text-sm w-full text-center mt-2 lg:hidden hover:text-brand-gold transition-colors"
+                style={{ color: "var(--color-brand-cream)" }}
               >
                 Logout
               </Link>
@@ -157,9 +157,8 @@ export const DrawerTemplate = ({ categories }: DrawerTemplateProps) => {
               onClick={handleGoogleSignIn}
               className="font-normal! rounded-full px-6 py-2 text-sm"
               style={{
-                backgroundColor: "var(--wm-gold)",
-                color: "var(--wm-plum)",
-                fontFamily: "var(--font-wm-body)",
+                backgroundColor: "var(--color-brand-gold)",
+                color: "var(--color-brand-plum)",
               }}
             >
               {isLoading ? "Signing in..." : "Sign in with Google"}

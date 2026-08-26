@@ -80,11 +80,11 @@ const renderMenuContent = (
       {content.map((item) => (
         <ul key={item.id} className="flex flex-col">
           <li
-            className={`flex flex-col${item.items ? "text-lg uppercase pb-6" : ""} pr-8 text-[color:var(--wm-cream)]`}
+            className={`flex flex-col${item.items ? "text-lg uppercase pb-6" : ""} pr-8 text-brand-cream`}
           >
             <Link
               href={`/category/${item.id}`}
-              className="hover:text-[color:var(--wm-gold)] transition-colors"
+              className="hover:text-brand-gold transition-colors"
             >
               {item.title}
             </Link>
@@ -106,7 +106,7 @@ export const NavClient = ({
   categories: CategoryWithChildren[];
 }) => {
   const menuItems = transformCategoriesToMenuItems(categories);
-  const linkClass = `${navigationMenuTriggerStyle()} font-normal bg-transparent! text-[color:var(--wm-rose)]! text-xs tracking-[0.12em] hover:text-[color:var(--wm-gold)]! hover:bg-transparent! focus:bg-transparent! data-[state=open]:bg-transparent! data-[state=open]:text-[color:var(--wm-gold)]!`;
+  const linkClass = `${navigationMenuTriggerStyle()} font-normal bg-transparent! text-brand-rose! text-xs tracking-[0.12em] hover:text-brand-gold! hover:bg-transparent! focus:bg-transparent! data-[state=open]:bg-transparent! data-[state=open]:text-brand-gold!`;
   return (
     <NavigationMenu viewport={false}>
       <NavigationMenuList>
@@ -120,11 +120,11 @@ export const NavClient = ({
             {n0.items?.length ? (
               <>
                 <NavigationMenuTrigger
-                  className={`font-normal bg-transparent! text-[color:var(--wm-rose)]! text-xs tracking-[0.12em] hover:text-[color:var(--wm-gold)]! hover:bg-transparent! focus:bg-transparent! data-[state=open]:bg-transparent! data-[state=open]:text-[color:var(--wm-gold)]!`}
+                  className={`font-normal bg-transparent! text-brand-rose! text-xs tracking-[0.12em] hover:text-brand-gold! hover:bg-transparent! focus:bg-transparent! data-[state=open]:bg-transparent! data-[state=open]:text-brand-gold!`}
                 >
                   {n0.title.toUpperCase()}
                 </NavigationMenuTrigger>
-                <NavigationMenuContent className="z-10 bg-[color:var(--wm-plum-mid)]! border-0! border-t! border-[color:var(--wm-gold)]! rounded-none! shadow-lg! flex flex-row mt-0! p-6">
+                <NavigationMenuContent className="z-10 bg-brand-plum-mid! border-0! border-t! border-brand-gold! rounded-none! shadow-lg! flex flex-row mt-0! p-6">
                   {renderMenuContent(n0.items.sort((item) => item.position))}
                 </NavigationMenuContent>
               </>

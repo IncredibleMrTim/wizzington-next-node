@@ -1,22 +1,28 @@
 @import "tailwindcss";
 
+
+@theme {
+  /* Storefront design tokens (new visual identity) — additive only, does not
+     replace the shadcn tokens below, which admin/shared UI still rely on. */
+  --color-brand-plum: #1a0f1e;
+  --color-brand-plum-mid: #2d1a35;
+  --color-brand-plum-light: #3f2550;
+  --color-brand-plum-footer: #120b15;
+  --color-brand-rose: #c9849a;
+  --color-brand-rose-light: #e8b4c4;
+  --color-brand-cream: #f5ede8;
+  --color-brand-gold: #c8a96e;
+  --color-brand-gold-light: #e8cfa0;
+}
+
 body {
-  background-color: var(--wm-plum);
+  background-color: var(--color-brand-plum);
+  font-family: var(--font-wm-body);
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-brand-plum-light) transparent;
 }
 
 :root {
-  /* Storefront design tokens (new visual identity) — additive only, does not
-     replace the shadcn tokens below, which admin/shared UI still rely on. */
-  --wm-plum: #1a0f1e;
-  --wm-plum-mid: #2d1a35;
-  --wm-plum-light: #3f2550;
-  --wm-plum-footer: #120b15;
-  --wm-rose: #c9849a;
-  --wm-rose-light: #e8b4c4;
-  --wm-cream: #f5ede8;
-  --wm-gold: #c8a96e;
-  --wm-gold-light: #e8cfa0;
-
   --radius: 0.3rem;
   --background: oklch(1 0 0);
   --foreground: oklch(0.141 0.005 285.823);
@@ -85,42 +91,6 @@ body {
   --sidebar-ring: oklch(0.488 0.243 264.376);
 }
 
-@font-face {
-  font-family: "LeagueSpartan";
-  display: swap;
-  src: url("./fonts/LeagueSpartan-VariableFont_wght.ttf");
-}
-
-@font-face {
-  font-family: "NunitoSans";
-  display: swap;
-  src: url("./fonts/NunitoSans-VariableFont_YTLC.ttf");
-}
-
-@font-face {
-  font-family: "PetitFormalScript";
-  display: swap;
-  src: url("./fonts/Allura-Regular.ttf");
-}
-
-@font-face {
-  font-family: "Comfortaa";
-  display: swap;
-  src: url("./fonts/Comfortaa-VariableFont_wght.ttf");
-}
-
-@font-face {
-  font-family: "EduNSWACT";
-  display: swap;
-  src: url("./fonts/EduNSWACTCursive-VariableFont_wght.ttf");
-}
-
-@font-face {
-  font-family: "jost";
-  display: swap;
-  src: url("./fonts/Jost-VariableFont_wght.ttf");
-}
-
 @keyframes nav-fade-in {
   0% {
     opacity: 0
@@ -185,14 +155,8 @@ body {
   animation: product-fade-in 0.5s ease-in-out;
 }
 
-.font-petitFormalScript {
-  font-family: "PetitFormalScript", sans-serif !important;
-}
-
-
-
 p {
-  font-family: "LeagueSpartan", sans-serif;
+  font-family: var(--font-wm-body);
   font-size: 14px !important;
   font-weight: 400;
   line-height: 1.5;
@@ -203,94 +167,62 @@ div,
 span,
 a,
 button,
-input,
+input {
+  font-family: var(--font-wm-body);
+}
+
 h1,
 h2,
 h3,
 h4,
 h5,
 h6 {
-  font-family: "jost";
+  font-family: var(--font-wm-display);
+}
+
+h1,
+h2,
+h3,
+h4 {
+  margin: 0 !important;
 }
 
 h1 {
   font-size: 2rem !important;
   font-weight: 700;
-  margin: 0;
 }
 
 h2 {
   font-size: 1.5rem !important;
   font-weight: 700;
-  margin: 0;
 }
 
 h3 {
   font-size: 1.2rem !important;
   font-weight: 700;
-  margin: 0;
 }
 
 h4 {
   font-size: 1.1rem !important;
   font-weight: 700;
-  margin: 0;
 }
 
-.font-nunitoSans {
-  font-family: "NunitoSans";
-}
-
-.font-petitFormalScript{
-  font-family: "PetitFormalScript";
-}
-
-.font-leagueSpartan {
-  font-family: "LeagueSpartan";
-}
-
-.font-Comfortaa {
-  font-family: "Comfortaa"
-}
-
-.font-EduNSWACT {
-  font-family: "EduNSWACT";
-}
-
-.font-jost {
-  font-family: "jost";
-}
-
-/* Storefront-only heading overrides. Scoped under .wm-scope so the global
-   h1-h4/p rules above (relied on elsewhere, e.g. admin) are left untouched. */
-.wm-scope {
-  scrollbar-width: thin;
-  scrollbar-color: var(--wm-plum-light) transparent;
-}
-
-.wm-scope h1,
-.wm-scope h2,
-.wm-scope h3,
-.wm-scope h4 {
-  margin: 0 !important;
-}
-
-.wm-scope .wm-h-hero {
+.wm-h-hero {
   font-size: clamp(2.4rem, 6vw, 4.5rem) !important;
   font-weight: 600 !important;
 }
 
-.wm-scope .wm-h-section {
+.wm-h-section {
   font-size: 1.6rem !important;
   font-weight: 400 !important;
 }
 
-.wm-scope .wm-h-card {
+.wm-h-card {
   font-size: 1.1rem !important;
   font-weight: 600 !important;
 }
 
-.wm-scope .wm-h-page {
+.wm-h-page {
   font-size: 2.25rem !important;
   font-weight: 600 !important;
 }
